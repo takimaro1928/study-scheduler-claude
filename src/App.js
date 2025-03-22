@@ -350,65 +350,64 @@ function App() {
   };
 
   // 今日のコンポーネント
-  const TodayView = () => {
-    const todayQuestions = getTodayQuestions();
-    
-    return (
-      <div className="p-4 max-w-5xl mx-auto">
-        <h2 className="text-xl font-bold mb-6 text-gray-800 flex items-center">
-          <Clock className="w-5 h-5 mr-2" />
-          今日解く問題（{formatDate(new Date())}）
-        </h2>
-        
-        {todayQuestions.length === 0 ? (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
-            <p className="text-blue-800">今日解く問題はありません。おつかれさまでした！</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {todayQuestions.map(question => (
-              <div key={question.id} className="bg-white p-5 rounded-lg shadow border border-gray-100 hover:shadow-md transition-shadow">
-                <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+const TodayView = () => {
+  const todayQuestions = getTodayQuestions();
+  
+  return (
+    <div className="p-4 max-w-5xl mx-auto">
+      <h2 className="text-xl font-bold mb-6 text-gray-800 flex items-center">
+        <Clock className="w-5 h-5 mr-2" />
+        今日解く問題（{formatDate(new Date())}）
+      </h2>
+      
+      {todayQuestions.length === 0 ? (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+          <p className="text-blue-800">今日解く問題はありません。おつかれさまでした！</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {todayQuestions.map(question => (
+            <div key={question.id} className="bg-white p-5 rounded-lg shadow border border-gray-100">
+              <div className="flex flex-col gap-4">
+                <div className="flex justify-between items-start">
                   <div>
-                    <div className="text-xs text-gray-500 mb-1">{question.subjectName} &gt; {question.chapterName}</div>
-                    <div className="font-medium text-lg mb-3 text-gray-800">問題 {question.id}</div>
-                    <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm text-gray-600">
-                      <div>正答率: <span className="font-medium">{question.correctRate}%</span></div>
-                      <div>回答回数: <span className="font-medium">{question.answerCount}回</span></div>
-                      <div>前回解答: <span className="font-medium">{formatDate(question.lastAnswered)}</span></div>
-                      <div>理解度: <span className="font-medium">{question.understanding}</span></div>
-                    </div>
+                    <div className="text-xs text-gray-500 mb-1">{question.subjectName}</div>
+                    <div className="font-medium text-lg mb-2 text-gray-800">{question.chapterName}</div>
+                    <div className="text-sm text-gray-700 font-medium">問題 {question.id}</div>
                   </div>
-                  
-                  <div className="flex flex-col sm:flex-row gap-2 mt-2 md:mt-0">
-                    <button 
-                      onClick={() => recordAnswer(question.id, true, '理解○')}
-                      className="flex items-center justify-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-                    >
-                      <CheckCircle className="w-4 h-4 mr-1" /> 理解○
-                    </button>
-                    <button 
-                      onClick={() => recordAnswer(question.id, true, '曖昧△')}
-                      className="flex items-center justify-center px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
-                    >
-                      <AlertTriangle className="w-4 h-4 mr-1" /> 曖昧△
-                    </button>
-                    <button 
-                      onClick={() => recordAnswer(question.id, false, '理解できていない×')}
-                      className="flex items-center justify-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                    >
-                      <XCircle className="w-4 h-4 mr-1" /> 理解×
-                    </button>
+                  <div className="text-sm bg-gray-100 px-3 py-1 rounded-full">
+                    正答率: {question.correctRate}%
                   </div>
                 </div>
+                
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <button 
+                    onClick={() => recordAnswer(question.id, true, '理解○')}
+                    className="flex-1 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center"
+                  >
+                    <CheckCircle className="w-5 h-5 mr-2" /> 理解できた
+                  </button>
+                  <button 
+                    onClick={() => recordAnswer(question.id, true, '曖昧△')}
+                    className="flex-1 py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors flex items-center justify-center"
+                  >
+                    <AlertTriangle className="w-5 h-5 mr-2" /> 曖昧
+                  </button>
+                  <button 
+                    onClick={() => recordAnswer(question.id, false, '理解できていない×')}
+                    className="flex-1 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center"
+                  >
+                    <XCircle className="w-5 h-5 mr-2" /> 理解できない
+                  </button>
+                </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
   // 全問題一覧コンポーネント
   const AllQuestionsView = () => {
     return (
