@@ -761,7 +761,42 @@ const ScheduleView = () => {
     setCurrentMonth(newMonth);
   };
   
-  // 月のカレンダーデータを生成（既存関数）
+  // 月のカレンダーデータを生成
+  const getCalendarData = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    
+    const daysInMonth = lastDay.getDate();
+    const startDayOfWeek = firstDay.getDay();
+    
+    const calendar = [];
+    let day = 1;
+    
+    for (let i = 0; i < 6; i++) {
+      const week = [];
+      for (let j = 0; j < 7; j++) {
+        if ((i === 0 && j < startDayOfWeek) || day > daysInMonth) {
+          week.push(null);
+        } else {
+          const currentDate = new Date(year, month, day);
+          const questionsForDay = getQuestionsForDate(currentDate);
+          week.push({
+            day,
+            date: currentDate,
+            questions: questionsForDay
+          });
+          day++;
+        }
+      }
+      calendar.push(week);
+      if (day > daysInMonth) break;
+    }
+    
+    return calendar;
+  };
   
   const calendar = getCalendarData(currentMonth);
   const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
