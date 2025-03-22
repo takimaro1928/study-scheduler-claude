@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, List, ChevronRight, ChevronDown, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { Calendar, Clock, List, ChevronRight, ChevronLeft, ChevronDown, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 
 // 初期データの作成
 const generateInitialData = () => {
