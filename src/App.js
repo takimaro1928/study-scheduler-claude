@@ -13,7 +13,18 @@ const generateInitialData = () => {
         { id: 103, name: "企業戦略（成長戦略） Q1-3", questions: generateQuestions('1-3', 1, 27) },
         { id: 104, name: "技術経営 Q1-4", questions: generateQuestions('1-4', 1, 14) },
         { id: 105, name: "企業の社会的責任（CSR）とコーポレートガバナンス Q1-5", questions: generateQuestions('1-5', 1, 5) },
-        // 他の章も同様に追加
+        { id: 106, name: "組織構造論 Q2-1", questions: generateQuestions('2-1', 1, 18) },
+        { id: 107, name: "組織行動論 Q2-2", questions: generateQuestions('2-2', 1, 21) },
+        { id: 108, name: "人的資源管理 Q2-3", questions: generateQuestions('2-3', 1, 12) },
+        { id: 109, name: "マーケティングの基礎概念 Q3-1", questions: generateQuestions('3-1', 1, 2) },
+        { id: 110, name: "マーケティングマネジメント戦略の展開 Q3-2", questions: generateQuestions('3-2', 1, 5) },
+        { id: 111, name: "マーケティングリサーチ Q3-3", questions: generateQuestions('3-3', 1, 4) },
+        { id: 112, name: "消費者購買行動と組織購買行動 Q3-4", questions: generateQuestions('3-4', 1, 8) },
+        { id: 113, name: "製品戦略 Q3-5", questions: generateQuestions('3-5', 1, 13) },
+        { id: 114, name: "価格戦略 Q3-6", questions: generateQuestions('3-6', 1, 8) },
+        { id: 115, name: "チャネル・物流戦略 Q3-7", questions: generateQuestions('3-7', 1, 7) },
+        { id: 116, name: "プロモーション戦略 Q3-8", questions: generateQuestions('3-8', 1, 7) },
+        { id: 117, name: "関係性マーケティングとデジタルマーケティング Q3-9", questions: generateQuestions('3-9', 1, 4) }
       ]
     },
     {
@@ -22,15 +33,59 @@ const generateInitialData = () => {
       chapters: [
         { id: 201, name: "生産管理概論 Q1-1", questions: generateQuestions('1-1', 1, 10) },
         { id: 202, name: "生産のプランニング Q1-2", questions: generateQuestions('1-2', 1, 52) },
-        // 他の章も同様に追加
+        { id: 203, name: "生産のオペレーション Q1-3", questions: generateQuestions('1-3', 1, 35) },
+        { id: 204, name: "製造業における情報システム Q1-4", questions: generateQuestions('1-4', 1, 6) },
+        { id: 205, name: "店舗・商業集積 Q2-1", questions: generateQuestions('2-1', 1, 9) },
+        { id: 206, name: "商品仕入・販売（マーチャンダイジング） Q2-2", questions: generateQuestions('2-2', 1, 23) },
+        { id: 207, name: "物流・輸配送管理 Q2-3", questions: generateQuestions('2-3', 1, 18) },
+        { id: 208, name: "販売流通情報システム Q2-4", questions: generateQuestions('2-4', 1, 17) }
       ]
     },
-    // 他の科目も同様に追加
+    {
+      id: 3,
+      name: "経済学",
+      chapters: [
+        { id: 301, name: "企業行動の分析 Q1", questions: generateQuestions('1', 1, 19) },
+        { id: 302, name: "消費者行動の分析 Q2", questions: generateQuestions('2', 1, 22) },
+        { id: 303, name: "市場均衡と厚生分析 Q3", questions: generateQuestions('3', 1, 23) },
+        { id: 304, name: "不完全競争 Q4", questions: generateQuestions('4', 1, 15) },
+        { id: 305, name: "市場の失敗と政府の役割 Q5", questions: generateQuestions('5', 1, 15) },
+        { id: 306, name: "国民経済計算と主要経済指標 Q6", questions: generateQuestions('6', 1, 13) },
+        { id: 307, name: "財市場の分析 Q7", questions: generateQuestions('7', 1, 11) },
+        { id: 308, name: "貨幣市場とIS-LM分析 Q8", questions: generateQuestions('8', 1, 14) },
+        { id: 309, name: "雇用と物価水準 Q9", questions: generateQuestions('9', 1, 8) },
+        { id: 310, name: "消費、投資、財政金融政策に関する理論 Q10", questions: generateQuestions('10', 1, 11) },
+        { id: 311, name: "国際マクロ経済 Q11", questions: generateQuestions('11', 1, 6) },
+        { id: 312, name: "景気循環と経済成長 Q12", questions: generateQuestions('12', 1, 3) }
+      ]
+    },
+    {
+      id: 4,
+      name: "経営情報システム",
+      chapters: [
+        { id: 401, name: "情報技術に関する基礎知識 Q1", questions: generateQuestions('1', 1, 178) },
+        { id: 402, name: "ソフトウェア開発 Q2", questions: generateQuestions('2', 1, 38) },
+        { id: 403, name: "経営情報管理 Q3", questions: generateQuestions('3', 1, 35) },
+        { id: 404, name: "統計解析 Q4", questions: generateQuestions('4', 1, 9) }
+      ]
+    },
+    {
+      id: 5,
+      name: "経営法務",
+      chapters: [
+        { id: 501, name: "民法その他の知識 Q1", questions: generateQuestions('1', 1, 54) },
+        { id: 502, name: "会社法等に関する知識 Q2", questions: generateQuestions('2', 1, 123) },
+        { id: 503, name: "資本市場に関する知識 Q3", questions: generateQuestions('3', 1, 12) },
+        { id: 504, name: "倒産等に関する知識 Q4", questions: generateQuestions('4', 1, 16) },
+        { id: 505, name: "知的財産権等に関する知識 Q5", questions: generateQuestions('5', 1, 107) },
+        { id: 506, name: "その他経営法務に関する知識 Q6", questions: generateQuestions('6', 1, 19) }
+      ]
+    },
     {
       id: 6,
       name: "中小企業経営・中小企業政策",
       chapters: [
-        { id: 601, name: "後日追加予定", questions: [] },
+        { id: 601, name: "後日追加予定", questions: [] }
       ]
     }
   ];
