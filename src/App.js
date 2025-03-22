@@ -661,221 +661,158 @@ const TodayView = () => {
     );
   };
 
-  // スケジュール一覧コンポーネント
-  const ScheduleView = () => {
-    const [viewMode, setViewMode] = useState('list');
-    const [currentMonth, setCurrentMonth] = useState(new Date());
+ // スケジュール一覧コンポーネント
+const ScheduleView = () => {
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  
+  // 月を変更
+  const changeMonth = (offset) => {
+    const newMonth = new Date(currentMonth);
+    newMonth.setMonth(newMonth.getMonth() + offset);
+    setCurrentMonth(newMonth);
+  };
+  
+  // 月のカレンダーデータを生成
+  const getCalendarData = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
     
-    // 月を変更
-    const changeMonth = (offset) => {
-      const newMonth = new Date(currentMonth);
-      newMonth.setMonth(newMonth.getMonth() + offset);
-      setCurrentMonth(newMonth);
-    };
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
     
-    // 月のカレンダーデータを生成
-    const getCalendarData = (date) => {
-      const year = date.getFullYear();
-      const month = date.getMonth();
-      
-      const firstDay = new Date(year, month, 1);
-      const lastDay = new Date(year, month + 1, 0);
-      
-      const daysInMonth = lastDay.getDate();
-      const startDayOfWeek = firstDay.getDay();
-      
-      const calendar = [];
-      let day = 1;
-      
-      for (let i = 0; i < 6; i++) {
-        const week = [];
-        for (let j = 0; j < 7; j++) {
-          if ((i === 0 && j < startDayOfWeek) || day > daysInMonth) {
-            week.push(null);
-          } else {
-            const currentDate = new Date(year, month, day);
-            const questionsForDay = getQuestionsForDate(currentDate);
-            week.push({
-              day,
-              date: currentDate,
-              questions: questionsForDay
-            });
-            day++;
-          }
-        }
-        calendar.push(week);
-        if (day > daysInMonth) break;
-      }
-      
-      return calendar;
-    };
+    const daysInMonth = lastDay.getDate();
+    const startDayOfWeek = firstDay.getDay();
     
-    // リスト表示
-    const renderListView = () => {
-      const nextDates = [];
-      const uniqueDates = new Set();
-      
-      subjects.forEach(subject => {
-        subject.chapters.forEach(chapter => {
-          chapter.questions.forEach(question => {
-            const dateStr = formatDate(question.nextDate);
-            if (!uniqueDates.has(dateStr)) {
-              uniqueDates.add(dateStr);
-              nextDates.push({
-                date: new Date(question.nextDate),
-                dateStr,
-                count: 1
-              });
-            } else {
-              const index = nextDates.findIndex(d => d.dateStr === dateStr);
-              if (index !== -1) {
-                nextDates[index].count++;
-              }
-            }
+    const calendar = [];
+    let day = 1;
+    
+    for (let i = 0; i < 6; i++) {
+      const week = [];
+      for (let j = 0; j < 7; j++) {
+        if ((i === 0 && j < startDayOfWeek) || day > daysInMonth) {
+          week.push(null);
+        } else {
+          const currentDate = new Date(year, month, day);
+          const questionsForDay = getQuestionsForDate(currentDate);
+          week.push({
+            day,
+            date: currentDate,
+            questions: questionsForDay
           });
-        });
-      });
-      
-      // 日付順にソート
-      nextDates.sort((a, b) => a.date - b.date);
-      
-      return (
-        <div className="bg-white rounded-lg shadow border border-gray-100 p-4">
-          <h3 className="text-lg font-medium mb-4 text-gray-800">解答予定日リスト</h3>
-          {nextDates.length === 0 ? (
-            <p className="text-gray-500 text-center p-4 bg-gray-50 rounded-lg">予定がありません。</p>
-          ) : (
-            <div className="space-y-2">
-              {nextDates.map((dateInfo, index) => {
-                const isToday = new Date().toDateString() === dateInfo.date.toDateString();
-                const isPast = dateInfo.date < new Date() && !isToday;
-                
-                return (
-                  <div 
-                    key={index} 
-                    className={`p-3 rounded-lg flex justify-between items-center border ${
-                      isToday 
-                        ? 'bg-blue-50 border-blue-200 text-blue-800' 
-                        : isPast
-                          ? 'bg-red-50 border-red-200 text-red-800'
-                          : 'bg-gray-50 border-gray-200 text-gray-800'
-                    }`}
-                  >
-                    <div className="font-medium">{dateInfo.dateStr}</div>
-                    <div className="bg-white px-3 py-1 rounded-full text-sm font-semibold shadow-sm">
-                      {dateInfo.count}問
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      );
-    };
+          day++;
+        }
+      }
+      calendar.push(week);
+      if (day > daysInMonth) break;
+    }
     
-    // カレンダー表示
-    const renderCalendarView = () => {
-      const calendar = getCalendarData(currentMonth);
-      const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
-      
-      return (
-        <div className="bg-white rounded-lg shadow border border-gray-100 p-4">
-          <div className="flex justify-between items-center mb-4">
-            <button 
-              onClick={() => changeMonth(-1)}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-            >
-              <ChevronLeft className="w-5 h-5 text-gray-600" />
-            </button>
-            <h3 className="text-lg font-medium text-gray-800">
-              {currentMonth.getFullYear()}年{currentMonth.getMonth() + 1}月
-            </h3>
-            <button 
-              onClick={() => changeMonth(1)}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-            >
-              <ChevronRight className="w-5 h-5 text-gray-600" />
-            </button>
-          </div>
-          
-          <div className="grid grid-cols-7 gap-1">
-            {weekDays.map((day, index) => (
-              <div 
-                key={index} 
-                className={`text-center py-2 font-medium text-sm rounded-t-lg ${
-                  index === 0 ? 'text-red-500 bg-red-50' : 
-                  index === 6 ? 'text-blue-500 bg-blue-50' : 
-                  'text-gray-600 bg-gray-50'
-                }`}
-              >
-                {day}
-              </div>
-            ))}
-            
-            {calendar.flat().map((dayData, index) => {
-              const isToday = dayData && dayData.date.toDateString() === new Date().toDateString();
-              const hasQuestions = dayData && dayData.questions.length > 0;
-              
-              return (
-                <div 
-                  key={index} 
-                  className={`min-h-24 border p-1 rounded-lg ${
-                    !dayData ? 'bg-gray-50 border-gray-100' :
-                    isToday ? 'bg-blue-50 border-blue-200' :
-                    hasQuestions ? 'bg-white border-gray-200' :
-                    'bg-white border-gray-100'
-                  }`}
-                >
-                  {dayData && (
-                    <>
-                      <div className={`text-right mb-1 font-medium ${
-                        isToday ? 'text-blue-700' : 'text-gray-700'
-                      }`}>
-                        {dayData.day}
-                      </div>
-                      {hasQuestions && (
-                        <div className="bg-indigo-100 text-indigo-800 p-1 rounded-lg text-xs font-medium text-center shadow-sm">
-                          {dayData.questions.length}問
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+    return calendar;
+  };
+  
+  const calendar = getCalendarData(currentMonth);
+  const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
+  const totalQuestionsThisMonth = calendar.flat().reduce((total, day) => {
+    return total + (day?.questions?.length || 0);
+  }, 0);
+  
+  return (
+    <div className="p-4 max-w-5xl mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-bold text-gray-800 flex items-center">
+          <Calendar className="w-5 h-5 mr-2" />
+          問題スケジュール
+        </h2>
+        
+        <div className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm font-medium">
+          今月: {totalQuestionsThisMonth}問
         </div>
-      );
-    };
-    
-    return (
-      <div className="p-4 max-w-5xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-gray-800 flex items-center">
-            <Calendar className="w-5 h-5 mr-2" />
-            問題スケジュール一覧
-          </h2>
-          <div className="flex space-x-2">
-            <button 
-              onClick={() => setViewMode('list')}
-              className={`px-4 py-2 rounded-lg ${viewMode === 'list' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'} transition-colors`}
-            >
-              リスト表示
-            </button>
-            <button 
-              onClick={() => setViewMode('calendar')}
-              className={`px-4 py-2 rounded-lg ${viewMode === 'calendar' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'} transition-colors`}
-            >
-              カレンダー表示
-            </button>
-          </div>
+      </div>
+      
+      <div className="bg-white rounded-lg shadow p-4">
+        <div className="flex justify-between items-center mb-4">
+          <button 
+            onClick={() => changeMonth(-1)}
+            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+          >
+            <ChevronLeft className="w-6 h-6 text-gray-600" />
+          </button>
+          <h3 className="text-xl font-medium text-gray-800">
+            {currentMonth.getFullYear()}年{currentMonth.getMonth() + 1}月
+          </h3>
+          <button 
+            onClick={() => changeMonth(1)}
+            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+          >
+            <ChevronRight className="w-6 h-6 text-gray-600" />
+          </button>
         </div>
         
-        {viewMode === 'list' ? renderListView() : renderCalendarView()}
+        <div className="grid grid-cols-7 gap-2 mb-2">
+          {weekDays.map((day, index) => (
+            <div 
+              key={index} 
+              className={`text-center py-2 font-medium text-sm rounded ${
+                index === 0 ? 'text-red-500' : 
+                index === 6 ? 'text-blue-500' : 
+                'text-gray-600'
+              }`}
+            >
+              {day}
+            </div>
+          ))}
+        </div>
+        
+        <div className="grid grid-cols-7 gap-2">
+          {calendar.flat().map((dayData, index) => {
+            const isToday = dayData && dayData.date.toDateString() === new Date().toDateString();
+            const hasQuestions = dayData && dayData.questions.length > 0;
+            
+            return (
+              <div 
+                key={index} 
+                className={`min-h-24 border p-2 rounded-lg ${
+                  !dayData ? 'bg-gray-50 border-gray-100' :
+                  isToday ? 'bg-blue-50 border-blue-200' :
+                  hasQuestions ? 'bg-white border-indigo-200 hover:border-indigo-300 cursor-pointer' :
+                  'bg-white border-gray-100'
+                }`}
+                onClick={() => {
+                  if (dayData && hasQuestions) {
+                    // ここで日付をクリックした時の詳細表示などの機能を追加できます
+                    alert(`${formatDate(dayData.date)}の問題: ${dayData.questions.length}問`);
+                  }
+                }}
+              >
+                {dayData && (
+                  <>
+                    <div className={`text-right mb-1 font-medium ${
+                      isToday ? 'text-blue-700' : 'text-gray-700'
+                    }`}>
+                      {dayData.day}
+                    </div>
+                    {hasQuestions && (
+                      <div className="flex flex-col gap-1">
+                        <div className="bg-indigo-100 text-indigo-800 px-2 py-1 rounded text-xs font-medium text-center">
+                          {dayData.questions.length}問
+                        </div>
+                        {dayData.questions.length <= 3 && dayData.questions.map((q, i) => (
+                          <div key={i} className="text-xs text-gray-600 truncate bg-gray-50 px-1 py-0.5 rounded">
+                            {q.id}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
-    );
-  };
+    </div>
+  );
+};
+    
   
   // ナビゲーションコンポーネント
   const Navigation = () => (
