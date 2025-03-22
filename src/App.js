@@ -349,12 +349,12 @@ function App() {
     return `${d.getFullYear()}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')}`;
   };
 
-  // 今日のコンポーネント
+ // 今日のコンポーネント
 const TodayView = () => {
   const todayQuestions = getTodayQuestions();
   
   return (
-    <div className="p-4 max-w-5xl mx-auto">
+    <div className="p-4 max-w-4xl mx-auto">
       <h2 className="text-xl font-bold mb-6 text-gray-800 flex items-center">
         <Clock className="w-5 h-5 mr-2" />
         今日解く問題（{formatDate(new Date())}）
@@ -362,44 +362,37 @@ const TodayView = () => {
       
       {todayQuestions.length === 0 ? (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
-          <p className="text-blue-800">今日解く問題はありません。おつかれさまでした！</p>
+          <p className="text-blue-800 font-medium">今日解く問題はありません。おつかれさまでした！</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {todayQuestions.map(question => (
-            <div key={question.id} className="bg-white p-5 rounded-lg shadow border border-gray-100">
-              <div className="flex flex-col gap-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="text-xs text-gray-500 mb-1">{question.subjectName}</div>
-                    <div className="font-medium text-lg mb-2 text-gray-800">{question.chapterName}</div>
-                    <div className="text-sm text-gray-700 font-medium">問題 {question.id}</div>
-                  </div>
-                  <div className="text-sm bg-gray-100 px-3 py-1 rounded-full">
-                    正答率: {question.correctRate}%
-                  </div>
-                </div>
-                
-                <div className="flex flex-wrap gap-2 mt-2">
-                  <button 
-                    onClick={() => recordAnswer(question.id, true, '理解○')}
-                    className="flex-1 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center"
-                  >
-                    <CheckCircle className="w-5 h-5 mr-2" /> 理解できた
-                  </button>
-                  <button 
-                    onClick={() => recordAnswer(question.id, true, '曖昧△')}
-                    className="flex-1 py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors flex items-center justify-center"
-                  >
-                    <AlertTriangle className="w-5 h-5 mr-2" /> 曖昧
-                  </button>
-                  <button 
-                    onClick={() => recordAnswer(question.id, false, '理解できていない×')}
-                    className="flex-1 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center"
-                  >
-                    <XCircle className="w-5 h-5 mr-2" /> 理解できない
-                  </button>
-                </div>
+            <div key={question.id} className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all">
+              <div className="mb-4">
+                <div className="text-xs text-gray-500 mb-1">{question.subjectName}</div>
+                <div className="font-bold text-lg text-gray-800">{question.chapterName}</div>
+                <div className="font-medium mt-2 inline-block bg-gray-100 px-3 py-1 rounded-full text-sm">問題 {question.id}</div>
+              </div>
+              
+              <div className="flex gap-2 mt-4">
+                <button 
+                  onClick={() => recordAnswer(question.id, true, '理解○')}
+                  className="flex-1 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center font-medium"
+                >
+                  <CheckCircle className="w-5 h-5 mr-2" /> 理解できた
+                </button>
+                <button 
+                  onClick={() => recordAnswer(question.id, true, '曖昧△')}
+                  className="flex-1 py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors flex items-center justify-center font-medium"
+                >
+                  <AlertTriangle className="w-5 h-5 mr-2" /> 曖昧
+                </button>
+                <button 
+                  onClick={() => recordAnswer(question.id, false, '理解できていない×')}
+                  className="flex-1 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center font-medium"
+                >
+                  <XCircle className="w-5 h-5 mr-2" /> 理解できない
+                </button>
               </div>
             </div>
           ))}
@@ -408,10 +401,26 @@ const TodayView = () => {
     </div>
   );
 };
-  // 全問題一覧コンポーネント
+
+// 全問題一覧コンポーネント
 const AllQuestionsView = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectAll, setSelectAll] = useState(false);
+  const [activeTab, setActiveTab] = useState('all'); // 'all', 'today', 'week', 'month'
+
+  // 検索かけたときのフィルター関数
+  const filterSubjects = () => {
+    return subjects.filter(subject => {
+      // 科目内の問題をフィルタリング（検索語に一致するもののみ表示）
+      const hasMatchingQuestions = subject.chapters.some(chapter => 
+        chapter.questions.some(question => 
+          searchTerm === '' || question.id.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      );
+
+      return searchTerm === '' || hasMatchingQuestions;
+    });
+  };
 
   const toggleSelectAll = () => {
     if (selectAll) {
@@ -430,48 +439,142 @@ const AllQuestionsView = () => {
     setSelectAll(!selectAll);
   };
 
+  // 日付によるフィルター関数
+  const getFilteredData = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const oneWeekLater = new Date(today);
+    oneWeekLater.setDate(today.getDate() + 7);
+    
+    const oneMonthLater = new Date(today);
+    oneMonthLater.setMonth(today.getMonth() + 1);
+    
+    let filteredSubjects = [...subjects];
+    
+    if (activeTab !== 'all') {
+      filteredSubjects = subjects.map(subject => {
+        const filteredChapters = subject.chapters.map(chapter => {
+          const filteredQuestions = chapter.questions.filter(question => {
+            const nextDate = new Date(question.nextDate);
+            nextDate.setHours(0, 0, 0, 0);
+            
+            if (activeTab === 'today') {
+              return nextDate.getTime() === today.getTime();
+            } else if (activeTab === 'week') {
+              return nextDate >= today && nextDate <= oneWeekLater;
+            } else if (activeTab === 'month') {
+              return nextDate >= today && nextDate <= oneMonthLater;
+            }
+            return true;
+          });
+          
+          return { ...chapter, questions: filteredQuestions };
+        }).filter(chapter => chapter.questions.length > 0);
+        
+        return { ...subject, chapters: filteredChapters };
+      }).filter(subject => subject.chapters.length > 0);
+    }
+    
+    return filteredSubjects;
+  };
+
+  const filteredSubjects = getFilteredData().filter(subject => {
+    // 検索フィルタリングも適用
+    return subject.chapters.some(chapter => 
+      chapter.questions.some(question => 
+        searchTerm === '' || question.id.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+  });
+
   return (
     <div className="p-4 max-w-5xl mx-auto">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-6">
-        <h2 className="text-xl font-bold text-gray-800 flex items-center">
-          <List className="w-5 h-5 mr-2" />
-          全問題一覧
-        </h2>
+      <div className="flex flex-col gap-4 mb-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+          <h2 className="text-xl font-bold text-gray-800 flex items-center">
+            <List className="w-5 h-5 mr-2" />
+            全問題一覧
+          </h2>
 
-        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-          <input
-            type="text"
-            placeholder="問題IDで検索..."
-            className="px-3 py-2 border border-gray-300 rounded-lg"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          
-          <button 
-            onClick={() => setBulkEditMode(!bulkEditMode)}
-            className={`px-4 py-2 rounded-lg flex items-center ${
-              bulkEditMode ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-blue-500 text-white hover:bg-blue-600'
-            } transition-colors`}
+          <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+            <div className="relative flex-grow">
+              <input
+                type="text"
+                placeholder="問題IDで検索..."
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </div>
+            
+            <button 
+              onClick={() => setBulkEditMode(!bulkEditMode)}
+              className={`px-4 py-2 rounded-lg flex items-center justify-center ${
+                bulkEditMode ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-blue-500 text-white hover:bg-blue-600'
+              } transition-colors sm:w-auto w-full`}
+            >
+              {bulkEditMode ? '選択モード終了' : '一括編集'}
+            </button>
+          </div>
+        </div>
+        
+        {/* タブフィルター */}
+        <div className="flex rounded-lg bg-gray-100 p-1">
+          <button
+            onClick={() => setActiveTab('all')}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium ${
+              activeTab === 'all' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-600 hover:text-gray-800'
+            }`}
           >
-            {bulkEditMode ? '選択モード終了' : '一括編集'}
+            全て
+          </button>
+          <button
+            onClick={() => setActiveTab('today')}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium ${
+              activeTab === 'today' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            今日
+          </button>
+          <button
+            onClick={() => setActiveTab('week')}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium ${
+              activeTab === 'week' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            今週
+          </button>
+          <button
+            onClick={() => setActiveTab('month')}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium ${
+              activeTab === 'month' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            今月
           </button>
         </div>
       </div>
       
       {bulkEditMode && selectedQuestions.length > 0 && (
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="mb-6 p-4 bg-indigo-50 border border-indigo-200 rounded-lg shadow-sm">
           <div className="flex justify-between items-center mb-3">
-            <p className="text-blue-800 font-medium">{selectedQuestions.length}個の問題を選択中</p>
+            <p className="text-indigo-800 font-medium">{selectedQuestions.length}個の問題を選択中</p>
             <div className="flex items-center gap-2">
               <button
                 onClick={toggleSelectAll}
-                className="text-sm px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+                className="text-sm px-3 py-1 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
               >
                 {selectAll ? '全て解除' : '全て選択'}
               </button>
               <button
                 onClick={() => setSelectedQuestions([])}
-                className="text-sm px-3 py-1 bg-red-100 text-red-800 rounded hover:bg-red-200"
+                className="text-sm px-3 py-1 bg-red-100 text-red-800 rounded-lg hover:bg-red-200"
               >
                 選択解除
               </button>
@@ -493,59 +596,48 @@ const AllQuestionsView = () => {
         </div>
       )}
       
-      <div className="space-y-6">
-        {subjects.map(subject => {
-          // 科目内の問題をフィルタリング（検索語に一致するもののみ表示）
-          const hasMatchingQuestions = subject.chapters.some(chapter => 
-            chapter.questions.some(question => 
-              searchTerm === '' || question.id.toLowerCase().includes(searchTerm.toLowerCase())
-            )
-          );
-
-          if (searchTerm !== '' && !hasMatchingQuestions) {
-            return null; // 検索結果がない科目は表示しない
-          }
-
-          return (
-            <div key={subject.id} className="bg-white rounded-lg shadow border border-gray-100">
+      {filteredSubjects.length === 0 ? (
+        <div className="bg-gray-50 p-10 rounded-lg text-center">
+          <p className="text-gray-500">表示できる問題がありません</p>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {filteredSubjects.map(subject => (
+            <div key={subject.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
               <div 
-                className="flex items-center bg-gray-50 p-3 rounded-t-lg cursor-pointer border-b border-gray-200"
+                className="flex items-center bg-gray-50 p-4 cursor-pointer border-b border-gray-200"
                 onClick={() => toggleSubject(subject.id)}
               >
-                <div className="mr-2 text-gray-500">
-                  {expandedSubjects[subject.id] ? 
-                    <ChevronDown className="w-5 h-5" /> : 
-                    <ChevronRight className="w-5 h-5" />
-                  }
+                <div className="mr-2 text-gray-500 transition-transform duration-200" style={{ 
+                  transform: expandedSubjects[subject.id] ? 'rotate(90deg)' : 'rotate(0deg)' 
+                }}>
+                  <ChevronRight className="w-5 h-5" />
                 </div>
                 <h3 className="font-bold text-gray-800">{subject.name}</h3>
               </div>
               
               {expandedSubjects[subject.id] && (
-                <div className="p-3">
+                <div className="p-4">
                   {subject.chapters.map(chapter => {
                     // 章内の問題をフィルタリング
                     const filteredQuestions = chapter.questions.filter(question => 
                       searchTerm === '' || question.id.toLowerCase().includes(searchTerm.toLowerCase())
                     );
 
-                    if (searchTerm !== '' && filteredQuestions.length === 0) {
-                      return null; // 検索結果がない章は表示しない
-                    }
+                    if (filteredQuestions.length === 0) return null;
 
                     return (
-                      <div key={chapter.id} className="mb-3 last:mb-0">
+                      <div key={chapter.id} className="mb-4 last:mb-0">
                         <div 
-                          className="flex items-center bg-white p-2 rounded cursor-pointer border border-gray-200 hover:bg-gray-50"
+                          className="flex items-center bg-white p-3 rounded-lg cursor-pointer border border-gray-200 hover:bg-gray-50"
                           onClick={() => toggleChapter(chapter.id)}
                         >
-                          <div className="mr-2 text-gray-500">
-                            {expandedChapters[chapter.id] ? 
-                              <ChevronDown className="w-4 h-4" /> : 
-                              <ChevronRight className="w-4 h-4" />
-                            }
+                          <div className="mr-2 text-gray-500 transition-transform duration-200" style={{ 
+                            transform: expandedChapters[chapter.id] ? 'rotate(90deg)' : 'rotate(0deg)' 
+                          }}>
+                            <ChevronRight className="w-4 h-4" />
                           </div>
-                          <h4 className="text-gray-700">{chapter.name}</h4>
+                          <h4 className="text-gray-700 font-medium">{chapter.name}</h4>
                           {searchTerm && filteredQuestions.length > 0 && (
                             <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">
                               {filteredQuestions.length}件一致
@@ -554,15 +646,15 @@ const AllQuestionsView = () => {
                         </div>
                         
                         {expandedChapters[chapter.id] && filteredQuestions.length > 0 && (
-                          <div className="mt-2 overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg overflow-hidden">
+                          <div className="mt-3 overflow-x-auto rounded-lg border border-gray-200">
+                            <table className="min-w-full divide-y divide-gray-200">
                               <thead className="bg-gray-50">
                                 <tr>
                                   {bulkEditMode && (
-                                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10">
+                                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10">
                                       <input 
                                         type="checkbox"
-                                        className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                                        className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
                                         checked={filteredQuestions.every(q => selectedQuestions.includes(q.id))}
                                         onChange={() => {
                                           const allIds = filteredQuestions.map(q => q.id);
@@ -575,22 +667,19 @@ const AllQuestionsView = () => {
                                       />
                                     </th>
                                   )}
-                                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     問題ID
                                   </th>
-                                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    正答率
-                                  </th>
-                                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     解答回数
                                   </th>
-                                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     次回予定日
                                   </th>
-                                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     間隔
                                   </th>
-                                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     操作
                                   </th>
                                 </tr>
@@ -599,16 +688,16 @@ const AllQuestionsView = () => {
                                 {filteredQuestions.map(question => (
                                   <tr key={question.id} className="hover:bg-gray-50">
                                     {bulkEditMode && (
-                                      <td className="px-3 py-2 whitespace-nowrap">
+                                      <td className="px-3 py-3 whitespace-nowrap">
                                         <input 
                                           type="checkbox" 
-                                          className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                                          className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
                                           checked={selectedQuestions.includes(question.id)}
                                           onChange={() => toggleQuestionSelection(question.id)}
                                         />
                                       </td>
                                     )}
-                                    <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-800">
+                                    <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-800 font-medium">
                                       {searchTerm ? (
                                         <span dangerouslySetInnerHTML={{
                                           __html: question.id.replace(
@@ -620,14 +709,13 @@ const AllQuestionsView = () => {
                                         question.id
                                       )}
                                     </td>
-                                    <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-800">{question.correctRate}%</td>
-                                    <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-800">{question.answerCount}回</td>
-                                    <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-800">{formatDate(question.nextDate)}</td>
-                                    <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-800">{question.interval}</td>
-                                    <td className="px-3 py-2 whitespace-nowrap">
+                                    <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-800">{question.answerCount}回</td>
+                                    <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-800">{formatDate(question.nextDate)}</td>
+                                    <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-800">{question.interval}</td>
+                                    <td className="px-3 py-3 whitespace-nowrap">
                                       <button 
                                         onClick={() => setEditingQuestion(question)}
-                                        className="px-3 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 transition-colors"
+                                        className="px-3 py-1 bg-indigo-500 text-white text-xs rounded-lg hover:bg-indigo-600 transition-colors"
                                       >
                                         編集
                                       </button>
@@ -638,36 +726,31 @@ const AllQuestionsView = () => {
                             </table>
                           </div>
                         )}
-                        
-                        {expandedChapters[chapter.id] && filteredQuestions.length === 0 && (
-                          <div className="mt-2 p-3 text-gray-500 text-center bg-gray-50 rounded-lg">
-                            問題がありません
-                          </div>
-                        )}
                       </div>
                     );
                   })}
                 </div>
               )}
             </div>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
       
-      {/* 問題編集モーダル（既存のまま） */}
+      {/* 問題編集モーダル（既存のままだがスタイルを改良） */}
       {editingQuestion && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-xl">
             <h3 className="text-lg font-bold mb-4 text-gray-800">問題編集</h3>
-            {/* モーダルの内容は既存のままでOK */}
+            <div className="space-y-4">
+              {/* モーダルの内容 */}
+            </div>
           </div>
         </div>
       )}
     </div>
   );
 };
-
- // スケジュール一覧コンポーネント
+// スケジュール一覧コンポーネント
 const ScheduleView = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   
@@ -678,42 +761,7 @@ const ScheduleView = () => {
     setCurrentMonth(newMonth);
   };
   
-  // 月のカレンダーデータを生成
-  const getCalendarData = (date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    
-    const daysInMonth = lastDay.getDate();
-    const startDayOfWeek = firstDay.getDay();
-    
-    const calendar = [];
-    let day = 1;
-    
-    for (let i = 0; i < 6; i++) {
-      const week = [];
-      for (let j = 0; j < 7; j++) {
-        if ((i === 0 && j < startDayOfWeek) || day > daysInMonth) {
-          week.push(null);
-        } else {
-          const currentDate = new Date(year, month, day);
-          const questionsForDay = getQuestionsForDate(currentDate);
-          week.push({
-            day,
-            date: currentDate,
-            questions: questionsForDay
-          });
-          day++;
-        }
-      }
-      calendar.push(week);
-      if (day > daysInMonth) break;
-    }
-    
-    return calendar;
-  };
+  // 月のカレンダーデータを生成（既存関数）
   
   const calendar = getCalendarData(currentMonth);
   const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
@@ -726,38 +774,38 @@ const ScheduleView = () => {
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold text-gray-800 flex items-center">
           <Calendar className="w-5 h-5 mr-2" />
-          問題スケジュール
+          学習スケジュール
         </h2>
         
-        <div className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm font-medium">
-          今月: {totalQuestionsThisMonth}問
+        <div className="bg-indigo-600 text-white px-4 py-2 rounded-full text-sm font-medium shadow-sm">
+          今月の問題数: {totalQuestionsThisMonth}問
         </div>
       </div>
       
-      <div className="bg-white rounded-lg shadow p-4">
-        <div className="flex justify-between items-center mb-4">
+      <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="flex justify-between items-center mb-6">
           <button 
             onClick={() => changeMonth(-1)}
-            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+            className="p-3 rounded-full hover:bg-gray-100 transition-colors"
           >
             <ChevronLeft className="w-6 h-6 text-gray-600" />
           </button>
-          <h3 className="text-xl font-medium text-gray-800">
+          <h3 className="text-2xl font-bold text-gray-800">
             {currentMonth.getFullYear()}年{currentMonth.getMonth() + 1}月
           </h3>
           <button 
             onClick={() => changeMonth(1)}
-            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+            className="p-3 rounded-full hover:bg-gray-100 transition-colors"
           >
             <ChevronRight className="w-6 h-6 text-gray-600" />
           </button>
         </div>
         
-        <div className="grid grid-cols-7 gap-2 mb-2">
+        <div className="grid grid-cols-7 gap-3 mb-3">
           {weekDays.map((day, index) => (
             <div 
               key={index} 
-              className={`text-center py-2 font-medium text-sm rounded ${
+              className={`text-center py-2 font-bold text-sm rounded ${
                 index === 0 ? 'text-red-500' : 
                 index === 6 ? 'text-blue-500' : 
                 'text-gray-600'
@@ -768,7 +816,7 @@ const ScheduleView = () => {
           ))}
         </div>
         
-        <div className="grid grid-cols-7 gap-2">
+        <div className="grid grid-cols-7 gap-3">
           {calendar.flat().map((dayData, index) => {
             const isToday = dayData && dayData.date.toDateString() === new Date().toDateString();
             const hasQuestions = dayData && dayData.questions.length > 0;
@@ -776,12 +824,12 @@ const ScheduleView = () => {
             return (
               <div 
                 key={index} 
-                className={`min-h-24 border p-2 rounded-lg ${
+                className={`min-h-28 border p-2 rounded-xl ${
                   !dayData ? 'bg-gray-50 border-gray-100' :
-                  isToday ? 'bg-blue-50 border-blue-200' :
-                  hasQuestions ? 'bg-white border-indigo-200 hover:border-indigo-300 cursor-pointer' :
+                  isToday ? 'bg-blue-50 border-blue-200 ring-2 ring-blue-400' :
+                  hasQuestions ? 'bg-white border-indigo-200 hover:border-indigo-400 cursor-pointer' :
                   'bg-white border-gray-100'
-                }`}
+                } transition-all`}
                 onClick={() => {
                   if (dayData && hasQuestions) {
                     // ここで日付をクリックした時の詳細表示などの機能を追加できます
@@ -798,11 +846,19 @@ const ScheduleView = () => {
                     </div>
                     {hasQuestions && (
                       <div className="flex flex-col gap-1">
-                        <div className="bg-indigo-100 text-indigo-800 px-2 py-1 rounded text-xs font-medium text-center">
+                        <div className={`
+                          px-2 py-1 rounded-full text-xs font-bold text-center shadow-sm
+                          ${dayData.questions.length > 5 
+                            ? 'bg-red-500 text-white' 
+                            : dayData.questions.length > 2 
+                              ? 'bg-yellow-500 text-white'
+                              : 'bg-green-500 text-white'
+                          }
+                        `}>
                           {dayData.questions.length}問
                         </div>
                         {dayData.questions.length <= 3 && dayData.questions.map((q, i) => (
-                          <div key={i} className="text-xs text-gray-600 truncate bg-gray-50 px-1 py-0.5 rounded">
+                          <div key={i} className="text-xs text-gray-700 truncate bg-gray-50 px-2 py-1 rounded-md mt-1">
                             {q.id}
                           </div>
                         ))}
@@ -818,7 +874,6 @@ const ScheduleView = () => {
     </div>
   );
 };
-    
   
   // ナビゲーションコンポーネント
   const Navigation = () => (
