@@ -768,9 +768,9 @@ const EnhancedAllQuestionsView = ({
             </button>
             
             <div className="mb-4">
-              <h3 className="text-lg font-bold text-gray-800 mb-1">{detailQuestion.id}</h3>
-              <p className="text-gray-500 text-sm">{chapter 名前を取得する処理}</p>
-            </div>
+  <h3 className="text-lg font-bold text-gray-800 mb-1">{detailQuestion.id}</h3>
+  <p className="text-gray-500 text-sm">{/* 章の名前を表示 */}章の詳細</p>
+</div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div className="bg-gray-50 p-3 rounded-lg">
