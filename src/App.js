@@ -7,7 +7,6 @@ import BulkEditSection from './BulkEditSection';
 import AmbiguousTrendsPage from './AmbiguousTrendsPage';
 import { Info } from 'lucide-react';
 import EnhancedAllQuestionsView from './EnhancedAllQuestionsView';
-import 'react-beautiful-dnd/dist/react-beautiful-dnd.css';
 
 // 初期データの作成
 const generateInitialData = () => {
