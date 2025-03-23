@@ -8,6 +8,8 @@ import AmbiguousTrendsPage from './AmbiguousTrendsPage';
 import { Info } from 'lucide-react';
 import EnhancedAllQuestionsView from './EnhancedAllQuestionsView';
 import SimplifiedAllQuestionsView from './SimplifiedAllQuestionsView';
+import RedesignedAllQuestionsView from './RedesignedAllQuestionsView';
+
 
 // 初期データの作成
 const generateInitialData = () => {
@@ -1040,9 +1042,9 @@ const MainView = () => {
       return <TodayView />;
     case 'schedule':
       return <ScheduleView />;
-     case 'all':
-      // 新しいSimplifiedAllQuestionsViewを使用
-      return <SimplifiedAllQuestionsView 
+    case 'all':
+      // 新しいRedesignedAllQuestionsViewを使用
+      return <RedesignedAllQuestionsView 
         subjects={subjects}
         expandedSubjects={expandedSubjects}
         expandedChapters={expandedChapters}
@@ -1056,7 +1058,6 @@ const MainView = () => {
         selectedDate={selectedDate}
         setSelectedDate={setSelectedDate}
         saveBulkEdit={saveBulkEdit}
-      />;
     case 'trends':
       return <AmbiguousTrendsPage subjects={subjects} />;
     default:
