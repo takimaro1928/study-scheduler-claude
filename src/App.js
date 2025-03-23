@@ -349,18 +349,34 @@ function App() {
     return `${d.getFullYear()}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')}`;
   };
 
- // 今日のコンポーネント
+// 今日のコンポーネント
 const TodayView = () => {
   const todayQuestions = getTodayQuestions();
+  const [ambiguousReason, setAmbiguousReason] = useState(null);
+  const [selectedQuestionId, setSelectedQuestionId] = useState(null);
   
-  // 問題の回答と理解度を分けて記録する関数
+  // 問題の回答を記録する関数
   const recordCompleteAnswer = (questionId, isCorrect, understanding) => {
-    // ここで問題の状態を更新
+    // 正解/不正解と理解度を記録
     recordAnswer(questionId, isCorrect, understanding);
   }
   
+  // 曖昧ボタンをクリックした時の処理
+  const handleAmbiguousClick = (questionId) => {
+    setSelectedQuestionId(questionId);
+    setAmbiguousReason('show');
+  }
+  
+  // 曖昧な理由を選択した時の処理
+  const selectAmbiguousReason = (reason) => {
+    // 曖昧な理由を含めて記録
+    recordAnswer(selectedQuestionId, true, `曖昧△:${reason}`);
+    setAmbiguousReason(null);
+    setSelectedQuestionId(null);
+  }
+  
   return (
-    <div className="p-4 max-w-3xl mx-auto">
+    <div className="p-4 w-full sm:w-10/12 md:w-8/12 lg:w-7/12 xl:w-6/12 mx-auto">
       <h2 className="text-xl font-bold mb-6 text-gray-800 flex items-center justify-center">
         <Clock className="w-5 h-5 mr-2" />
         今日解く問題（{formatDate(new Date())}）
@@ -382,18 +398,18 @@ const TodayView = () => {
               <div className="font-medium mb-4 inline-block bg-gray-100 px-3 py-1 rounded-full text-sm">問題 {question.id}</div>
               
               {/* 解答結果ボタン - 正解/不正解 */}
-              <div className="mb-3">
+              <div className="mb-4">
                 <div className="text-sm font-medium text-gray-700 mb-2">解答結果:</div>
                 <div className="flex gap-2">
                   <button 
                     onClick={() => recordCompleteAnswer(question.id, true, question.understanding)}
-                    className="flex-1 py-2 bg-green-100 border border-green-500 text-green-700 rounded-lg hover:bg-green-200 transition-colors flex items-center justify-center font-medium"
+                    className="flex-1 py-3 bg-green-100 border border-green-500 text-green-700 rounded-lg hover:bg-green-200 transition-colors flex items-center justify-center font-medium"
                   >
                     <CheckCircle className="w-5 h-5 mr-2" /> 正解 ⭕️
                   </button>
                   <button 
                     onClick={() => recordCompleteAnswer(question.id, false, question.understanding)}
-                    className="flex-1 py-2 bg-red-100 border border-red-500 text-red-700 rounded-lg hover:bg-red-200 transition-colors flex items-center justify-center font-medium"
+                    className="flex-1 py-3 bg-red-100 border border-red-500 text-red-700 rounded-lg hover:bg-red-200 transition-colors flex items-center justify-center font-medium"
                   >
                     <XCircle className="w-5 h-5 mr-2" /> 不正解 ❌
                   </button>
@@ -406,26 +422,61 @@ const TodayView = () => {
                 <div className="flex gap-2">
                   <button 
                     onClick={() => recordCompleteAnswer(question.id, true, '理解○')}
-                    className="flex-1 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center font-medium"
+                    className="flex-1 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center font-medium"
                   >
                     理解できた
                   </button>
                   <button 
-                    onClick={() => recordCompleteAnswer(question.id, true, '曖昧△')}
-                    className="flex-1 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors flex items-center justify-center font-medium"
+                    onClick={() => handleAmbiguousClick(question.id)}
+                    className="flex-1 py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors flex items-center justify-center font-medium"
                   >
                     曖昧
-                  </button>
-                  <button 
-                    onClick={() => recordCompleteAnswer(question.id, true, '理解できていない×')}
-                    className="flex-1 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center font-medium"
-                  >
-                    理解できない
                   </button>
                 </div>
               </div>
             </div>
           ))}
+        </div>
+      )}
+      
+      {/* 曖昧理由選択モーダル */}
+      {ambiguousReason && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-xl">
+            <h3 className="text-lg font-bold mb-4 text-gray-800">曖昧だった理由を選択してください</h3>
+            <div className="space-y-3">
+              <button 
+                onClick={() => selectAmbiguousReason('他の選択肢の意味がわからなかった')}
+                className="w-full py-3 px-4 text-left bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors"
+              >
+                他の選択肢の意味がわからなかった
+              </button>
+              <button 
+                onClick={() => selectAmbiguousReason('たまたま当ててしまった')}
+                className="w-full py-3 px-4 text-left bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors"
+              >
+                たまたま当ててしまった
+              </button>
+              <button 
+                onClick={() => selectAmbiguousReason('合っていたけど違う答えを思い浮かべてた')}
+                className="w-full py-3 px-4 text-left bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors"
+              >
+                合っていたけど違う答えを思い浮かべてた
+              </button>
+              <button 
+                onClick={() => selectAmbiguousReason('その他')}
+                className="w-full py-3 px-4 text-left bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors"
+              >
+                その他
+              </button>
+            </div>
+            <button 
+              onClick={() => setAmbiguousReason(null)}
+              className="mt-4 w-full py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+            >
+              キャンセル
+            </button>
+          </div>
         </div>
       )}
     </div>
