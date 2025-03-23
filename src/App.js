@@ -1035,7 +1035,6 @@ function App() {
     );
   };
 
-  // メインビュー
 const MainView = () => {
   switch (activeTab) {
     case 'today':
@@ -1043,7 +1042,6 @@ const MainView = () => {
     case 'schedule':
       return <ScheduleView />;
     case 'all':
-      // 新しいRedesignedAllQuestionsViewを使用
       return <RedesignedAllQuestionsView 
         subjects={subjects}
         expandedSubjects={expandedSubjects}
@@ -1058,6 +1056,7 @@ const MainView = () => {
         selectedDate={selectedDate}
         setSelectedDate={setSelectedDate}
         saveBulkEdit={saveBulkEdit}
+      />;
     case 'trends':
       return <AmbiguousTrendsPage subjects={subjects} />;
     default:
