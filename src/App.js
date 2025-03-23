@@ -847,6 +847,7 @@ const AllQuestionsView = () => {
 // スケジュール一覧コンポーネント
 const ScheduleView = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [calendarError, setCalendarError] = useState(false);
   
   // 月を変更
   const changeMonth = (offset) => {
@@ -855,52 +856,104 @@ const ScheduleView = () => {
     setCurrentMonth(newMonth);
   };
   
-  // シンプルなカレンダーデータ生成
-  const generateCalendarData = () => {
-    const year = currentMonth.getFullYear();
-    const month = currentMonth.getMonth();
-    
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    
-    const daysInMonth = lastDay.getDate();
-    const startDayOfWeek = firstDay.getDay();
-    
-    // 6週間分のカレンダーを作成
-    const calendar = [];
-    let dayCounter = 1;
-    
-    for (let week = 0; week < 6; week++) {
-      const weekDays = [];
-      for (let day = 0; day < 7; day++) {
-        // 月の最初の週で、開始曜日より前、または月の最終日を超える場合
-        if ((week === 0 && day < startDayOfWeek) || dayCounter > daysInMonth) {
-          weekDays.push(null);
-        } else {
-          // 各日の問題数をランダムに生成（デモ用）
-          const questionCount = Math.floor(Math.random() * 12);
-          weekDays.push({
-            day: dayCounter,
-            date: new Date(year, month, dayCounter),
-            questionCount: questionCount
-          });
-          dayCounter++;
-        }
-      }
-      calendar.push(weekDays);
-      // 月の日数を超えたらループ終了
-      if (dayCounter > daysInMonth) break;
+  // 安全にデータを取得するヘルパー関数
+  const safeGetQuestionsForDate = (date) => {
+    try {
+      // 日付の時刻部分をリセットして比較の一貫性を保つ
+      const normalizedDate = new Date(date);
+      normalizedDate.setHours(0, 0, 0, 0);
+      
+      // 既存の getQuestionsForDate 関数を使用
+      return getQuestionsForDate(normalizedDate) || [];
+    } catch (error) {
+      console.error("日付の問題取得中にエラーが発生しました:", error);
+      return [];
     }
-    
-    return calendar;
   };
   
+  // 月のカレンダーデータを生成
+  const getCalendarData = useCallback(() => {
+    try {
+      const year = currentMonth.getFullYear();
+      const month = currentMonth.getMonth();
+      
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      
+      const daysInMonth = lastDay.getDate();
+      const startDayOfWeek = firstDay.getDay();
+      
+      const calendar = [];
+      let day = 1;
+      
+      for (let i = 0; i < 6; i++) {
+        const week = [];
+        for (let j = 0; j < 7; j++) {
+          if ((i === 0 && j < startDayOfWeek) || day > daysInMonth) {
+            week.push(null);
+          } else {
+            const currentDate = new Date(year, month, day);
+            // 日付をリセットして比較の正確性を確保
+            currentDate.setHours(0, 0, 0, 0);
+            
+            const questionsForDay = safeGetQuestionsForDate(currentDate);
+            
+            week.push({
+              day,
+              date: currentDate,
+              questions: questionsForDay
+            });
+            day++;
+          }
+        }
+        calendar.push(week);
+        if (day > daysInMonth) break;
+      }
+      
+      setCalendarError(false);
+      return calendar;
+    } catch (error) {
+      console.error("カレンダーデータの生成中にエラーが発生しました:", error);
+      setCalendarError(true);
+      return [];
+    }
+  }, [currentMonth]);
+  
   // カレンダーデータを生成
-  const calendar = generateCalendarData();
+  const calendar = useMemo(() => getCalendarData(), [getCalendarData]);
   const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
   
-  // すべての問題数（デモ用）
-  const totalQuestions = 1094;
+  // 合計問題数を取得
+  const getTotalQuestions = () => {
+    let total = 0;
+    try {
+      subjects.forEach(subject => {
+        subject.chapters.forEach(chapter => {
+          total += chapter.questions.length;
+        });
+      });
+    } catch (error) {
+      console.error("問題数カウント中にエラーが発生しました:", error);
+    }
+    return total;
+  };
+  
+  // 今月のカレンダーに表示されている問題数
+  const getMonthQuestions = () => {
+    if (!Array.isArray(calendar) || calendar.length === 0) return 0;
+    
+    try {
+      return calendar.flat().reduce((total, day) => {
+        return total + (day?.questions?.length || 0);
+      }, 0);
+    } catch (error) {
+      console.error("月間問題数カウント中にエラーが発生しました:", error);
+      return 0;
+    }
+  };
+  
+  const totalQuestions = getTotalQuestions();
+  const monthQuestions = getMonthQuestions();
   
   return (
     <div className="p-4 max-w-5xl mx-auto">
@@ -930,7 +983,7 @@ const ScheduleView = () => {
           </button>
           
           <div className="ml-3 bg-indigo-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-            登録: {totalQuestions}問
+            登録: {totalQuestions}問・今月: {monthQuestions}問
           </div>
         </div>
       </div>
@@ -951,55 +1004,64 @@ const ScheduleView = () => {
           ))}
         </div>
         
-        <div className="grid grid-cols-7 gap-2">
-          {calendar.map((week, weekIndex) => (
-            week.map((dayData, dayIndex) => {
-              const isToday = dayData && dayData.date.toDateString() === new Date().toDateString();
-              const hasQuestions = dayData && dayData.questionCount > 0;
+        {calendarError ? (
+          <div className="p-6 text-center text-red-500">
+            カレンダーデータの読み込み中にエラーが発生しました。
+            <button 
+              onClick={() => window.location.reload()} 
+              className="ml-2 px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600"
+            >
+              再読み込み
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-7 gap-2">
+            {Array.isArray(calendar) && calendar.flat().map((dayData, index) => {
+              if (!dayData) {
+                return (
+                  <div key={`empty-${index}`} className="h-24 bg-gray-50 border border-gray-100 rounded-lg"></div>
+                );
+              }
+              
+              const isToday = dayData.date.toDateString() === new Date().toDateString();
+              const questionCount = dayData.questions?.length || 0;
               
               return (
                 <div 
-                  key={`${weekIndex}-${dayIndex}`} 
+                  key={`day-${index}`} 
                   className={`relative h-24 border p-2 rounded-lg ${
-                    !dayData ? 'bg-gray-50 border-gray-100' :
-                    isToday ? 'bg-blue-50 border-blue-300 ring-1 ring-blue-400' :
-                    'bg-white border-gray-200'
+                    isToday ? 'bg-blue-50 border-blue-300 ring-1 ring-blue-400' : 'bg-white border-gray-200'
                   }`}
                 >
-                  {dayData && (
-                    <>
-                      <div className={`text-right font-medium ${
-                        isToday ? 'text-blue-700' : 'text-gray-700'
-                      }`}>
-                        {dayData.day}
+                  <div className={`text-right font-medium ${isToday ? 'text-blue-700' : 'text-gray-700'}`}>
+                    {dayData.day}
+                  </div>
+                  
+                  {questionCount > 0 && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className={`
+                        font-bold text-xl px-3.5 py-1.5 rounded-full shadow-lg
+                        ${questionCount > 10 
+                          ? 'bg-red-500 text-white shadow-red-200' 
+                          : questionCount > 5 
+                            ? 'bg-orange-500 text-white shadow-orange-200'
+                            : 'bg-green-500 text-white shadow-green-200'
+                        }
+                      `}>
+                        {questionCount}
                       </div>
-                      
-                      {hasQuestions && (
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                          <div className={`
-                            font-bold text-xl px-3 py-1 rounded-full shadow-md
-                            ${dayData.questionCount > 10 
-                              ? 'bg-red-500 text-white' 
-                              : dayData.questionCount > 5 
-                                ? 'bg-orange-500 text-white'
-                                : 'bg-green-500 text-white'
-                            }
-                          `}>
-                            {dayData.questionCount}
-                          </div>
-                        </div>
-                      )}
-                    </>
+                    </div>
                   )}
                 </div>
               );
-            })
-          ))}
-        </div>
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
 };
+
   // ナビゲーションコンポーネント
   const Navigation = () => (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg flex justify-around p-2 z-10">
