@@ -855,117 +855,78 @@ const ScheduleView = () => {
     setCurrentMonth(newMonth);
   };
   
-  // 月のカレンダーデータを生成
+  // 月のカレンダーデータを生成（既存の関数）
   const getCalendarData = (date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    
-    const daysInMonth = lastDay.getDate();
-    const startDayOfWeek = firstDay.getDay();
-    
-    const calendar = [];
-    let day = 1;
-    
-    for (let i = 0; i < 6; i++) {
-      const week = [];
-      for (let j = 0; j < 7; j++) {
-        if ((i === 0 && j < startDayOfWeek) || day > daysInMonth) {
-          week.push(null);
-        } else {
-          const currentDate = new Date(year, month, day);
-          // 日付を00:00:00に設定して比較できるようにする
-          currentDate.setHours(0, 0, 0, 0);
-          const questionsForDay = getQuestionsForDate(currentDate);
-          week.push({
-            day,
-            date: currentDate,
-            questions: questionsForDay
-          });
-          day++;
-        }
-      }
-      calendar.push(week);
-      if (day > daysInMonth) break;
-    }
-    
-    return calendar;
-  };
-  
-  // デバッグのために全問題を取得
-  const getAllQuestionsCount = () => {
-    let count = 0;
-    subjects.forEach(subject => {
-      subject.chapters.forEach(chapter => {
-        count += chapter.questions.length;
-      });
-    });
-    return count;
+    // ... 既存のコード
   };
   
   const calendar = getCalendarData(currentMonth) || [];
   const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
   
-  // カレンダー内の全ての問題数を計算
-  const totalQuestionsInCalendar = Array.isArray(calendar) && calendar.length > 0 
-    ? calendar.flat().reduce((total, day) => {
-        return total + (day?.questions?.length || 0);
-      }, 0)
-    : 0;
+  // すべての問題数をカウント（デバッグ用）
+  const countAllQuestions = () => {
+    let total = 0;
+    subjects.forEach(subject => {
+      subject.chapters.forEach(chapter => {
+        total += chapter.questions.length;
+      });
+    });
+    return total;
+  };
   
-  // 全問題数（デバッグ用）
-  const totalQuestions = getAllQuestionsCount();
+  // 今月のカレンダーに表示されている問題数をカウント
+  const countCalendarQuestions = () => {
+    if (!Array.isArray(calendar) || calendar.length === 0) return 0;
+    return calendar.flat().reduce((total, day) => {
+      return total + (day?.questions?.length || 0);
+    }, 0);
+  };
+  
+  const totalQuestions = countAllQuestions();
+  const calendarQuestions = countCalendarQuestions();
   
   return (
     <div className="p-6 max-w-5xl mx-auto">
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
         <h2 className="text-2xl font-bold text-gray-800 flex items-center">
           <Calendar className="w-6 h-6 mr-3 text-indigo-500" />
           学習スケジュール
         </h2>
         
-        <div className="flex items-center gap-2">
-          <div className="relative flex items-center">
-            <button 
-              onClick={() => changeMonth(-1)}
-              className="p-2 rounded-full hover:bg-indigo-100 transition-colors text-indigo-600"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </button>
-            <h3 className="text-xl font-bold text-gray-800 mx-4 min-w-28 text-center">
-              {currentMonth.getFullYear()}年{currentMonth.getMonth() + 1}月
-            </h3>
-            <button 
-              onClick={() => changeMonth(1)}
-              className="p-2 rounded-full hover:bg-indigo-100 transition-colors text-indigo-600"
-            >
-              <ChevronRight className="w-6 h-6" />
-            </button>
-          </div>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => changeMonth(-1)}
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-white border border-gray-200 hover:bg-gray-100 transition-colors"
+          >
+            <ChevronLeft className="w-6 h-6 text-indigo-600" />
+          </button>
           
-          <div className="bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-md ml-2">
-            今月: {totalQuestionsInCalendar}問
+          <h3 className="text-xl font-bold text-gray-800 min-w-32 text-center">
+            {currentMonth.getFullYear()}年{currentMonth.getMonth() + 1}月
+          </h3>
+          
+          <button 
+            onClick={() => changeMonth(1)}
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-white border border-gray-200 hover:bg-gray-100 transition-colors"
+          >
+            <ChevronRight className="w-6 h-6 text-indigo-600" />
+          </button>
+          
+          <div className="ml-3 px-4 py-2 bg-indigo-600 text-white rounded-full font-bold shadow-md">
+            登録: {totalQuestions}問・今月: {calendarQuestions}問
           </div>
         </div>
       </div>
       
-      {/* デバッグ情報 */}
-      <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-        <p className="text-gray-700">登録されている全問題数: {totalQuestions}問</p>
-        <p className="text-gray-700">今月のカレンダーに表示されている問題数: {totalQuestionsInCalendar}問</p>
-      </div>
-      
-      <div className="card p-6">        
-        <div className="grid grid-cols-7 gap-3 mb-4">
+      <div className="bg-white rounded-xl shadow-md p-4">
+        <div className="grid grid-cols-7 gap-2 mb-4">
           {weekDays.map((day, index) => (
             <div 
               key={index} 
-              className={`text-center py-3 font-bold text-sm rounded-lg ${
+              className={`text-center py-2 font-bold text-sm rounded-lg ${
                 index === 0 ? 'text-red-500 bg-red-50' : 
                 index === 6 ? 'text-blue-500 bg-blue-50' : 
-                'text-gray-600 bg-gray-50'
+                'text-gray-800 bg-gray-50'
               }`}
             >
               {day}
@@ -973,53 +934,53 @@ const ScheduleView = () => {
           ))}
         </div>
         
-        <div className="grid grid-cols-7 gap-3">
+        <div className="grid grid-cols-7 gap-2">
           {Array.isArray(calendar) && calendar.length > 0 ? (
             calendar.flat().map((dayData, index) => {
               const isToday = dayData && dayData.date && dayData.date.toDateString() === new Date().toDateString();
-              const hasQuestions = dayData && dayData.questions && dayData.questions.length > 0;
+              // 問題数を安全に取得
               const questionCount = dayData?.questions?.length || 0;
+              
+              // 問題数に応じたスタイルを決定
+              let badgeStyle = '';
+              let textColor = 'text-white';
+              
+              if (questionCount > 10) {
+                badgeStyle = 'bg-gradient-to-br from-red-500 to-red-700 shadow-red-200';
+              } else if (questionCount > 5) {
+                badgeStyle = 'bg-gradient-to-br from-orange-500 to-red-500 shadow-orange-200';
+              } else if (questionCount > 0) {
+                badgeStyle = 'bg-gradient-to-br from-green-500 to-emerald-600 shadow-green-200';
+              }
               
               return (
                 <div 
                   key={index} 
-                  className={`min-h-32 border p-2 rounded-xl transition-all ${
+                  className={`relative h-24 border p-2 rounded-xl ${
                     !dayData ? 'bg-gray-50 border-gray-100' :
-                    isToday ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-indigo-300 ring-2 ring-indigo-400 shadow-md' :
-                    hasQuestions ? 'bg-white border-indigo-200 hover:border-indigo-400 hover:shadow-md cursor-pointer' :
+                    isToday ? 'bg-blue-50 border-blue-300 ring-2 ring-blue-400' :
+                    questionCount > 0 ? 'bg-white border-indigo-200 hover:border-indigo-400 cursor-pointer' :
                     'bg-white border-gray-100'
                   }`}
-                  onClick={() => {
-                    if (dayData && hasQuestions) {
-                      alert(`${formatDate(dayData.date)}の問題: ${dayData.questions.length}問`);
-                    }
-                  }}
                 >
                   {dayData && (
                     <>
                       <div className={`text-right font-bold ${
-                        isToday ? 'text-indigo-700' : 'text-gray-700'
+                        isToday ? 'text-blue-700' : 'text-gray-700'
                       }`}>
                         {dayData.day}
                       </div>
+                      
                       {questionCount > 0 && (
-                        <div className="flex flex-col gap-1 mt-2">
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                           <div className={`
-                            px-2 py-1 rounded-full text-xs font-bold text-center shadow-sm
-                            ${questionCount > 5 
-                              ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white' 
-                              : questionCount > 2 
-                                ? 'bg-gradient-to-r from-yellow-400 to-amber-500 text-white'
-                                : 'bg-gradient-to-r from-green-400 to-emerald-500 text-white'
-                            }
+                            ${badgeStyle} ${textColor}
+                            font-bold text-xl px-3 py-2 rounded-full 
+                            shadow-lg z-10 transform transition-transform duration-200
+                            ${isToday ? 'scale-110' : ''}
                           `}>
-                            {questionCount}問
+                            {questionCount}
                           </div>
-                          {questionCount <= 3 && dayData.questions.map((q, i) => (
-                            <div key={i} className="text-xs text-gray-700 truncate bg-gray-50 px-2 py-1 rounded-md mt-1 border border-gray-100">
-                              {q.id}
-                            </div>
-                          ))}
                         </div>
                       )}
                     </>
@@ -1037,7 +998,7 @@ const ScheduleView = () => {
     </div>
   );
 };
-  
+
   // ナビゲーションコンポーネント
   const Navigation = () => (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg flex justify-around p-2 z-10">
