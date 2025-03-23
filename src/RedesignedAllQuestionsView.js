@@ -41,6 +41,9 @@ const RedesignedAllQuestionsView = ({
   
   // 通知
   const [notification, setNotification] = useState(null);
+
+  // 共通のアイコンスタイルを定義
+  const iconStyle = "w-5 h-5"; // すべてのアイコンに適用する基本サイズ
   
   // 表示タブの状態
   const [activeTab, setActiveTab] = useState('all'); // 'all', 'today', 'week', 'month'
@@ -261,17 +264,17 @@ const RedesignedAllQuestionsView = ({
   const getUnderstandingStyle = (understanding) => {
     if (understanding === '理解○') {
       return {
-        icon: <CheckCircle className="w-4 h-4 text-green-600" />,
+        icon: <CheckCircle className={`${iconStyle} text-green-600`} />,
         className: 'bg-green-100 text-green-800 border-green-300',
       };
     } else if (understanding.startsWith('曖昧△')) {
       return {
-        icon: <AlertTriangle className="w-4 h-4 text-yellow-600" />,
+        icon: <AlertTriangle className={`${iconStyle} text-yellow-600`} />,
         className: 'bg-yellow-100 text-yellow-800 border-yellow-300',
       };
     } else {
       return {
-        icon: <XCircle className="w-4 h-4 text-red-600" />,
+        icon: <XCircle className={`${iconStyle} text-red-600`} />,
         className: 'bg-red-100 text-red-800 border-red-300',
       };
     }
@@ -301,14 +304,14 @@ const RedesignedAllQuestionsView = ({
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-              <Search className="h-5 w-5" />
+              <Search className={`${iconStyle}`} />
             </div>
             {searchTerm && (
               <button 
                 onClick={() => setSearchTerm('')}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
-                <X className="h-4 w-4" />
+                <X className={`${iconStyle}`} />
               </button>
             )}
           </div>
@@ -318,7 +321,7 @@ const RedesignedAllQuestionsView = ({
               onClick={() => setShowFilters(!showFilters)}
               className="px-4 py-2.5 border border-gray-300 bg-white rounded-xl hover:bg-gray-50 flex items-center shadow-sm flex-grow md:flex-grow-0 justify-center"
             >
-              <Filter className="w-4 h-4 mr-2" />
+              <Filter className={`${iconStyle} mr-2`} />
               フィルター
             </button>
             
@@ -412,7 +415,7 @@ const RedesignedAllQuestionsView = ({
         )}
         
         {/* 期間タブ */}
-        <div className="flex rounded-xl bg-gray-100 p-1 shadow-sm">
+        <div className="flex rounded-xl bg-gray-100 p-1 shadow-sm gap-2">
           <button
             onClick={() => setActiveTab('all')}
             className={`flex-1 py-2.5 rounded-lg text-sm font-medium ${
@@ -449,22 +452,22 @@ const RedesignedAllQuestionsView = ({
       </div>
       
       {/* 一括編集時の選択状態表示 */}
-     {bulkEditMode && selectedQuestions.length > 0 && (
-  <div className="bg-indigo-50 p-4 mb-4 rounded-xl border border-indigo-200 shadow-sm animate-fadeIn">
-    <div className="flex justify-between items-center">
-      <p className="text-indigo-800 font-medium">
-        {selectedQuestions.length}個の問題を選択中
-      </p>
-      <button 
-        onClick={showBulkEditCalendar}
-        className="px-4 py-2 rounded-lg bg-indigo-600 text-white font-medium shadow-sm flex items-center hover:bg-indigo-700 transition-colors"
-      >
-        <Calendar className="w-4 h-4 mr-2" />
-        日付を選択
-      </button>
-    </div>
-  </div>
-)}
+      {bulkEditMode && selectedQuestions.length > 0 && (
+        <div className="bg-indigo-50 p-4 mb-4 rounded-xl border border-indigo-200 shadow-sm animate-fadeIn">
+          <div className="flex justify-between items-center">
+            <p className="text-indigo-800 font-medium">
+              {selectedQuestions.length}個の問題を選択中
+            </p>
+            <button 
+              onClick={showBulkEditCalendar}
+              className="px-4 py-2 rounded-lg bg-indigo-600 text-white font-medium shadow-sm flex items-center hover:bg-indigo-700 transition-colors"
+            >
+              <Calendar className={`${iconStyle} mr-2`} />
+              日付を選択
+            </button>
+          </div>
+        </div>
+      )}
       
       {/* 問題一覧 */}
       {filteredSubjects.length === 0 ? (
@@ -483,7 +486,7 @@ const RedesignedAllQuestionsView = ({
                 <div className="mr-3 text-gray-500 transition-transform duration-200" style={{ 
                   transform: expandedSubjects[subject.id] ? 'rotate(90deg)' : 'rotate(0deg)' 
                 }}>
-                  <ChevronRight className="w-5 h-5" />
+                  <ChevronRight className={`${iconStyle}`} />
                 </div>
                 <h3 className="font-bold text-gray-800">{subject.name}</h3>
                 <div className="ml-3 text-sm bg-indigo-100 text-indigo-700 px-2.5 py-0.5 rounded-full">
@@ -515,7 +518,7 @@ const RedesignedAllQuestionsView = ({
                           <div className="mr-2 text-gray-500 transition-transform duration-200" style={{ 
                             transform: expandedChapters[chapter.id] ? 'rotate(90deg)' : 'rotate(0deg)' 
                           }}>
-                            <ChevronRight className="w-4 h-4" />
+                            <ChevronRight className={`${iconStyle}`} />
                           </div>
                           <h4 className="text-gray-700 font-medium">{chapter.name}</h4>
                           <div className="ml-2 text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full">
@@ -551,9 +554,9 @@ const RedesignedAllQuestionsView = ({
                                       title={expandedDetails[question.id] ? "詳細を閉じる" : "詳細を表示"}
                                     >
                                       {expandedDetails[question.id] ? (
-                                        <ChevronUp className="w-4 h-4" />
+                                        <ChevronUp className={`${iconStyle}`} />
                                       ) : (
-                                        <Info className="w-4 h-4" />
+                                        <Info className={`${iconStyle}`} />
                                       )}
                                     </button>
                                     
@@ -583,7 +586,7 @@ const RedesignedAllQuestionsView = ({
                                     
                                     {/* 次回予定日 */}
                                     <div className="flex items-center text-xs text-gray-500">
-                                      <Clock className="w-3 h-3 mr-1" />
+                                      <Clock className={`${iconStyle} mr-1`} />
                                       {formatDate(question.nextDate)}
                                     </div>
                                     
@@ -596,7 +599,7 @@ const RedesignedAllQuestionsView = ({
                                       className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors ml-auto"
                                       title="編集"
                                     >
-                                      <Edit className="w-4 h-4" />
+                                      <Edit className={`${iconStyle}`} />
                                     </button>
                                   </div>
                                   
@@ -734,7 +737,7 @@ const RedesignedAllQuestionsView = ({
                 onClick={() => setShowCalendarModal(false)}
                 className="text-gray-500 hover:text-gray-700"
               >
-                <X className="w-5 h-5" />
+                <X className={`${iconStyle}`} />
               </button>
             </div>
             
