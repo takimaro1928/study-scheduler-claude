@@ -1,5 +1,334 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, List, ChevronRight, ChevronLeft, ChevronDown, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Calendar, ChevronLeft, ChevronRight, List, /* 他の既存のインポート */ } from 'lucide-react';
+
+// カレンダーコンポーネント
+const DatePickerCalendar = ({ selectedDate, onChange, onClose }) => {
+  const [viewDate, setViewDate] = useState(selectedDate || new Date());
+  const [localSelectedDate, setLocalSelectedDate] = useState(selectedDate || new Date());
+  
+  // 月を変更する関数
+  const changeMonth = (offset) => {
+    const newDate = new Date(viewDate);
+    newDate.setMonth(viewDate.getMonth() + offset);
+    setViewDate(newDate);
+  };
+  
+  // 年を変更する関数
+  const changeYear = (offset) => {
+    const newDate = new Date(viewDate);
+    newDate.setFullYear(viewDate.getFullYear() + offset);
+    setViewDate(newDate);
+  };
+  
+  // カレンダーデータを生成
+  const generateCalendar = () => {
+    const year = viewDate.getFullYear();
+    const month = viewDate.getMonth();
+    
+    // 月の最初と最後の日
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    
+    // 先月の日を取得（前月の空白を埋めるため）
+    const prevMonthLastDay = new Date(year, month, 0).getDate();
+    const firstWeekday = firstDay.getDay(); // 0=日曜日
+    
+    const daysInMonth = lastDay.getDate();
+    const calendar = [];
+    
+    // 先月の日を追加
+    const prevMonthDays = [];
+    for (let i = firstWeekday - 1; i >= 0; i--) {
+      const day = prevMonthLastDay - i;
+      const date = new Date(year, month - 1, day);
+      prevMonthDays.push({ day, date, isPrevMonth: true });
+    }
+    
+    // 今月の日を追加
+    const currentMonthDays = [];
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day);
+      currentMonthDays.push({ day, date, isCurrentMonth: true });
+    }
+    
+    // 来月の日を追加（次月の空白を埋めるため）
+    const nextMonthDays = [];
+    const remainingCells = 42 - (prevMonthDays.length + currentMonthDays.length);
+    for (let day = 1; day <= remainingCells; day++) {
+      const date = new Date(year, month + 1, day);
+      nextMonthDays.push({ day, date, isNextMonth: true });
+    }
+    
+    return [...prevMonthDays, ...currentMonthDays, ...nextMonthDays];
+  };
+  
+  const calendar = generateCalendar();
+  const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
+  
+  // 日付が今日かどうかチェック
+  const isToday = (date) => {
+    const today = new Date();
+    return date.getDate() === today.getDate() && 
+           date.getMonth() === today.getMonth() && 
+           date.getFullYear() === today.getFullYear();
+  };
+  
+  // 日付が選択されているかチェック
+  const isSelected = (date) => {
+    return localSelectedDate && 
+           date.getDate() === localSelectedDate.getDate() && 
+           date.getMonth() === localSelectedDate.getMonth() && 
+           date.getFullYear() === localSelectedDate.getFullYear();
+  };
+  
+  // 日付選択ハンドラー
+  const handleDateSelect = (date) => {
+    setLocalSelectedDate(date);
+    onChange && onChange(date);
+  };
+  
+  // 「今日」ボタンのハンドラー
+  const handleTodayClick = () => {
+    const today = new Date();
+    setViewDate(today);
+    setLocalSelectedDate(today);
+    onChange && onChange(today);
+  };
+  
+  // 「削除」ボタンのハンドラー
+  const handleClearClick = () => {
+    setLocalSelectedDate(null);
+    onChange && onChange(null);
+  };
+  
+  // 日本語の月名
+  const getJapaneseMonthName = (date) => {
+    return `${date.getFullYear()}年${date.getMonth() + 1}月`;
+  };
+  
+  // 和暦の年号を取得
+  const getJapaneseEraYear = (date) => {
+    const year = date.getFullYear();
+    if (year >= 2019) return `令和${year - 2018}年`;
+    if (year >= 1989) return `平成${year - 1988}年`;
+    if (year >= 1926) return `昭和${year - 1925}年`;
+    if (year >= 1912) return `大正${year - 1911}年`;
+    return `明治${year - 1867}年`;
+  };
+  
+  return (
+    <div className="bg-white rounded-lg shadow-xl border border-gray-200 w-72 overflow-hidden">
+      {/* ヘッダー部分 */}
+      <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white p-3">
+        <div className="flex justify-between items-center mb-2">
+          <button 
+            onClick={() => changeYear(-1)}
+            className="text-white hover:bg-indigo-700 rounded-full w-7 h-7 flex items-center justify-center"
+          >
+            <span className="text-lg">«</span>
+          </button>
+          
+          <div className="font-bold text-white">
+            {getJapaneseEraYear(viewDate)}
+          </div>
+          
+          <button 
+            onClick={() => changeYear(1)}
+            className="text-white hover:bg-indigo-700 rounded-full w-7 h-7 flex items-center justify-center"
+          >
+            <span className="text-lg">»</span>
+          </button>
+        </div>
+        
+        <div className="flex justify-between items-center">
+          <button 
+            onClick={() => changeMonth(-1)}
+            className="text-white hover:bg-indigo-700 rounded-full w-7 h-7 flex items-center justify-center"
+          >
+            <span>‹</span>
+          </button>
+          
+          <div className="font-bold text-lg">{getJapaneseMonthName(viewDate)}</div>
+          
+          <button 
+            onClick={() => changeMonth(1)}
+            className="text-white hover:bg-indigo-700 rounded-full w-7 h-7 flex items-center justify-center"
+          >
+            <span>›</span>
+          </button>
+        </div>
+      </div>
+      
+      {/* カレンダー本体 */}
+      <div className="p-2">
+        {/* 曜日ヘッダー */}
+        <div className="grid grid-cols-7 gap-1 mb-1">
+          {weekDays.map((day, index) => (
+            <div 
+              key={index} 
+              className={`text-center text-xs font-medium py-1 ${
+                index === 0 ? 'text-red-600' : 
+                index === 6 ? 'text-blue-600' : 'text-gray-600'
+              }`}
+            >
+              {day}
+            </div>
+          ))}
+        </div>
+        
+        {/* 日付グリッド */}
+        <div className="grid grid-cols-7 gap-1">
+          {calendar.map((dateObj, index) => {
+            const { day, date, isPrevMonth, isNextMonth } = dateObj;
+            const _isToday = isToday(date);
+            const _isSelected = isSelected(date);
+            
+            return (
+              <button
+                key={index}
+                onClick={() => handleDateSelect(date)}
+                className={`
+                  w-9 h-9 flex items-center justify-center text-sm rounded-full
+                  ${isPrevMonth || isNextMonth ? 'text-gray-400' : 'text-gray-700'}
+                  ${_isToday && !_isSelected ? 'border border-indigo-500' : ''}
+                  ${_isSelected ? 'bg-indigo-500 text-white' : 'hover:bg-gray-100'}
+                `}
+              >
+                {day}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      
+      {/* フッター部分 */}
+      <div className="border-t border-gray-200 p-2 flex justify-between items-center bg-gray-50">
+        <button
+          onClick={handleClearClick}
+          className="text-red-600 text-sm hover:underline font-medium"
+        >
+          削除
+        </button>
+        
+        <button
+          onClick={handleTodayClick}
+          className="text-indigo-600 text-sm hover:underline font-medium"
+        >
+          今日
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// 一括編集セクションコンポーネント
+const BulkEditSection = ({ selectedQuestions, setSelectedDate, selectedDate, saveBulkEdit }) => {
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [dateInputValue, setDateInputValue] = useState(
+    selectedDate ? selectedDate.toISOString().split('T')[0] : ''
+  );
+  const calendarRef = useRef(null);
+  
+  // 日付の入力フィールドが変更されたとき
+  const handleDateInputChange = (e) => {
+    setDateInputValue(e.target.value);
+    setSelectedDate(new Date(e.target.value));
+  };
+  
+  // カレンダーを開く/閉じる
+  const toggleCalendar = () => {
+    setIsCalendarOpen(!isCalendarOpen);
+  };
+  
+  // カレンダーから日付が選択されたとき
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+    if (date) {
+      setDateInputValue(date.toISOString().split('T')[0]);
+    } else {
+      setDateInputValue('');
+    }
+    setIsCalendarOpen(false);
+  };
+  
+  // クリックがカレンダーの外側で発生したときに閉じる
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (calendarRef.current && !calendarRef.current.contains(event.target)) {
+        setIsCalendarOpen(false);
+      }
+    }
+    
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [calendarRef]);
+  
+  // YYYY-MM-DD形式から日本語の日付形式に変換
+  const formatDateJP = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+  };
+  
+  return (
+    <div className="mb-6 p-4 bg-indigo-50 border border-indigo-200 rounded-lg shadow-sm">
+      <div className="flex justify-between items-center mb-3">
+        <p className="text-indigo-800 font-medium">{selectedQuestions.length}個の問題を選択中</p>
+      </div>
+      
+      <div className="flex flex-wrap gap-3 items-center">
+        <div className="relative">
+          <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden shadow-sm bg-white">
+            <input
+              type="text"
+              className="px-3 py-2 outline-none text-gray-700 w-40"
+              placeholder="日付を選択"
+              value={formatDateJP(dateInputValue)}
+              readOnly
+              onClick={toggleCalendar}
+            />
+            <button
+              onClick={toggleCalendar}
+              className="px-2 bg-white text-gray-600 border-l border-gray-300 h-full"
+            >
+              <Calendar className="w-5 h-5" />
+            </button>
+          </div>
+          
+          {isCalendarOpen && (
+            <div 
+              ref={calendarRef}
+              className="absolute left-0 top-full mt-1 z-50"
+            >
+              <DatePickerCalendar
+                selectedDate={selectedDate}
+                onChange={handleDateChange}
+                onClose={() => setIsCalendarOpen(false)}
+              />
+            </div>
+          )}
+        </div>
+        
+        <button 
+          onClick={() => saveBulkEdit(selectedDate)}
+          disabled={!selectedDate}
+          className={`px-4 py-2 rounded-lg text-white font-medium shadow-sm flex items-center
+            ${selectedDate 
+              ? 'bg-green-500 hover:bg-green-600 active:bg-green-700' 
+              : 'bg-gray-400 cursor-not-allowed'
+            }`}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+          </svg>
+          一括設定
+        </button>
+      </div>
+    </div>
+  );
+};
 
 // 初期データの作成
 const generateInitialData = () => {
@@ -655,39 +984,13 @@ const AllQuestionsView = () => {
       </div>
       
       {bulkEditMode && selectedQuestions.length > 0 && (
-        <div className="mb-6 p-4 bg-indigo-50 border border-indigo-200 rounded-lg shadow-sm">
-          <div className="flex justify-between items-center mb-3">
-            <p className="text-indigo-800 font-medium">{selectedQuestions.length}個の問題を選択中</p>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={toggleSelectAll}
-                className="text-sm px-3 py-1 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
-              >
-                {selectAll ? '全て解除' : '全て選択'}
-              </button>
-              <button
-                onClick={() => setSelectedQuestions([])}
-                className="text-sm px-3 py-1 bg-red-100 text-red-800 rounded-lg hover:bg-red-200"
-              >
-                選択解除
-              </button>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <input 
-              type="date" 
-              className="border border-gray-300 rounded-lg p-2"
-              onChange={(e) => setSelectedDate(new Date(e.target.value))}
-            />
-            <button 
-              onClick={() => saveBulkEdit(selectedDate)}
-              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-            >
-              一括設定
-            </button>
-          </div>
-        </div>
-      )}
+  <BulkEditSection
+    selectedQuestions={selectedQuestions}
+    setSelectedDate={setSelectedDate}
+    selectedDate={selectedDate}
+    saveBulkEdit={saveBulkEdit}
+  />
+)}
       
       {filteredSubjects.length === 0 ? (
         <div className="bg-gray-50 p-10 rounded-lg text-center">
