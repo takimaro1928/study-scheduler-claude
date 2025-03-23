@@ -4,6 +4,8 @@ import { Calendar, ChevronLeft, ChevronRight, List, Clock, CheckCircle, XCircle 
 import DatePickerCalendar from './DatePickerCalendar';
 import QuestionEditModal from './QuestionEditModal';
 import BulkEditSection from './BulkEditSection';
+import AmbiguousTrendsPage from './AmbiguousTrendsPage';
+import { Info } from 'lucide-react';
 
 // 初期データの作成
 const generateInitialData = () => {
@@ -1030,18 +1032,20 @@ function App() {
   };
 
   // メインビュー
-  const MainView = () => {
-    switch (activeTab) {
-      case 'today':
-        return <TodayView />;
-      case 'schedule':
-        return <ScheduleView />;
-      case 'all':
-        return <AllQuestionsView />;
-      default:
-        return <TodayView />;
-    }
-  };
+const MainView = () => {
+  switch (activeTab) {
+    case 'today':
+      return <TodayView />;
+    case 'schedule':
+      return <ScheduleView />;
+    case 'all':
+      return <AllQuestionsView />;
+    case 'trends':
+      return <AmbiguousTrendsPage subjects={subjects} />;
+    default:
+      return <TodayView />;
+  }
+};
 
   // App.js ヘッダーとナビゲーション部分
   return (
@@ -1065,28 +1069,35 @@ function App() {
       )}
       
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg flex justify-around p-2 z-10">
-        <button 
-          onClick={() => setActiveTab('today')}
-          className={`nav-item ${activeTab === 'today' ? 'active' : ''}`}
-        >
-          <Clock className="h-6 w-6" />
-          <span className="text-xs mt-1 font-medium">今日</span>
-        </button>
-        <button 
-          onClick={() => setActiveTab('schedule')}
-          className={`nav-item ${activeTab === 'schedule' ? 'active' : ''}`}
-        >
-          <Calendar className="h-6 w-6" />
-          <span className="text-xs mt-1 font-medium">スケジュール</span>
-        </button>
-        <button 
-          onClick={() => setActiveTab('all')}
-          className={`nav-item ${activeTab === 'all' ? 'active' : ''}`}
-        >
-          <List className="h-6 w-6" />
-          <span className="text-xs mt-1 font-medium">全問題</span>
-        </button>
-      </nav>
+  <button 
+    onClick={() => setActiveTab('today')}
+    className={`nav-item ${activeTab === 'today' ? 'active' : ''}`}
+  >
+    <Clock className="h-6 w-6" />
+    <span className="text-xs mt-1 font-medium">今日</span>
+  </button>
+  <button 
+    onClick={() => setActiveTab('schedule')}
+    className={`nav-item ${activeTab === 'schedule' ? 'active' : ''}`}
+  >
+    <Calendar className="h-6 w-6" />
+    <span className="text-xs mt-1 font-medium">スケジュール</span>
+  </button>
+  <button 
+    onClick={() => setActiveTab('all')}
+    className={`nav-item ${activeTab === 'all' ? 'active' : ''}`}
+  >
+    <List className="h-6 w-6" />
+    <span className="text-xs mt-1 font-medium">全問題</span>
+  </button>
+  <button 
+    onClick={() => setActiveTab('trends')}
+    className={`nav-item ${activeTab === 'trends' ? 'active' : ''}`}
+  >
+    <Info className="h-6 w-6" />
+    <span className="text-xs mt-1 font-medium">傾向分析</span>
+  </button>
+</nav>
     </div>
   );
 }
