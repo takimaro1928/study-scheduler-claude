@@ -856,39 +856,7 @@ const ScheduleView = () => {
   
   // 月のカレンダーデータを生成
   const getCalendarData = (date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    
-    const daysInMonth = lastDay.getDate();
-    const startDayOfWeek = firstDay.getDay();
-    
-    const calendar = [];
-    let day = 1;
-    
-    for (let i = 0; i < 6; i++) {
-      const week = [];
-      for (let j = 0; j < 7; j++) {
-        if ((i === 0 && j < startDayOfWeek) || day > daysInMonth) {
-          week.push(null);
-        } else {
-          const currentDate = new Date(year, month, day);
-          const questionsForDay = getQuestionsForDate(currentDate);
-          week.push({
-            day,
-            date: currentDate,
-            questions: questionsForDay
-          });
-          day++;
-        }
-      }
-      calendar.push(week);
-      if (day > daysInMonth) break;
-    }
-    
-    return calendar;
+    // ... 既存のコード
   };
   
   const calendar = getCalendarData(currentMonth);
@@ -898,45 +866,47 @@ const ScheduleView = () => {
   }, 0);
   
   return (
-    <div className="p-4 max-w-5xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-gray-800 flex items-center">
-          <Calendar className="w-5 h-5 mr-2" />
+    <div className="p-6 max-w-5xl mx-auto">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+        <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+          <Calendar className="w-6 h-6 mr-3 text-indigo-500" />
           学習スケジュール
         </h2>
         
-        <div className="bg-indigo-600 text-white px-4 py-2 rounded-full text-sm font-medium shadow-sm">
-          今月の問題数: {totalQuestionsThisMonth}問
+        <div className="flex items-center gap-2">
+          <div className="relative flex items-center">
+            <button 
+              onClick={() => changeMonth(-1)}
+              className="p-2 rounded-full hover:bg-indigo-100 transition-colors text-indigo-600"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <h3 className="text-xl font-bold text-gray-800 mx-4 min-w-28 text-center">
+              {currentMonth.getFullYear()}年{currentMonth.getMonth() + 1}月
+            </h3>
+            <button 
+              onClick={() => changeMonth(1)}
+              className="p-2 rounded-full hover:bg-indigo-100 transition-colors text-indigo-600"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          </div>
+          
+          <div className="bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-md ml-2">
+            今月: {totalQuestionsThisMonth}問
+          </div>
         </div>
       </div>
       
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <div className="flex justify-between items-center mb-6">
-          <button 
-            onClick={() => changeMonth(-1)}
-            className="p-3 rounded-full hover:bg-gray-100 transition-colors"
-          >
-            <ChevronLeft className="w-6 h-6 text-gray-600" />
-          </button>
-          <h3 className="text-2xl font-bold text-gray-800">
-            {currentMonth.getFullYear()}年{currentMonth.getMonth() + 1}月
-          </h3>
-          <button 
-            onClick={() => changeMonth(1)}
-            className="p-3 rounded-full hover:bg-gray-100 transition-colors"
-          >
-            <ChevronRight className="w-6 h-6 text-gray-600" />
-          </button>
-        </div>
-        
-        <div className="grid grid-cols-7 gap-3 mb-3">
+      <div className="card p-6">        
+        <div className="grid grid-cols-7 gap-3 mb-4">
           {weekDays.map((day, index) => (
             <div 
               key={index} 
-              className={`text-center py-2 font-bold text-sm rounded ${
-                index === 0 ? 'text-red-500' : 
-                index === 6 ? 'text-blue-500' : 
-                'text-gray-600'
+              className={`text-center py-3 font-bold text-sm rounded-lg ${
+                index === 0 ? 'text-red-500 bg-red-50' : 
+                index === 6 ? 'text-blue-500 bg-blue-50' : 
+                'text-gray-600 bg-gray-50'
               }`}
             >
               {day}
@@ -952,41 +922,40 @@ const ScheduleView = () => {
             return (
               <div 
                 key={index} 
-                className={`min-h-28 border p-2 rounded-xl ${
+                className={`min-h-32 border p-2 rounded-xl transition-all ${
                   !dayData ? 'bg-gray-50 border-gray-100' :
-                  isToday ? 'bg-blue-50 border-blue-200 ring-2 ring-blue-400' :
-                  hasQuestions ? 'bg-white border-indigo-200 hover:border-indigo-400 cursor-pointer' :
+                  isToday ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-indigo-300 ring-2 ring-indigo-400 shadow-md' :
+                  hasQuestions ? 'bg-white border-indigo-200 hover:border-indigo-400 hover:shadow-md cursor-pointer' :
                   'bg-white border-gray-100'
-                } transition-all`}
+                }`}
                 onClick={() => {
                   if (dayData && hasQuestions) {
-                    // ここで日付をクリックした時の詳細表示などの機能を追加できます
                     alert(`${formatDate(dayData.date)}の問題: ${dayData.questions.length}問`);
                   }
                 }}
               >
                 {dayData && (
                   <>
-                    <div className={`text-right mb-1 font-medium ${
-                      isToday ? 'text-blue-700' : 'text-gray-700'
+                    <div className={`text-right font-bold ${
+                      isToday ? 'text-indigo-700' : 'text-gray-700'
                     }`}>
                       {dayData.day}
                     </div>
                     {hasQuestions && (
-                      <div className="flex flex-col gap-1">
+                      <div className="flex flex-col gap-1 mt-2">
                         <div className={`
                           px-2 py-1 rounded-full text-xs font-bold text-center shadow-sm
                           ${dayData.questions.length > 5 
-                            ? 'bg-red-500 text-white' 
+                            ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white' 
                             : dayData.questions.length > 2 
-                              ? 'bg-yellow-500 text-white'
-                              : 'bg-green-500 text-white'
+                              ? 'bg-gradient-to-r from-yellow-400 to-amber-500 text-white'
+                              : 'bg-gradient-to-r from-green-400 to-emerald-500 text-white'
                           }
                         `}>
                           {dayData.questions.length}問
                         </div>
                         {dayData.questions.length <= 3 && dayData.questions.map((q, i) => (
-                          <div key={i} className="text-xs text-gray-700 truncate bg-gray-50 px-2 py-1 rounded-md mt-1">
+                          <div key={i} className="text-xs text-gray-700 truncate bg-gray-50 px-2 py-1 rounded-md mt-1 border border-gray-100">
                             {q.id}
                           </div>
                         ))}
