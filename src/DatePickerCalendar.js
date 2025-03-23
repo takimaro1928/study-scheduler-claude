@@ -239,8 +239,8 @@ const DatePickerCalendar = ({ selectedDate, onChange, onClose }) => {
                     className={`
                       h-10 flex items-center justify-center text-sm rounded
                       ${isPrevMonth || isNextMonth ? 'text-gray-400 hover:bg-gray-50' : 'text-gray-800 hover:bg-gray-100'}
-                      ${_isToday && !_isSelected ? 'border border-indigo-500' : ''}
-                      ${_isSelected ? 'bg-indigo-600 text-white hover:bg-indigo-700' : ''}
+                      ${_isToday && !_isSelected ? 'border-2 border-indigo-500' : ''}
+                      ${_isSelected ? 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200 border border-indigo-500' : ''}
                       transition-colors
                     `}
                   >
@@ -257,14 +257,14 @@ const DatePickerCalendar = ({ selectedDate, onChange, onClose }) => {
       <div className="border-t border-gray-200 p-3 flex justify-between items-center bg-gray-50">
         <button
           onClick={handleClearClick}
-          className="px-3 py-1.5 border border-red-300 text-red-600 rounded hover:bg-red-50 text-sm font-medium transition-colors"
+          className="px-3 py-1.5 border border-gray-300 text-gray-700 rounded hover:bg-gray-100 text-sm font-medium transition-colors"
         >
           削除
         </button>
         
         <button
           onClick={handleTodayClick}
-          className="px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200 text-sm font-medium transition-colors"
+          className="px-3 py-1.5 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 text-sm font-medium transition-colors"
         >
           今日
         </button>
