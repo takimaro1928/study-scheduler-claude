@@ -1,6 +1,6 @@
 // DatePickerCalendar.js
 import React, { useState } from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 // カレンダーコンポーネント
 const DatePickerCalendar = ({ selectedDate, onChange, onClose }) => {
@@ -39,8 +39,8 @@ const DatePickerCalendar = ({ selectedDate, onChange, onClose }) => {
     
     // 先月の日を追加
     const prevMonthDays = [];
-    for (let i = firstWeekday - 1; i >= 0; i--) {
-      const day = prevMonthLastDay - i;
+    for (let i = 0; i < firstWeekday; i++) {
+      const day = prevMonthLastDay - firstWeekday + i + 1;
       const date = new Date(year, month - 1, day);
       prevMonthDays.push({ day, date, isPrevMonth: true });
     }
@@ -118,58 +118,59 @@ const DatePickerCalendar = ({ selectedDate, onChange, onClose }) => {
   };
   
   return (
-    <div className="bg-white rounded-lg shadow-xl border border-gray-200 w-72 overflow-hidden">
+    <div className="bg-white rounded-lg shadow-xl border border-gray-200 w-80 overflow-hidden">
       {/* ヘッダー部分 */}
-      <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white p-3">
-        <div className="flex justify-between items-center mb-2">
+      <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white p-4">
+        <div className="flex justify-between items-center mb-3">
           <button 
             onClick={() => changeYear(-1)}
-            className="text-white hover:bg-indigo-700 rounded-full w-7 h-7 flex items-center justify-center"
+            className="text-white hover:bg-indigo-800 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
           >
-            <span className="text-lg">«</span>
+            <span className="text-lg font-bold">«</span>
           </button>
           
-          <div className="font-bold text-white">
+          <div className="font-bold text-lg">
             {getJapaneseEraYear(viewDate)}
           </div>
           
           <button 
             onClick={() => changeYear(1)}
-            className="text-white hover:bg-indigo-700 rounded-full w-7 h-7 flex items-center justify-center"
+            className="text-white hover:bg-indigo-800 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
           >
-            <span className="text-lg">»</span>
+            <span className="text-lg font-bold">»</span>
           </button>
         </div>
         
         <div className="flex justify-between items-center">
           <button 
             onClick={() => changeMonth(-1)}
-            className="text-white hover:bg-indigo-700 rounded-full w-7 h-7 flex items-center justify-center"
+            className="text-white hover:bg-indigo-800 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
           >
-            <span>‹</span>
+            <ChevronLeft className="w-5 h-5" />
           </button>
           
-          <div className="font-bold text-lg">{getJapaneseMonthName(viewDate)}</div>
+          <div className="font-bold text-xl">{getJapaneseMonthName(viewDate)}</div>
           
           <button 
             onClick={() => changeMonth(1)}
-            className="text-white hover:bg-indigo-700 rounded-full w-7 h-7 flex items-center justify-center"
+            className="text-white hover:bg-indigo-800 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
           >
-            <span>›</span>
+            <ChevronRight className="w-5 h-5" />
           </button>
         </div>
       </div>
       
       {/* カレンダー本体 */}
-      <div className="p-2">
+      <div className="p-3">
         {/* 曜日ヘッダー */}
-        <div className="grid grid-cols-7 gap-1 mb-1">
+        <div className="grid grid-cols-7 gap-1 mb-2">
           {weekDays.map((day, index) => (
             <div 
               key={index} 
-              className={`text-center text-xs font-medium py-1 ${
-                index === 0 ? 'text-red-600' : 
-                index === 6 ? 'text-blue-600' : 'text-gray-600'
+              className={`text-center py-2 text-sm font-medium rounded ${
+                index === 0 ? 'text-red-600 bg-red-50' : 
+                index === 6 ? 'text-blue-600 bg-blue-50' : 
+                'text-gray-700 bg-gray-50'
               }`}
             >
               {day}
@@ -189,10 +190,11 @@ const DatePickerCalendar = ({ selectedDate, onChange, onClose }) => {
                 key={index}
                 onClick={() => handleDateSelect(date)}
                 className={`
-                  w-9 h-9 flex items-center justify-center text-sm rounded-full
-                  ${isPrevMonth || isNextMonth ? 'text-gray-400' : 'text-gray-700'}
+                  h-10 flex items-center justify-center text-sm rounded
+                  ${isPrevMonth || isNextMonth ? 'text-gray-400 hover:bg-gray-50' : 'text-gray-800 hover:bg-gray-100'}
                   ${_isToday && !_isSelected ? 'border border-indigo-500' : ''}
-                  ${_isSelected ? 'bg-indigo-500 text-white' : 'hover:bg-gray-100'}
+                  ${_isSelected ? 'bg-indigo-600 text-white hover:bg-indigo-700' : ''}
+                  transition-colors
                 `}
               >
                 {day}
@@ -203,17 +205,17 @@ const DatePickerCalendar = ({ selectedDate, onChange, onClose }) => {
       </div>
       
       {/* フッター部分 */}
-      <div className="border-t border-gray-200 p-2 flex justify-between items-center bg-gray-50">
+      <div className="border-t border-gray-200 p-3 flex justify-between items-center bg-gray-50">
         <button
           onClick={handleClearClick}
-          className="text-red-600 text-sm hover:underline font-medium"
+          className="px-3 py-1.5 border border-red-300 text-red-600 rounded hover:bg-red-50 text-sm font-medium transition-colors"
         >
           削除
         </button>
         
         <button
           onClick={handleTodayClick}
-          className="text-indigo-600 text-sm hover:underline font-medium"
+          className="px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200 text-sm font-medium transition-colors"
         >
           今日
         </button>
