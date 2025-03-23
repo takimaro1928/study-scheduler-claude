@@ -83,10 +83,10 @@ const BulkEditSection = ({ selectedQuestions, setSelectedDate, selectedDate, sav
         <button 
           onClick={() => selectedDate && saveBulkEdit(selectedDate)}
           disabled={!selectedDate}
-          className={`px-5 py-2 rounded-lg text-white font-medium shadow-sm flex items-center
+          className={`px-5 py-2 rounded-lg text-gray-800 font-medium shadow-sm flex items-center
             ${selectedDate 
-              ? 'bg-green-600 hover:bg-green-700 active:bg-green-800' 
-              : 'bg-gray-400 cursor-not-allowed'
+              ? 'bg-green-300 hover:bg-green-400 active:bg-green-500' 
+              : 'bg-gray-300 cursor-not-allowed'
             } transition-colors`}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
