@@ -1024,20 +1024,43 @@ const ScheduleView = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-100 pb-20 font-sans">
-      <header className="bg-indigo-600 text-white p-4 shadow-md">
-        <div className="max-w-5xl mx-auto">
-          <h1 className="text-2xl font-bold">学習スケジュール管理</h1>
-          <p className="text-sm opacity-90">暗記曲線に基づく効率的な学習を実現</p>
-        </div>
-      </header>
-      
-      <MainView />
-      
-      <Navigation />
-    </div>
-  );
+ // App.js ヘッダーとナビゲーション部分
+return (
+  <div className="min-h-screen bg-gray-50">
+    <header className="app-header">
+      <div className="max-w-5xl mx-auto">
+        <h1 className="text-2xl font-bold tracking-tight">学習スケジュール管理</h1>
+        <p className="text-sm opacity-90 mt-1">暗記曲線に基づく効率的な学習を実現</p>
+      </div>
+    </header>
+    
+    <MainView />
+    
+    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg flex justify-around p-2 z-10">
+      <button 
+        onClick={() => setActiveTab('today')}
+        className={`nav-item ${activeTab === 'today' ? 'active' : ''}`}
+      >
+        <Clock className="h-6 w-6" />
+        <span className="text-xs mt-1 font-medium">今日</span>
+      </button>
+      <button 
+        onClick={() => setActiveTab('schedule')}
+        className={`nav-item ${activeTab === 'schedule' ? 'active' : ''}`}
+      >
+        <Calendar className="h-6 w-6" />
+        <span className="text-xs mt-1 font-medium">スケジュール</span>
+      </button>
+      <button 
+        onClick={() => setActiveTab('all')}
+        className={`nav-item ${activeTab === 'all' ? 'active' : ''}`}
+      >
+        <List className="h-6 w-6" />
+        <span className="text-xs mt-1 font-medium">全問題</span>
+      </button>
+    </nav>
+  </div>
+);
 }
 
 export default App;
