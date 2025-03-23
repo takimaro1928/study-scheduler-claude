@@ -7,6 +7,7 @@ import BulkEditSection from './BulkEditSection';
 import AmbiguousTrendsPage from './AmbiguousTrendsPage';
 import { Info } from 'lucide-react';
 import EnhancedAllQuestionsView from './EnhancedAllQuestionsView';
+import SimplifiedAllQuestionsView from './SimplifiedAllQuestionsView';
 
 // 初期データの作成
 const generateInitialData = () => {
@@ -1039,23 +1040,23 @@ const MainView = () => {
       return <TodayView />;
     case 'schedule':
       return <ScheduleView />;
-    case 'all':
-  return <EnhancedAllQuestionsView 
-    subjects={subjects}
-    expandedSubjects={expandedSubjects}
-    expandedChapters={expandedChapters}
-    toggleSubject={toggleSubject}
-    toggleChapter={toggleChapter}
-    setEditingQuestion={setEditingQuestion}
-    saveQuestionEdit={saveQuestionEdit}
-    setBulkEditMode={setBulkEditMode}
-    bulkEditMode={bulkEditMode}
-    selectedQuestions={selectedQuestions}
-    setSelectedQuestions={setSelectedQuestions}
-    selectedDate={selectedDate}
-    setSelectedDate={setSelectedDate}
-    saveBulkEdit={saveBulkEdit}
-  />;
+     case 'all':
+      // 新しいSimplifiedAllQuestionsViewを使用
+      return <SimplifiedAllQuestionsView 
+        subjects={subjects}
+        expandedSubjects={expandedSubjects}
+        expandedChapters={expandedChapters}
+        toggleSubject={toggleSubject}
+        toggleChapter={toggleChapter}
+        setEditingQuestion={setEditingQuestion}
+        setBulkEditMode={setBulkEditMode}
+        bulkEditMode={bulkEditMode}
+        selectedQuestions={selectedQuestions}
+        setSelectedQuestions={setSelectedQuestions}
+        selectedDate={selectedDate}
+        setSelectedDate={setSelectedDate}
+        saveBulkEdit={saveBulkEdit}
+      />;
     case 'trends':
       return <AmbiguousTrendsPage subjects={subjects} />;
     default:
