@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, List, /* 他の既存のインポート */ } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, List, Clock, CheckCircle, XCircle } from 'lucide-react';
 
 // カレンダーコンポーネント
 const DatePickerCalendar = ({ selectedDate, onChange, onClose }) => {
