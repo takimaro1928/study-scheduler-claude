@@ -454,22 +454,22 @@ const formatDateForInput = (date) => {
       </div>
       
       {/* 一括編集時の選択状態表示 */}
-      {bulkEditMode && selectedQuestions.length > 0 && (
-        <div className="bg-indigo-50 p-4 mb-4 rounded-xl border border-indigo-200 shadow-sm animate-fadeIn">
-          <div className="flex justify-between items-center">
-            <p className="text-indigo-800 font-medium">
-              {selectedQuestions.length}個の問題を選択中
-            </p>
-            <button 
-              onClick={showBulkEditCalendar}
-              className="px-4 py-2 rounded-lg bg-indigo-600 text-white font-medium shadow-sm flex items-center hover:bg-indigo-700 transition-colors"
-            >
-              <Calendar className="w-4 h-4 mr-2" />
-              日付を選択
-            </button>
-          </div>
-        </div>
-      )}
+     {bulkEditMode && selectedQuestions.length > 0 && (
+  <div className="bg-indigo-50 p-4 mb-4 rounded-xl border border-indigo-200 shadow-sm animate-fadeIn">
+    <div className="flex justify-between items-center">
+      <p className="text-indigo-800 font-medium">
+        {selectedQuestions.length}個の問題を選択中
+      </p>
+      <button 
+        onClick={showBulkEditCalendar}
+        className="px-4 py-2 rounded-lg bg-indigo-600 text-white font-medium shadow-sm flex items-center hover:bg-indigo-700 transition-colors"
+      >
+        <Calendar className="w-4 h-4 mr-2" />
+        日付を選択
+      </button>
+    </div>
+  </div>
+)}
       
       {/* 問題一覧 */}
       {filteredSubjects.length === 0 ? (
