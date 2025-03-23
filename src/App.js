@@ -955,8 +955,8 @@ const ScheduleView = () => {
             <div 
               key={index} 
               className={`text-center py-2 font-bold text-sm rounded-lg ${
-                index === 0 ? 'text-red-500 bg-red-50' : 
-                index === 6 ? 'text-blue-500 bg-blue-50' : 
+                index === 0 ? 'text-red-600 bg-red-50' : 
+                index === 6 ? 'text-blue-600 bg-blue-50' : 
                 'text-gray-700 bg-gray-50'
               }`}
             >
@@ -977,45 +977,48 @@ const ScheduleView = () => {
             const questionCount = dayData.questions?.length || 0;
             
             // 問題数に応じたスタイル
-            let badgeStyle = 'bg-green-500';
-            let badgeSize = 'text-lg';
-            let animation = '';
+            let badgeStyle = '';
+            let badgeTextColor = 'text-gray-700';
             
             if (questionCount > 10) {
-              badgeStyle = 'bg-gradient-to-br from-red-500 to-pink-600';
-              badgeSize = 'text-xl';
-              animation = 'animate-pulse';
+              badgeStyle = 'bg-red-500';
+              badgeTextColor = 'text-white';
             } else if (questionCount > 5) {
-              badgeStyle = 'bg-gradient-to-br from-orange-400 to-amber-600';
-              badgeSize = 'text-lg';
+              badgeStyle = 'bg-orange-500';
+              badgeTextColor = 'text-white';
+            } else if (questionCount > 0) {
+              badgeStyle = 'bg-green-500';
+              badgeTextColor = 'text-white';
+            } else {
+              badgeStyle = 'bg-gray-100';
+              badgeTextColor = 'text-gray-400';
             }
             
             return (
               <div 
                 key={`day-${index}`} 
-                className={`relative flex flex-col justify-between p-2 rounded-xl border overflow-hidden h-20 md:h-28 ${
+                className={`relative flex flex-col p-2 rounded-xl border ${
                   isToday 
                     ? 'bg-blue-50 border-blue-300 ring-2 ring-blue-400 shadow-md' 
-                    : questionCount > 0 
-                      ? 'bg-white border-gray-200 hover:border-indigo-300 hover:shadow-sm transition-all' 
-                      : 'bg-white border-gray-100'
+                    : 'bg-white border-gray-200 hover:border-indigo-300 hover:shadow-sm transition-all'
                 }`}
               >
+                {/* 日付 */}
                 <div className={`text-right font-bold ${isToday ? 'text-blue-700' : 'text-gray-700'}`}>
                   {dayData.day}
                 </div>
                 
-                {questionCount > 0 && (
-                  <div className="flex justify-center items-center mt-1">
-                    <div className={`
-                      ${badgeStyle} ${badgeSize} ${animation}
-                      text-white font-bold px-3 py-1.5 rounded-full shadow-lg
-                      flex items-center justify-center min-w-10
-                    `}>
-                      {questionCount}<span className="text-xs ml-0.5">問</span>
-                    </div>
+                {/* 問題数 - 常に表示 */}
+                <div className="flex justify-center items-center h-16">
+                  <div className={`
+                    ${badgeStyle} ${badgeTextColor}
+                    font-bold text-lg px-3 py-1.5 rounded-full shadow-sm
+                    flex items-center justify-center min-w-10
+                    ${questionCount > 10 ? 'animate-pulse' : ''}
+                  `}>
+                    {questionCount}<span className="ml-0.5">問</span>
                   </div>
-                )}
+                </div>
               </div>
             );
           })}
