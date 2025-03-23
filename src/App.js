@@ -876,6 +876,8 @@ const ScheduleView = () => {
           week.push(null);
         } else {
           const currentDate = new Date(year, month, day);
+          // 日付を00:00:00に設定して比較できるようにする
+          currentDate.setHours(0, 0, 0, 0);
           const questionsForDay = getQuestionsForDate(currentDate);
           week.push({
             day,
@@ -892,14 +894,29 @@ const ScheduleView = () => {
     return calendar;
   };
   
-  // nullチェックを追加して安全に処理
+  // デバッグのために全問題を取得
+  const getAllQuestionsCount = () => {
+    let count = 0;
+    subjects.forEach(subject => {
+      subject.chapters.forEach(chapter => {
+        count += chapter.questions.length;
+      });
+    });
+    return count;
+  };
+  
   const calendar = getCalendarData(currentMonth) || [];
   const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
-  const totalQuestionsThisMonth = Array.isArray(calendar) && calendar.length > 0 
+  
+  // カレンダー内の全ての問題数を計算
+  const totalQuestionsInCalendar = Array.isArray(calendar) && calendar.length > 0 
     ? calendar.flat().reduce((total, day) => {
         return total + (day?.questions?.length || 0);
       }, 0)
     : 0;
+  
+  // 全問題数（デバッグ用）
+  const totalQuestions = getAllQuestionsCount();
   
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -929,9 +946,15 @@ const ScheduleView = () => {
           </div>
           
           <div className="bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-md ml-2">
-            今月: {totalQuestionsThisMonth}問
+            今月: {totalQuestionsInCalendar}問
           </div>
         </div>
+      </div>
+      
+      {/* デバッグ情報 */}
+      <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <p className="text-gray-700">登録されている全問題数: {totalQuestions}問</p>
+        <p className="text-gray-700">今月のカレンダーに表示されている問題数: {totalQuestionsInCalendar}問</p>
       </div>
       
       <div className="card p-6">        
@@ -955,6 +978,7 @@ const ScheduleView = () => {
             calendar.flat().map((dayData, index) => {
               const isToday = dayData && dayData.date && dayData.date.toDateString() === new Date().toDateString();
               const hasQuestions = dayData && dayData.questions && dayData.questions.length > 0;
+              const questionCount = dayData?.questions?.length || 0;
               
               return (
                 <div 
@@ -978,20 +1002,20 @@ const ScheduleView = () => {
                       }`}>
                         {dayData.day}
                       </div>
-                      {hasQuestions && (
+                      {questionCount > 0 && (
                         <div className="flex flex-col gap-1 mt-2">
                           <div className={`
                             px-2 py-1 rounded-full text-xs font-bold text-center shadow-sm
-                            ${(dayData.questions.length > 5) 
+                            ${questionCount > 5 
                               ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white' 
-                              : (dayData.questions.length > 2) 
+                              : questionCount > 2 
                                 ? 'bg-gradient-to-r from-yellow-400 to-amber-500 text-white'
                                 : 'bg-gradient-to-r from-green-400 to-emerald-500 text-white'
                             }
                           `}>
-                            {dayData.questions.length}問
+                            {questionCount}問
                           </div>
-                          {dayData.questions.length <= 3 && dayData.questions.map((q, i) => (
+                          {questionCount <= 3 && dayData.questions.map((q, i) => (
                             <div key={i} className="text-xs text-gray-700 truncate bg-gray-50 px-2 py-1 rounded-md mt-1 border border-gray-100">
                               {q.id}
                             </div>
