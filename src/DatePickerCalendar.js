@@ -1,11 +1,20 @@
 // DatePickerCalendar.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 // カレンダーコンポーネント
 const DatePickerCalendar = ({ selectedDate, onChange, onClose }) => {
-  const [viewDate, setViewDate] = useState(selectedDate || new Date());
-  const [localSelectedDate, setLocalSelectedDate] = useState(selectedDate || new Date());
+  // 初期表示する日付
+  const initialDate = selectedDate || new Date();
+  const [viewDate, setViewDate] = useState(initialDate);
+  const [localSelectedDate, setLocalSelectedDate] = useState(initialDate);
+  
+  // 選択日が変更された時に同期する
+  useEffect(() => {
+    if (selectedDate) {
+      setLocalSelectedDate(selectedDate);
+    }
+  }, [selectedDate]);
   
   // 月を変更する関数
   const changeMonth = (offset) => {
@@ -117,6 +126,9 @@ const DatePickerCalendar = ({ selectedDate, onChange, onClose }) => {
     return `明治${year - 1867}年`;
   };
   
+  // 現在表示している月を取得
+  const currentMonthName = `${viewDate.getFullYear()}年${viewDate.getMonth() + 1}月`;
+  
   return (
     <div className="bg-white rounded-lg shadow-xl border border-gray-200 w-80 overflow-hidden">
       {/* ヘッダー部分 */}
@@ -149,7 +161,7 @@ const DatePickerCalendar = ({ selectedDate, onChange, onClose }) => {
             <ChevronLeft className="w-5 h-5" />
           </button>
           
-          <div className="font-bold text-xl">{getJapaneseMonthName(viewDate)}</div>
+          <div className="font-bold text-xl">{currentMonthName}</div>
           
           <button 
             onClick={() => changeMonth(1)}
