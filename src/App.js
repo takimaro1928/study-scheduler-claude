@@ -843,6 +843,7 @@ const AllQuestionsView = () => {
     </div>
   );
 };
+
 // スケジュール一覧コンポーネント
 const ScheduleView = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -856,14 +857,49 @@ const ScheduleView = () => {
   
   // 月のカレンダーデータを生成
   const getCalendarData = (date) => {
-    // ... 既存のコード
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    
+    const daysInMonth = lastDay.getDate();
+    const startDayOfWeek = firstDay.getDay();
+    
+    const calendar = [];
+    let day = 1;
+    
+    for (let i = 0; i < 6; i++) {
+      const week = [];
+      for (let j = 0; j < 7; j++) {
+        if ((i === 0 && j < startDayOfWeek) || day > daysInMonth) {
+          week.push(null);
+        } else {
+          const currentDate = new Date(year, month, day);
+          const questionsForDay = getQuestionsForDate(currentDate);
+          week.push({
+            day,
+            date: currentDate,
+            questions: questionsForDay
+          });
+          day++;
+        }
+      }
+      calendar.push(week);
+      if (day > daysInMonth) break;
+    }
+    
+    return calendar;
   };
   
-  const calendar = getCalendarData(currentMonth);
+  // nullチェックを追加して安全に処理
+  const calendar = getCalendarData(currentMonth) || [];
   const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
-  const totalQuestionsThisMonth = calendar.flat().reduce((total, day) => {
-    return total + (day?.questions?.length || 0);
-  }, 0);
+  const totalQuestionsThisMonth = Array.isArray(calendar) && calendar.length > 0 
+    ? calendar.flat().reduce((total, day) => {
+        return total + (day?.questions?.length || 0);
+      }, 0)
+    : 0;
   
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -915,57 +951,63 @@ const ScheduleView = () => {
         </div>
         
         <div className="grid grid-cols-7 gap-3">
-          {calendar.flat().map((dayData, index) => {
-            const isToday = dayData && dayData.date.toDateString() === new Date().toDateString();
-            const hasQuestions = dayData && dayData.questions.length > 0;
-            
-            return (
-              <div 
-                key={index} 
-                className={`min-h-32 border p-2 rounded-xl transition-all ${
-                  !dayData ? 'bg-gray-50 border-gray-100' :
-                  isToday ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-indigo-300 ring-2 ring-indigo-400 shadow-md' :
-                  hasQuestions ? 'bg-white border-indigo-200 hover:border-indigo-400 hover:shadow-md cursor-pointer' :
-                  'bg-white border-gray-100'
-                }`}
-                onClick={() => {
-                  if (dayData && hasQuestions) {
-                    alert(`${formatDate(dayData.date)}の問題: ${dayData.questions.length}問`);
-                  }
-                }}
-              >
-                {dayData && (
-                  <>
-                    <div className={`text-right font-bold ${
-                      isToday ? 'text-indigo-700' : 'text-gray-700'
-                    }`}>
-                      {dayData.day}
-                    </div>
-                    {hasQuestions && (
-                      <div className="flex flex-col gap-1 mt-2">
-                        <div className={`
-                          px-2 py-1 rounded-full text-xs font-bold text-center shadow-sm
-                          ${dayData.questions.length > 5 
-                            ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white' 
-                            : dayData.questions.length > 2 
-                              ? 'bg-gradient-to-r from-yellow-400 to-amber-500 text-white'
-                              : 'bg-gradient-to-r from-green-400 to-emerald-500 text-white'
-                          }
-                        `}>
-                          {dayData.questions.length}問
-                        </div>
-                        {dayData.questions.length <= 3 && dayData.questions.map((q, i) => (
-                          <div key={i} className="text-xs text-gray-700 truncate bg-gray-50 px-2 py-1 rounded-md mt-1 border border-gray-100">
-                            {q.id}
-                          </div>
-                        ))}
+          {Array.isArray(calendar) && calendar.length > 0 ? (
+            calendar.flat().map((dayData, index) => {
+              const isToday = dayData && dayData.date && dayData.date.toDateString() === new Date().toDateString();
+              const hasQuestions = dayData && dayData.questions && dayData.questions.length > 0;
+              
+              return (
+                <div 
+                  key={index} 
+                  className={`min-h-32 border p-2 rounded-xl transition-all ${
+                    !dayData ? 'bg-gray-50 border-gray-100' :
+                    isToday ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-indigo-300 ring-2 ring-indigo-400 shadow-md' :
+                    hasQuestions ? 'bg-white border-indigo-200 hover:border-indigo-400 hover:shadow-md cursor-pointer' :
+                    'bg-white border-gray-100'
+                  }`}
+                  onClick={() => {
+                    if (dayData && hasQuestions) {
+                      alert(`${formatDate(dayData.date)}の問題: ${dayData.questions.length}問`);
+                    }
+                  }}
+                >
+                  {dayData && (
+                    <>
+                      <div className={`text-right font-bold ${
+                        isToday ? 'text-indigo-700' : 'text-gray-700'
+                      }`}>
+                        {dayData.day}
                       </div>
-                    )}
-                  </>
-                )}
-              </div>
-            );
-          })}
+                      {hasQuestions && (
+                        <div className="flex flex-col gap-1 mt-2">
+                          <div className={`
+                            px-2 py-1 rounded-full text-xs font-bold text-center shadow-sm
+                            ${(dayData.questions.length > 5) 
+                              ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white' 
+                              : (dayData.questions.length > 2) 
+                                ? 'bg-gradient-to-r from-yellow-400 to-amber-500 text-white'
+                                : 'bg-gradient-to-r from-green-400 to-emerald-500 text-white'
+                            }
+                          `}>
+                            {dayData.questions.length}問
+                          </div>
+                          {dayData.questions.length <= 3 && dayData.questions.map((q, i) => (
+                            <div key={i} className="text-xs text-gray-700 truncate bg-gray-50 px-2 py-1 rounded-md mt-1 border border-gray-100">
+                              {q.id}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              );
+            })
+          ) : (
+            <div className="col-span-7 p-8 text-center">
+              <p className="text-gray-500">カレンダーデータを読み込めませんでした</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
