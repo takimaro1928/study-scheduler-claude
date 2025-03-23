@@ -75,6 +75,12 @@ const DatePickerCalendar = ({ selectedDate, onChange, onClose }) => {
   const calendar = generateCalendar();
   const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
   
+  // カレンダーを週ごとに分割
+  const weeks = [];
+  for (let i = 0; i < calendar.length; i += 7) {
+    weeks.push(calendar.slice(i, i + 7));
+  }
+  
   // 日付が今日かどうかチェック
   const isToday = (date) => {
     const today = new Date();
@@ -89,6 +95,14 @@ const DatePickerCalendar = ({ selectedDate, onChange, onClose }) => {
            date.getDate() === localSelectedDate.getDate() && 
            date.getMonth() === localSelectedDate.getMonth() && 
            date.getFullYear() === localSelectedDate.getFullYear();
+  };
+  
+  // 各週の月を取得
+  const getMonthForWeek = (week) => {
+    // 週の中央（水曜日）の日付の月を返す
+    const midWeekDate = week[3]?.date;
+    if (!midWeekDate) return '';
+    return `${midWeekDate.getMonth() + 1}月`;
   };
   
   // 日付選択ハンドラー
@@ -190,30 +204,53 @@ const DatePickerCalendar = ({ selectedDate, onChange, onClose }) => {
           ))}
         </div>
         
-        {/* 日付グリッド */}
-        <div className="grid grid-cols-7 gap-1">
-          {calendar.map((dateObj, index) => {
-            const { day, date, isPrevMonth, isNextMonth } = dateObj;
-            const _isToday = isToday(date);
-            const _isSelected = isSelected(date);
-            
-            return (
-              <button
-                key={index}
-                onClick={() => handleDateSelect(date)}
-                className={`
-                  h-10 flex items-center justify-center text-sm rounded
-                  ${isPrevMonth || isNextMonth ? 'text-gray-400 hover:bg-gray-50' : 'text-gray-800 hover:bg-gray-100'}
-                  ${_isToday && !_isSelected ? 'border border-indigo-500' : ''}
-                  ${_isSelected ? 'bg-indigo-600 text-white hover:bg-indigo-700' : ''}
-                  transition-colors
-                `}
-              >
-                {day}
-              </button>
-            );
-          })}
+        {/* 月インジケーター - 曜日の下に表示 */}
+        <div className="grid grid-cols-7 gap-1 mb-1">
+          {weekDays.map((_, index) => (
+            <div key={index} className="text-center py-1 text-xs font-medium text-gray-500">
+              {index === 3 && `${viewDate.getMonth() + 1}月`}
+            </div>
+          ))}
         </div>
+        
+        {/* 週ごとに日付を表示 */}
+        {weeks.map((week, weekIndex) => (
+          <React.Fragment key={weekIndex}>
+            {/* 週の最初の日が新しい月の場合、月表示を追加 */}
+            {weekIndex > 0 && week[0].date.getDate() <= 7 && week[0].date.getMonth() !== weeks[weekIndex-1][0].date.getMonth() && (
+              <div className="grid grid-cols-7 gap-1 my-1">
+                <div className="col-span-7 text-center py-1 text-xs font-medium bg-gray-100 rounded text-gray-600">
+                  {`${week[0].date.getMonth() + 1}月`}
+                </div>
+              </div>
+            )}
+            
+            {/* 日付行 */}
+            <div className="grid grid-cols-7 gap-1 mb-1">
+              {week.map((dateObj, index) => {
+                const { day, date, isPrevMonth, isNextMonth } = dateObj;
+                const _isToday = isToday(date);
+                const _isSelected = isSelected(date);
+                
+                return (
+                  <button
+                    key={index}
+                    onClick={() => handleDateSelect(date)}
+                    className={`
+                      h-10 flex items-center justify-center text-sm rounded
+                      ${isPrevMonth || isNextMonth ? 'text-gray-400 hover:bg-gray-50' : 'text-gray-800 hover:bg-gray-100'}
+                      ${_isToday && !_isSelected ? 'border border-indigo-500' : ''}
+                      ${_isSelected ? 'bg-indigo-600 text-white hover:bg-indigo-700' : ''}
+                      transition-colors
+                    `}
+                  >
+                    {day}
+                  </button>
+                );
+              })}
+            </div>
+          </React.Fragment>
+        ))}
       </div>
       
       {/* フッター部分 */}
