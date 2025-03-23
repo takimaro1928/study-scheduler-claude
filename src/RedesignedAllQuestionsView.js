@@ -256,12 +256,7 @@ const RedesignedAllQuestionsView = ({
     const d = new Date(date);
     return `${d.getFullYear()}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')}`;
   };
-　// フォーム用に日付をYYYY-MM-DD形式に変換
-const formatDateForInput = (date) => {
-  const d = new Date(date);
-  return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
-　};
-  
+　
   // 問題の理解度に基づくスタイルとアイコンを取得
   const getUnderstandingStyle = (understanding) => {
     if (understanding === '理解○') {
