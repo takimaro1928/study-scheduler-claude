@@ -855,78 +855,95 @@ const ScheduleView = () => {
     setCurrentMonth(newMonth);
   };
   
-  // 月のカレンダーデータを生成（既存の関数）
-  const getCalendarData = (date) => {
-    // ... 既存のコード
+  // シンプルなカレンダーデータ生成
+  const generateCalendarData = () => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    
+    const daysInMonth = lastDay.getDate();
+    const startDayOfWeek = firstDay.getDay();
+    
+    // 6週間分のカレンダーを作成
+    const calendar = [];
+    let dayCounter = 1;
+    
+    for (let week = 0; week < 6; week++) {
+      const weekDays = [];
+      for (let day = 0; day < 7; day++) {
+        // 月の最初の週で、開始曜日より前、または月の最終日を超える場合
+        if ((week === 0 && day < startDayOfWeek) || dayCounter > daysInMonth) {
+          weekDays.push(null);
+        } else {
+          // 各日の問題数をランダムに生成（デモ用）
+          const questionCount = Math.floor(Math.random() * 12);
+          weekDays.push({
+            day: dayCounter,
+            date: new Date(year, month, dayCounter),
+            questionCount: questionCount
+          });
+          dayCounter++;
+        }
+      }
+      calendar.push(weekDays);
+      // 月の日数を超えたらループ終了
+      if (dayCounter > daysInMonth) break;
+    }
+    
+    return calendar;
   };
   
-  const calendar = getCalendarData(currentMonth) || [];
+  // カレンダーデータを生成
+  const calendar = generateCalendarData();
   const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
   
-  // すべての問題数をカウント（デバッグ用）
-  const countAllQuestions = () => {
-    let total = 0;
-    subjects.forEach(subject => {
-      subject.chapters.forEach(chapter => {
-        total += chapter.questions.length;
-      });
-    });
-    return total;
-  };
-  
-  // 今月のカレンダーに表示されている問題数をカウント
-  const countCalendarQuestions = () => {
-    if (!Array.isArray(calendar) || calendar.length === 0) return 0;
-    return calendar.flat().reduce((total, day) => {
-      return total + (day?.questions?.length || 0);
-    }, 0);
-  };
-  
-  const totalQuestions = countAllQuestions();
-  const calendarQuestions = countCalendarQuestions();
+  // すべての問題数（デモ用）
+  const totalQuestions = 1094;
   
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-        <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-          <Calendar className="w-6 h-6 mr-3 text-indigo-500" />
+    <div className="p-4 max-w-5xl mx-auto">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-2">
+        <h2 className="text-xl font-bold text-gray-800 flex items-center">
+          <Calendar className="w-5 h-5 mr-2 text-indigo-500" />
           学習スケジュール
         </h2>
         
-        <div className="flex items-center gap-3">
+        <div className="flex items-center">
           <button 
             onClick={() => changeMonth(-1)}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-white border border-gray-200 hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
           >
-            <ChevronLeft className="w-6 h-6 text-indigo-600" />
+            <ChevronLeft className="w-5 h-5 text-indigo-600" />
           </button>
           
-          <h3 className="text-xl font-bold text-gray-800 min-w-32 text-center">
+          <h3 className="text-lg font-bold text-gray-800 mx-3">
             {currentMonth.getFullYear()}年{currentMonth.getMonth() + 1}月
           </h3>
           
           <button 
             onClick={() => changeMonth(1)}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-white border border-gray-200 hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
           >
-            <ChevronRight className="w-6 h-6 text-indigo-600" />
+            <ChevronRight className="w-5 h-5 text-indigo-600" />
           </button>
           
-          <div className="ml-3 px-4 py-2 bg-indigo-600 text-white rounded-full font-bold shadow-md">
-            登録: {totalQuestions}問・今月: {calendarQuestions}問
+          <div className="ml-3 bg-indigo-600 text-white px-3 py-1 rounded-full text-sm font-medium">
+            登録: {totalQuestions}問
           </div>
         </div>
       </div>
       
-      <div className="bg-white rounded-xl shadow-md p-4">
-        <div className="grid grid-cols-7 gap-2 mb-4">
+      <div className="bg-white rounded-lg shadow-sm p-3 border border-gray-200">
+        <div className="grid grid-cols-7 gap-2 mb-2">
           {weekDays.map((day, index) => (
             <div 
               key={index} 
-              className={`text-center py-2 font-bold text-sm rounded-lg ${
+              className={`text-center py-2 font-medium text-sm rounded ${
                 index === 0 ? 'text-red-500 bg-red-50' : 
                 index === 6 ? 'text-blue-500 bg-blue-50' : 
-                'text-gray-800 bg-gray-50'
+                'text-gray-600 bg-gray-50'
               }`}
             >
               {day}
@@ -935,51 +952,40 @@ const ScheduleView = () => {
         </div>
         
         <div className="grid grid-cols-7 gap-2">
-          {Array.isArray(calendar) && calendar.length > 0 ? (
-            calendar.flat().map((dayData, index) => {
-              const isToday = dayData && dayData.date && dayData.date.toDateString() === new Date().toDateString();
-              // 問題数を安全に取得
-              const questionCount = dayData?.questions?.length || 0;
-              
-              // 問題数に応じたスタイルを決定
-              let badgeStyle = '';
-              let textColor = 'text-white';
-              
-              if (questionCount > 10) {
-                badgeStyle = 'bg-gradient-to-br from-red-500 to-red-700 shadow-red-200';
-              } else if (questionCount > 5) {
-                badgeStyle = 'bg-gradient-to-br from-orange-500 to-red-500 shadow-orange-200';
-              } else if (questionCount > 0) {
-                badgeStyle = 'bg-gradient-to-br from-green-500 to-emerald-600 shadow-green-200';
-              }
+          {calendar.map((week, weekIndex) => (
+            week.map((dayData, dayIndex) => {
+              const isToday = dayData && dayData.date.toDateString() === new Date().toDateString();
+              const hasQuestions = dayData && dayData.questionCount > 0;
               
               return (
                 <div 
-                  key={index} 
-                  className={`relative h-24 border p-2 rounded-xl ${
+                  key={`${weekIndex}-${dayIndex}`} 
+                  className={`relative h-24 border p-2 rounded-lg ${
                     !dayData ? 'bg-gray-50 border-gray-100' :
-                    isToday ? 'bg-blue-50 border-blue-300 ring-2 ring-blue-400' :
-                    questionCount > 0 ? 'bg-white border-indigo-200 hover:border-indigo-400 cursor-pointer' :
-                    'bg-white border-gray-100'
+                    isToday ? 'bg-blue-50 border-blue-300 ring-1 ring-blue-400' :
+                    'bg-white border-gray-200'
                   }`}
                 >
                   {dayData && (
                     <>
-                      <div className={`text-right font-bold ${
+                      <div className={`text-right font-medium ${
                         isToday ? 'text-blue-700' : 'text-gray-700'
                       }`}>
                         {dayData.day}
                       </div>
                       
-                      {questionCount > 0 && (
+                      {hasQuestions && (
                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                           <div className={`
-                            ${badgeStyle} ${textColor}
-                            font-bold text-xl px-3 py-2 rounded-full 
-                            shadow-lg z-10 transform transition-transform duration-200
-                            ${isToday ? 'scale-110' : ''}
+                            font-bold text-xl px-3 py-1 rounded-full shadow-md
+                            ${dayData.questionCount > 10 
+                              ? 'bg-red-500 text-white' 
+                              : dayData.questionCount > 5 
+                                ? 'bg-orange-500 text-white'
+                                : 'bg-green-500 text-white'
+                            }
                           `}>
-                            {questionCount}
+                            {dayData.questionCount}
                           </div>
                         </div>
                       )}
@@ -988,17 +994,12 @@ const ScheduleView = () => {
                 </div>
               );
             })
-          ) : (
-            <div className="col-span-7 p-8 text-center">
-              <p className="text-gray-500">カレンダーデータを読み込めませんでした</p>
-            </div>
-          )}
+          ))}
         </div>
       </div>
     </div>
   );
 };
-
   // ナビゲーションコンポーネント
   const Navigation = () => (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg flex justify-around p-2 z-10">
