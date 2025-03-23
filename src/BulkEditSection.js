@@ -6,19 +6,7 @@ import DatePickerCalendar from './DatePickerCalendar';
 // 一括編集セクションコンポーネント
 const BulkEditSection = ({ selectedQuestions, setSelectedDate, selectedDate, saveBulkEdit }) => {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const [dateInputValue, setDateInputValue] = useState(
-    selectedDate ? selectedDate.toISOString().split('T')[0] : ''
-  );
   const calendarRef = useRef(null);
-  
-  // 日付が変更されたときの処理
-  useEffect(() => {
-    if (selectedDate) {
-      setDateInputValue(selectedDate.toISOString().split('T')[0]);
-    } else {
-      setDateInputValue('');
-    }
-  }, [selectedDate]);
   
   // カレンダーを開く/閉じる
   const toggleCalendar = () => {
@@ -45,10 +33,9 @@ const BulkEditSection = ({ selectedQuestions, setSelectedDate, selectedDate, sav
     };
   }, [calendarRef]);
   
-  // YYYY-MM-DD形式から日本語の日付形式に変換
-  const formatDateJP = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
+  // 日付をフォーマット
+  const formatDate = (date) => {
+    if (!date) return '';
     return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
   };
   
@@ -68,7 +55,7 @@ const BulkEditSection = ({ selectedQuestions, setSelectedDate, selectedDate, sav
               type="text"
               className="px-4 py-2 outline-none text-gray-700 w-48"
               placeholder="日付を選択"
-              value={formatDateJP(dateInputValue)}
+              value={selectedDate ? formatDate(selectedDate) : ''}
               readOnly
               onClick={toggleCalendar}
             />
@@ -88,14 +75,13 @@ const BulkEditSection = ({ selectedQuestions, setSelectedDate, selectedDate, sav
               <DatePickerCalendar
                 selectedDate={selectedDate}
                 onChange={handleDateChange}
-                onClose={() => setIsCalendarOpen(false)}
               />
             </div>
           )}
         </div>
         
         <button 
-          onClick={() => saveBulkEdit(selectedDate)}
+          onClick={() => selectedDate && saveBulkEdit(selectedDate)}
           disabled={!selectedDate}
           className={`px-5 py-2 rounded-lg text-white font-medium shadow-sm flex items-center
             ${selectedDate 
