@@ -314,7 +314,7 @@ function App() {
     setEditingQuestion(null);
   };
 
- // 一括編集の保存
+// 一括編集の保存
 const saveBulkEdit = (date) => {
   setSubjects(prevSubjects => {
     // ディープコピーを作成
@@ -338,11 +338,11 @@ const saveBulkEdit = (date) => {
     
     return newSubjects;
   });
+  
+  // 関数内に移動
+  setBulkEditMode(false);
+  setSelectedQuestions([]);
 };
-    
-    setBulkEditMode(false);
-    setSelectedQuestions([]);
-  };
 
   // 問題を選択/選択解除
   const toggleQuestionSelection = (questionId) => {
