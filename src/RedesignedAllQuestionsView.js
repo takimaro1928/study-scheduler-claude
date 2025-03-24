@@ -746,17 +746,31 @@ const handleDateSelection = (date) => {
         </div>
       )}
       
- {/* {/* カレンダーモーダル - 完全に中央配置 */}
+{/* カレンダーモーダル - ページ内表示（背景透明） */}
 {showCalendarModal && (
-  <div className="fixed inset-0 z-50 overflow-auto flex justify-center items-center">
-    {/* オーバーレイ */}
+  <>
+    {/* 透明なオーバーレイ - 画面をクリックして閉じる用 */}
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50"
+      className="fixed inset-0 z-40" 
       onClick={() => setShowCalendarModal(false)}
-    ></div>
+    />
     
-    {/* カレンダー - 絶対的な中央配置 */}
-    <div className="bg-white rounded shadow-md relative z-50 mx-auto my-auto" style={{transform: 'translate(0, 0)'}}>
+    {/* カレンダー本体 - 中央固定 */}
+    <div 
+      className="fixed z-50 bg-white rounded shadow-lg border border-gray-200" 
+      style={{
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+      }}
+    >
+      <button 
+        onClick={() => setShowCalendarModal(false)}
+        className="absolute top-1 right-1 text-gray-500 hover:text-gray-700 p-1 rounded"
+      >
+        <X className="w-4 h-4" />
+      </button>
+      
       {/* DatePickerCalendarコンポーネント */}
       <DatePickerCalendar
         selectedDate={selectedDate}
@@ -787,8 +801,7 @@ const handleDateSelection = (date) => {
         </div>
       </div>
     </div>
-  </div>
-)}
+  </>
 )}
       
       {/* 通知 */}
