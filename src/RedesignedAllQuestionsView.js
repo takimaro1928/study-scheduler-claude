@@ -746,17 +746,17 @@ const handleDateSelection = (date) => {
         </div>
       )}
       
-　　　{/* カレンダーモーダル - 背景ぼかし効果と大きいカレンダー */}
+　　{/* カレンダーモーダル - 軽いぼかし効果と大きいカレンダー */}
 {showCalendarModal && (
   <>
-    {/* 背景にぼかし効果を適用（完全な透明ではなく、うっすらと見える程度） */}
+    {/* 背景に軽いぼかし効果を適用（30～40%程度） */}
     <div 
-      className="fixed inset-0 z-40 bg-gray-100 bg-opacity-70 backdrop-blur-md" 
+      className="fixed inset-0 z-40 bg-gray-100 bg-opacity-30 backdrop-blur-sm" 
       onClick={() => setShowCalendarModal(false)}
-      style={{ backdropFilter: 'blur(8px)' }}
+      style={{ backdropFilter: 'blur(2px)' }}
     />
     
-    {/* カレンダー本体 - より大きいサイズで中央固定 */}
+    {/* カレンダー本体 - 大きいサイズで中央固定 */}
     <div 
       className="fixed z-50 bg-white rounded-lg shadow-2xl border border-gray-200" 
       style={{
@@ -764,7 +764,7 @@ const handleDateSelection = (date) => {
         left: '50%',
         transform: 'translate(-50%, -50%)',
         width: 'auto',
-        minWidth: '420px', // カレンダーをさらに大きく
+        minWidth: '420px', // カレンダーを大きく
         maxWidth: '95vw',
         padding: '12px'
       }}
@@ -784,7 +784,7 @@ const handleDateSelection = (date) => {
         />
       </div>
       
-      {/* ボタン部分 - より大きく */}
+      {/* ボタン部分 */}
       <div className="flex justify-between p-5 border-t border-gray-200 bg-gray-50 rounded-b-lg mt-4">
         <div className="text-base text-gray-600 font-medium">
           {selectedQuestions.length}個の問題を選択中
