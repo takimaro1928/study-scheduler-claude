@@ -224,6 +224,15 @@ const RedesignedAllQuestionsView = ({
   const showBulkEditCalendar = () => {
     setShowCalendarModal(true);
   };
+
+// ここに新しい関数を追加
+// 日付選択処理を独立した関数として定義
+const handleDateSelection = (date) => {
+  console.log("日付選択:", date);
+  setSelectedDate(date);
+  // ここでモーダルを閉じないことが重要
+};
+
   
   // 一括編集を実行
   const executeBulkEdit = () => {
@@ -756,11 +765,11 @@ const RedesignedAllQuestionsView = ({
         </button>
       </div>
       
-      {/* DatePickerCalendarコンポーネント - 独立した関数を使用 */}
-      <DatePickerCalendar
-        selectedDate={selectedDate}
-        onChange={handleDateSelection}
-      />
+     {/* DatePickerCalendarコンポーネント */}
+<DatePickerCalendar
+  selectedDate={selectedDate}
+  onChange={handleDateSelection}
+/>
       
       {/* アクションボタン */}
       <div className="flex justify-between items-center mt-4">
