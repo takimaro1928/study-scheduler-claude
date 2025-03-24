@@ -746,53 +746,59 @@ const handleDateSelection = (date) => {
         </div>
       )}
       
-{/* カレンダーモーダル - ページ内表示（背景透明） */}
+{/* カレンダーモーダル - 大きいサイズとぼかし効果 */}
 {showCalendarModal && (
   <>
-    {/* 透明なオーバーレイ - 画面をクリックして閉じる用 */}
+    {/* 半透明でぼかし効果のあるオーバーレイ */}
     <div 
-      className="fixed inset-0 z-40" 
+      className="fixed inset-0 z-40 bg-white bg-opacity-40 backdrop-blur-sm" 
       onClick={() => setShowCalendarModal(false)}
+      style={{ backdropFilter: 'blur(3px)' }}
     />
     
-    {/* カレンダー本体 - 中央固定 */}
+    {/* カレンダー本体 - 大きいサイズで中央固定 */}
     <div 
-      className="fixed z-50 bg-white rounded shadow-lg border border-gray-200" 
+      className="fixed z-50 bg-white rounded-lg shadow-xl border border-gray-200" 
       style={{
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
+        width: 'auto',
+        minWidth: '350px', // カレンダーを大きくする
+        maxWidth: '90vw'
       }}
     >
       <button 
         onClick={() => setShowCalendarModal(false)}
-        className="absolute top-1 right-1 text-gray-500 hover:text-gray-700 p-1 rounded"
+        className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 z-10"
       >
-        <X className="w-4 h-4" />
+        <X className="w-5 h-5" />
       </button>
       
       {/* DatePickerCalendarコンポーネント */}
-      <DatePickerCalendar
-        selectedDate={selectedDate}
-        onChange={handleDateSelection}
-      />
+      <div className="p-2 scale-110 transform origin-top"> {/* カレンダーを110%に拡大 */}
+        <DatePickerCalendar
+          selectedDate={selectedDate}
+          onChange={handleDateSelection}
+        />
+      </div>
       
       {/* ボタン部分 */}
-      <div className="flex justify-between p-2 border-t border-gray-200">
-        <div className="text-xs text-gray-600">
+      <div className="flex justify-between p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+        <div className="text-sm text-gray-600">
           {selectedQuestions.length}個の問題を選択中
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <button 
             onClick={() => setShowCalendarModal(false)}
-            className="px-3 py-1 border border-gray-300 text-sm text-gray-700 rounded hover:bg-gray-100"
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100 font-medium"
           >
             キャンセル
           </button>
           <button 
             onClick={executeBulkEdit}
             disabled={!selectedDate}
-            className={`px-3 py-1 text-sm text-white rounded ${
+            className={`px-4 py-2 rounded-md text-white font-medium ${
               selectedDate ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-400'
             }`}
           >
