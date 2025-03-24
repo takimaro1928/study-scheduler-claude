@@ -728,53 +728,52 @@ const RedesignedAllQuestionsView = ({
       )}
       
       {/* カレンダーモーダル */}
-      {showCalendarModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl p-5 max-w-md w-full shadow-xl">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold text-gray-800">日付を選択</h3>
-              <button 
-                onClick={() => setShowCalendarModal(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X className={`${iconStyle}`} />
-              </button>
-            </div>
-            
-            <div className="mb-4">
-              <input
-                type="date"
-                value={selectedDate ? formatDateForInput(selectedDate) : ''}
-                onChange={(e) => setSelectedDate(new Date(e.target.value))}
-                className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-              />
-            </div>
-            
-            <div className="flex justify-between items-center">
-              <p className="text-sm text-gray-600">
-                {selectedQuestions.length}個の問題を選択中
-              </p>
-              <div className="flex gap-2">
-                <button 
-                  onClick={() => setShowCalendarModal(false)}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  キャンセル
-                </button>
-                <button 
-                  onClick={executeBulkEdit}
-                  disabled={!selectedDate}
-                  className={`px-4 py-2 rounded-lg text-white ${
-                    selectedDate ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed'
-                  } transition-colors`}
-                >
-                  一括設定
-                </button>
-              </div>
-            </div>
-          </div>
+{showCalendarModal && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="bg-white rounded-xl p-5 max-w-md w-full shadow-xl">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-bold text-gray-800">日付を選択</h3>
+        <button 
+          onClick={() => setShowCalendarModal(false)}
+          className="text-gray-500 hover:text-gray-700"
+        >
+          <X className={`${iconStyle}`} />
+        </button>
+      </div>
+      
+      <div className="mb-4">
+        {/* DatePickerCalendarコンポーネントを使用 */}
+        <DatePickerCalendar
+          selectedDate={selectedDate}
+          onChange={(date) => setSelectedDate(date)}
+        />
+      </div>
+      
+      <div className="flex justify-between items-center mt-4">
+        <p className="text-sm text-gray-600">
+          {selectedQuestions.length}個の問題を選択中
+        </p>
+        <div className="flex gap-2">
+          <button 
+            onClick={() => setShowCalendarModal(false)}
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            キャンセル
+          </button>
+          <button 
+            onClick={executeBulkEdit}
+            disabled={!selectedDate}
+            className={`px-4 py-2 rounded-lg text-white ${
+              selectedDate ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed'
+            } transition-colors`}
+          >
+            一括設定
+          </button>
         </div>
-      )}
+      </div>
+    </div>
+  </div>
+)}
       
       {/* 通知 */}
       {notification && (
