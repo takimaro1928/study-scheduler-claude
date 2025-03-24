@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 // カレンダーコンポーネント
-const DatePickerCalendar = ({ selectedDate, onChange, onClose }) => {
+const DatePickerCalendar = ({ selectedDate, onChange, onClose, autoClose = false }) => {
   // 初期表示する日付
   const initialDate = selectedDate || new Date();
   const [viewDate, setViewDate] = useState(initialDate);
@@ -108,7 +108,14 @@ const DatePickerCalendar = ({ selectedDate, onChange, onClose }) => {
   // 日付選択ハンドラー
   const handleDateSelect = (date) => {
     setLocalSelectedDate(date);
+    
+    // 親コンポーネントにイベントを伝達
     onChange && onChange(date);
+    
+    // autoCloseがtrueの場合のみ自動的に閉じる
+    if (autoClose && onClose) {
+      onClose();
+    }
   };
   
   // 「今日」ボタンのハンドラー
@@ -117,6 +124,11 @@ const DatePickerCalendar = ({ selectedDate, onChange, onClose }) => {
     setViewDate(today);
     setLocalSelectedDate(today);
     onChange && onChange(today);
+    
+    // autoCloseがtrueの場合のみ自動的に閉じる
+    if (autoClose && onClose) {
+      onClose();
+    }
   };
   
   // 「削除」ボタンのハンドラー
