@@ -746,7 +746,7 @@ const handleDateSelection = (date) => {
         </div>
       )}
       
-　　{/* カレンダーモーダル - 元のデザインを維持しつつ超大型化 */}
+　{/* カレンダーモーダル - 背景ぼかしなし・見やすいカレンダー */}
 {showCalendarModal && (
   <>
     {/* 透明なオーバーレイ - クリックでカレンダーを閉じるためだけのもの */}
@@ -755,7 +755,7 @@ const handleDateSelection = (date) => {
       onClick={() => setShowCalendarModal(false)}
     />
     
-    {/* カレンダー本体 - 元のデザインで大型サイズに */}
+    {/* カレンダー本体 - 見やすさを重視 */}
     <div 
       className="fixed z-50 bg-white rounded-lg shadow-xl border border-gray-300" 
       style={{
@@ -763,7 +763,7 @@ const handleDateSelection = (date) => {
         left: '50%',
         transform: 'translate(-50%, -50%)',
         width: 'auto',
-        minWidth: '700px',
+        minWidth: '700px',  // ここを400pxから700pxに変更
         maxWidth: '90vw',
         boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)'
       }}
@@ -775,8 +775,8 @@ const handleDateSelection = (date) => {
         <X className="w-5 h-5" />
       </button>
       
-      {/* 元のカレンダーを拡大表示（スケール値を大きく） */}
-      <div className="p-3 transform" style={{ transform: 'scale(2.0)', transformOrigin: 'top center', margin: '20px 0 100px 0' }}>
+      {/* DatePickerCalendarコンポーネント - スケールを大きく */}
+      <div className="p-3 transform" style={{ transform: 'scale(2.0)', transformOrigin: 'top center', margin: '20px 0 160px 0' }}>
         <DatePickerCalendar
           selectedDate={selectedDate}
           onChange={handleDateSelection}
