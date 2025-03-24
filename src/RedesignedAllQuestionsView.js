@@ -220,19 +220,17 @@ const RedesignedAllQuestionsView = ({
     }));
   };
   
-  // 一括編集用のカレンダーモーダルを表示
-  const showBulkEditCalendar = () => {
-    setShowCalendarModal(true);
-  };
+// 一括編集用のカレンダーモーダルを表示
+const showBulkEditCalendar = () => {
+  setShowCalendarModal(true);
+};
 
-// ここに新しい関数を追加
 // 日付選択処理を独立した関数として定義
 const handleDateSelection = (date) => {
   console.log("日付選択:", date);
   setSelectedDate(date);
-  // ここでモーダルを閉じないことが重要
+  // カレンダーを閉じない
 };
-
   
   // 一括編集を実行
   const executeBulkEdit = () => {
