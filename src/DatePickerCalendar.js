@@ -122,33 +122,30 @@ const DatePickerCalendar = ({ selectedDate, onChange, onClose }) => {
     return `明治${year - 1867}`;
   };
   
-  // 月と年の表示
-  const headerText = `${viewDate.getFullYear()}年(${getJapaneseEraYear(viewDate)}年)${viewDate.getMonth() + 1}月`;
-  
   return (
-    <div className="w-full bg-white">
-      {/* ヘッダー部分 - 写真のデザインに合わせる */}
-      <div className="px-4 py-2 border-b">
-        <div className="flex justify-between items-center mb-2">
-          <div className="flex items-center">
-            <div className="text-base font-medium text-gray-800">{headerText}</div>
-            <div className="flex ml-1">
-              <button onClick={() => changeMonth(-1)} className="p-1">
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button onClick={() => changeMonth(1)} className="p-1">
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
+    <div className="bg-white border border-gray-200 rounded-md min-w-[280px]">
+      {/* ヘッダー部分 */}
+      <div className="p-2 text-center">
+        <div className="mb-1">
+          <span className="inline-block text-sm font-medium">
+            {`${viewDate.getFullYear()}年(${getJapaneseEraYear(viewDate)})${viewDate.getMonth() + 1}月`}
+          </span>
+          <div className="inline-flex ml-2">
+            <button onClick={() => changeMonth(-1)} className="p-1">
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button onClick={() => changeMonth(1)} className="p-1">
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
         
         {/* 曜日ヘッダー */}
-        <div className="grid grid-cols-7 text-sm">
+        <div className="grid grid-cols-7">
           {weekDays.map((day, index) => (
             <div 
               key={index} 
-              className={`text-center py-2 font-medium ${
+              className={`p-1 text-xs font-medium ${
                 index === 0 ? 'text-red-500' : 
                 index === 6 ? 'text-blue-500' : 
                 'text-gray-700'
@@ -161,24 +158,24 @@ const DatePickerCalendar = ({ selectedDate, onChange, onClose }) => {
       </div>
       
       {/* カレンダー本体 */}
-      <div className="p-1">
-        {/* 週ごとに日付を表示 */}
+      <div className="border-y border-gray-200">
         {weeks.map((week, weekIndex) => (
-          <div key={weekIndex} className="grid grid-cols-7 gap-px">
+          <div key={weekIndex} className="grid grid-cols-7">
             {week.map((dateObj, index) => {
               const { day, date, isPrevMonth, isNextMonth } = dateObj;
               const _isToday = isToday(date);
               const _isSelected = isSelected(date);
               
+              // 1枚目の写真に合わせたシンプルな日付セルのスタイル
               return (
                 <button
                   key={index}
                   onClick={() => handleDateSelect(date)}
                   className={`
-                    h-10 flex items-center justify-center text-sm
-                    ${isPrevMonth || isNextMonth ? 'text-gray-400' : 'text-gray-800'}
+                    h-8 text-sm border border-transparent
+                    ${isPrevMonth || isNextMonth ? 'text-gray-400' : 'text-gray-700'}
                     ${_isSelected ? 'bg-blue-500 text-white' : ''}
-                    ${_isToday && !_isSelected ? 'border border-blue-500' : ''}
+                    ${_isToday && !_isSelected ? 'border-blue-500' : ''}
                     hover:bg-gray-100
                   `}
                 >
@@ -191,17 +188,17 @@ const DatePickerCalendar = ({ selectedDate, onChange, onClose }) => {
       </div>
       
       {/* フッター部分 */}
-      <div className="border-t p-2 flex justify-between items-center">
+      <div className="flex justify-between p-2">
         <button
           onClick={handleClearClick}
-          className="px-3 py-1 text-blue-500 text-sm"
+          className="text-blue-500 text-sm"
         >
           削除
         </button>
         
         <button
           onClick={handleTodayClick}
-          className="px-3 py-1 text-blue-500 text-sm"
+          className="text-blue-500 text-sm"
         >
           今日
         </button>
