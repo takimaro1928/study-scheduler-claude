@@ -224,12 +224,16 @@ const RedesignedAllQuestionsView = ({
 const showBulkEditCalendar = () => {
   setShowCalendarModal(true);
 };
- 
-// 日付選択処理を独立した関数として定義
+
+// 日付選択処理を独立した関数として定義 - 絶対に閉じないバージョン
 const handleDateSelection = (date) => {
+  // デバッグ用ログ
   console.log("日付選択:", date);
+  
+  // 日付のみ更新して、モーダルは閉じない
   setSelectedDate(date);
-  // ここではモーダルを閉じない
+  
+  // モーダルが閉じないよう、ここでは他の処理は行わない
 };
   
   // 一括編集を実行
@@ -742,52 +746,39 @@ const handleDateSelection = (date) => {
         </div>
       )}
       
- {/* カレンダーモーダル - 中央に配置されたシンプルなバージョン */}
+ {/* {/* カレンダーモーダル - 完全に中央配置 */}
 {showCalendarModal && (
-  <div className="fixed inset-0 flex items-center justify-center z-50">
-    {/* オーバーレイ - クリックで閉じられるように */}
+  <div className="fixed inset-0 z-50 overflow-auto flex justify-center items-center">
+    {/* オーバーレイ */}
     <div 
-      className="absolute inset-0 bg-black bg-opacity-50"
+      className="fixed inset-0 bg-black bg-opacity-50"
       onClick={() => setShowCalendarModal(false)}
     ></div>
     
-    {/* カレンダーを完全に中央に配置 */}
-    <div className="relative z-50 bg-white shadow-xl rounded-lg overflow-hidden animate-fadeIn">
-      <div className="absolute top-2 right-2 z-10">
-        <button 
-          onClick={() => setShowCalendarModal(false)}
-          className="text-gray-500 hover:text-gray-700 p-1 rounded"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      </div>
+    {/* カレンダー - 絶対的な中央配置 */}
+    <div className="bg-white rounded shadow-md relative z-50 mx-auto my-auto" style={{transform: 'translate(0, 0)'}}>
+      {/* DatePickerCalendarコンポーネント */}
+      <DatePickerCalendar
+        selectedDate={selectedDate}
+        onChange={handleDateSelection}
+      />
       
-      <div className="p-2">
-        <h3 className="text-sm font-medium text-center text-gray-700 mb-2">日付を選択</h3>
-        
-        {/* DatePickerCalendarコンポーネント */}
-        <DatePickerCalendar
-          selectedDate={selectedDate}
-          onChange={handleDateSelection}
-        />
-      </div>
-      
-      {/* アクションボタン */}
-      <div className="p-3 border-t border-gray-200 flex justify-between items-center bg-gray-50">
-        <div className="text-xs text-gray-500">
+      {/* ボタン部分 */}
+      <div className="flex justify-between p-2 border-t border-gray-200">
+        <div className="text-xs text-gray-600">
           {selectedQuestions.length}個の問題を選択中
         </div>
         <div className="flex gap-2">
           <button 
             onClick={() => setShowCalendarModal(false)}
-            className="px-3 py-1.5 border border-gray-300 text-xs text-gray-700 rounded hover:bg-gray-100"
+            className="px-3 py-1 border border-gray-300 text-sm text-gray-700 rounded hover:bg-gray-100"
           >
             キャンセル
           </button>
           <button 
             onClick={executeBulkEdit}
             disabled={!selectedDate}
-            className={`px-3 py-1.5 text-xs text-white rounded ${
+            className={`px-3 py-1 text-sm text-white rounded ${
               selectedDate ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-400'
             }`}
           >
@@ -797,6 +788,7 @@ const handleDateSelection = (date) => {
       </div>
     </div>
   </div>
+)}
 )}
       
       {/* 通知 */}
