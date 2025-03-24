@@ -756,18 +756,21 @@ const handleDateSelection = (date) => {
     />
     
     {/* カレンダー本体 - 見やすさを重視 */}
-    <div 
-      className="fixed z-50 bg-white rounded-lg shadow-xl border border-gray-300" 
+    <div
+      className="fixed z-50 rounded-lg shadow-xl border border-gray-300"
       style={{
+        // モーダルを画面中央に固定表示
+        backgroundColor: '#F9FAFB',        // オフホワイト系の背景
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
         width: 'auto',
         minWidth: '400px',
         maxWidth: '90vw',
-        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)'
+        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
       }}
     >
+      {/* モーダル右上の閉じるボタン */}
       <button 
         onClick={() => setShowCalendarModal(false)}
         className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 z-10"
@@ -775,7 +778,7 @@ const handleDateSelection = (date) => {
         <X className="w-5 h-5" />
       </button>
       
-      {/* DatePickerCalendarコンポーネント */}
+      {/* カレンダー部分 */}
       <div className="p-3 scale-115 transform origin-top">
         <DatePickerCalendar
           selectedDate={selectedDate}
@@ -783,7 +786,7 @@ const handleDateSelection = (date) => {
         />
       </div>
       
-      {/* ボタン部分 */}
+      {/* ボタンエリア */}
       <div className="flex justify-between p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
         <div className="text-sm text-gray-600 font-medium">
           {selectedQuestions.length}個の問題を選択中
@@ -799,7 +802,7 @@ const handleDateSelection = (date) => {
             onClick={executeBulkEdit}
             disabled={!selectedDate}
             className={`px-4 py-2 rounded-md text-white font-medium ${
-              selectedDate ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-400'
+              selectedDate ? 'bg-purple-600 hover:bg-purple-700' : 'bg-gray-400'
             }`}
           >
             一括設定
@@ -809,6 +812,7 @@ const handleDateSelection = (date) => {
     </div>
   </>
 )}
+
       
       {/* 通知 */}
       {notification && (
