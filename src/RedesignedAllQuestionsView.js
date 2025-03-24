@@ -746,7 +746,7 @@ const handleDateSelection = (date) => {
         </div>
       )}
       
-　{/* カレンダーモーダル - 背景ぼかしなし・見やすいカレンダー */}
+{/* カレンダーモーダル - 背景ぼかしなし・見やすいカレンダー */}
 {showCalendarModal && (
   <>
     {/* 透明なオーバーレイ - クリックでカレンダーを閉じるためだけのもの */}
@@ -763,7 +763,7 @@ const handleDateSelection = (date) => {
         left: '50%',
         transform: 'translate(-50%, -50%)',
         width: 'auto',
-        minWidth: '700px',  // ここを400pxから700pxに変更
+        minWidth: '400px',
         maxWidth: '90vw',
         boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)'
       }}
@@ -775,8 +775,8 @@ const handleDateSelection = (date) => {
         <X className="w-5 h-5" />
       </button>
       
-      {/* DatePickerCalendarコンポーネント - スケールを大きく */}
-      <div className="p-3 transform" style={{ transform: 'scale(2.0)', transformOrigin: 'top center', margin: '20px 0 160px 0' }}>
+      {/* DatePickerCalendarコンポーネント */}
+      <div className="p-3 scale-115 transform origin-top">
         <DatePickerCalendar
           selectedDate={selectedDate}
           onChange={handleDateSelection}
