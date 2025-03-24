@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 // カレンダーコンポーネント
-const DatePickerCalendar = ({ selectedDate, onChange, onClose, autoClose = false }) => {
+const DatePickerCalendar = ({ selectedDate, onChange, onClose }) => {
   // 初期表示する日付
   const initialDate = selectedDate || new Date();
   const [viewDate, setViewDate] = useState(initialDate);
@@ -20,13 +20,6 @@ const DatePickerCalendar = ({ selectedDate, onChange, onClose, autoClose = false
   const changeMonth = (offset) => {
     const newDate = new Date(viewDate);
     newDate.setMonth(viewDate.getMonth() + offset);
-    setViewDate(newDate);
-  };
-  
-  // 年を変更する関数
-  const changeYear = (offset) => {
-    const newDate = new Date(viewDate);
-    newDate.setFullYear(viewDate.getFullYear() + offset);
     setViewDate(newDate);
   };
   
@@ -97,25 +90,11 @@ const DatePickerCalendar = ({ selectedDate, onChange, onClose, autoClose = false
            date.getFullYear() === localSelectedDate.getFullYear();
   };
   
-  // 各週の月を取得
-  const getMonthForWeek = (week) => {
-    // 週の中央（水曜日）の日付の月を返す
-    const midWeekDate = week[3]?.date;
-    if (!midWeekDate) return '';
-    return `${midWeekDate.getMonth() + 1}月`;
-  };
-  
   // 日付選択ハンドラー
   const handleDateSelect = (date) => {
     setLocalSelectedDate(date);
-    
-    // 親コンポーネントにイベントを伝達
     onChange && onChange(date);
-    
-    // autoCloseがtrueの場合のみ自動的に閉じる
-    if (autoClose && onClose) {
-      onClose();
-    }
+    // 自動的に閉じる処理は削除
   };
   
   // 「今日」ボタンのハンドラー
@@ -124,11 +103,7 @@ const DatePickerCalendar = ({ selectedDate, onChange, onClose, autoClose = false
     setViewDate(today);
     setLocalSelectedDate(today);
     onChange && onChange(today);
-    
-    // autoCloseがtrueの場合のみ自動的に閉じる
-    if (autoClose && onClose) {
-      onClose();
-    }
+    // 自動的に閉じる処理は削除
   };
   
   // 「削除」ボタンのハンドラー
@@ -137,146 +112,96 @@ const DatePickerCalendar = ({ selectedDate, onChange, onClose, autoClose = false
     onChange && onChange(null);
   };
   
-  // 日本語の月名
-  const getJapaneseMonthName = (date) => {
-    return `${date.getFullYear()}年${date.getMonth() + 1}月`;
-  };
-  
   // 和暦の年号を取得
   const getJapaneseEraYear = (date) => {
     const year = date.getFullYear();
-    if (year >= 2019) return `令和${year - 2018}年`;
-    if (year >= 1989) return `平成${year - 1988}年`;
-    if (year >= 1926) return `昭和${year - 1925}年`;
-    if (year >= 1912) return `大正${year - 1911}年`;
-    return `明治${year - 1867}年`;
+    if (year >= 2019) return `令和${year - 2018}`;
+    if (year >= 1989) return `平成${year - 1988}`;
+    if (year >= 1926) return `昭和${year - 1925}`;
+    if (year >= 1912) return `大正${year - 1911}`;
+    return `明治${year - 1867}`;
   };
   
-  // 現在表示している月を取得
-  const currentMonthName = `${viewDate.getFullYear()}年${viewDate.getMonth() + 1}月`;
+  // 月と年の表示
+  const headerText = `${viewDate.getFullYear()}年(${getJapaneseEraYear(viewDate)}年)${viewDate.getMonth() + 1}月`;
   
   return (
-    <div className="bg-white rounded-lg shadow-xl border border-gray-200 w-80 overflow-hidden">
-      {/* ヘッダー部分 */}
-      <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white p-4">
-        <div className="flex justify-between items-center mb-3">
-          <button 
-            onClick={() => changeYear(-1)}
-            className="text-white hover:bg-indigo-800 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-          >
-            <span className="text-lg font-bold">«</span>
-          </button>
-          
-          <div className="font-bold text-lg">
-            {getJapaneseEraYear(viewDate)}
+    <div className="w-full bg-white">
+      {/* ヘッダー部分 - 写真のデザインに合わせる */}
+      <div className="px-4 py-2 border-b">
+        <div className="flex justify-between items-center mb-2">
+          <div className="flex items-center">
+            <div className="text-base font-medium text-gray-800">{headerText}</div>
+            <div className="flex ml-1">
+              <button onClick={() => changeMonth(-1)} className="p-1">
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button onClick={() => changeMonth(1)} className="p-1">
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
-          
-          <button 
-            onClick={() => changeYear(1)}
-            className="text-white hover:bg-indigo-800 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-          >
-            <span className="text-lg font-bold">»</span>
-          </button>
         </div>
         
-        <div className="flex justify-between items-center">
-          <button 
-            onClick={() => changeMonth(-1)}
-            className="text-white hover:bg-indigo-800 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          
-          <div className="font-bold text-xl">{currentMonthName}</div>
-          
-          <button 
-            onClick={() => changeMonth(1)}
-            className="text-white hover:bg-indigo-800 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        </div>
-      </div>
-      
-      {/* カレンダー本体 */}
-      <div className="p-3">
         {/* 曜日ヘッダー */}
-        <div className="grid grid-cols-7 gap-1 mb-2">
+        <div className="grid grid-cols-7 text-sm">
           {weekDays.map((day, index) => (
             <div 
               key={index} 
-              className={`text-center py-2 text-sm font-medium rounded ${
-                index === 0 ? 'text-red-600 bg-red-50' : 
-                index === 6 ? 'text-blue-600 bg-blue-50' : 
-                'text-gray-700 bg-gray-50'
+              className={`text-center py-2 font-medium ${
+                index === 0 ? 'text-red-500' : 
+                index === 6 ? 'text-blue-500' : 
+                'text-gray-700'
               }`}
             >
               {day}
             </div>
           ))}
         </div>
-        
-        {/* 月インジケーター - 曜日の下に表示 */}
-        <div className="grid grid-cols-7 gap-1 mb-1">
-          {weekDays.map((_, index) => (
-            <div key={index} className="text-center py-1 text-xs font-medium text-gray-500">
-              {index === 3 && `${viewDate.getMonth() + 1}月`}
-            </div>
-          ))}
-        </div>
-        
+      </div>
+      
+      {/* カレンダー本体 */}
+      <div className="p-1">
         {/* 週ごとに日付を表示 */}
         {weeks.map((week, weekIndex) => (
-          <React.Fragment key={weekIndex}>
-            {/* 週の最初の日が新しい月の場合、月表示を追加 */}
-            {weekIndex > 0 && week[0].date.getDate() <= 7 && week[0].date.getMonth() !== weeks[weekIndex-1][0].date.getMonth() && (
-              <div className="grid grid-cols-7 gap-1 my-1">
-                <div className="col-span-7 text-center py-1 text-xs font-medium bg-gray-100 rounded text-gray-600">
-                  {`${week[0].date.getMonth() + 1}月`}
-                </div>
-              </div>
-            )}
-            
-            {/* 日付行 */}
-            <div className="grid grid-cols-7 gap-1 mb-1">
-              {week.map((dateObj, index) => {
-                const { day, date, isPrevMonth, isNextMonth } = dateObj;
-                const _isToday = isToday(date);
-                const _isSelected = isSelected(date);
-                
-                return (
-                  <button
-                    key={index}
-                    onClick={() => handleDateSelect(date)}
-                    className={`
-                      h-10 flex items-center justify-center text-sm rounded
-                      ${isPrevMonth || isNextMonth ? 'text-gray-400 hover:bg-gray-50' : 'text-gray-800 hover:bg-gray-100'}
-                      ${_isToday && !_isSelected ? 'border-2 border-indigo-500' : ''}
-                      ${_isSelected ? 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200 border border-indigo-500' : ''}
-                      transition-colors
-                    `}
-                  >
-                    {day}
-                  </button>
-                );
-              })}
-            </div>
-          </React.Fragment>
+          <div key={weekIndex} className="grid grid-cols-7 gap-px">
+            {week.map((dateObj, index) => {
+              const { day, date, isPrevMonth, isNextMonth } = dateObj;
+              const _isToday = isToday(date);
+              const _isSelected = isSelected(date);
+              
+              return (
+                <button
+                  key={index}
+                  onClick={() => handleDateSelect(date)}
+                  className={`
+                    h-10 flex items-center justify-center text-sm
+                    ${isPrevMonth || isNextMonth ? 'text-gray-400' : 'text-gray-800'}
+                    ${_isSelected ? 'bg-blue-500 text-white' : ''}
+                    ${_isToday && !_isSelected ? 'border border-blue-500' : ''}
+                    hover:bg-gray-100
+                  `}
+                >
+                  {day}
+                </button>
+              );
+            })}
+          </div>
         ))}
       </div>
       
       {/* フッター部分 */}
-      <div className="border-t border-gray-200 p-3 flex justify-between items-center bg-gray-50">
+      <div className="border-t p-2 flex justify-between items-center">
         <button
           onClick={handleClearClick}
-          className="px-3 py-1.5 border border-gray-300 text-gray-700 rounded hover:bg-gray-100 text-sm font-medium transition-colors"
+          className="px-3 py-1 text-blue-500 text-sm"
         >
           削除
         </button>
         
         <button
           onClick={handleTodayClick}
-          className="px-3 py-1.5 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 text-sm font-medium transition-colors"
+          className="px-3 py-1 text-blue-500 text-sm"
         >
           今日
         </button>
