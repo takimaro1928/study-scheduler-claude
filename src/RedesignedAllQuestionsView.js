@@ -746,59 +746,60 @@ const handleDateSelection = (date) => {
         </div>
       )}
       
-{/* カレンダーモーダル - 大きいサイズとぼかし効果 */}
+　　　{/* カレンダーモーダル - 背景ぼかし効果と大きいカレンダー */}
 {showCalendarModal && (
   <>
-    {/* 半透明でぼかし効果のあるオーバーレイ */}
+    {/* 背景にぼかし効果を適用（完全な透明ではなく、うっすらと見える程度） */}
     <div 
-      className="fixed inset-0 z-40 bg-white bg-opacity-40 backdrop-blur-sm" 
+      className="fixed inset-0 z-40 bg-gray-100 bg-opacity-70 backdrop-blur-md" 
       onClick={() => setShowCalendarModal(false)}
-      style={{ backdropFilter: 'blur(3px)' }}
+      style={{ backdropFilter: 'blur(8px)' }}
     />
     
-    {/* カレンダー本体 - 大きいサイズで中央固定 */}
+    {/* カレンダー本体 - より大きいサイズで中央固定 */}
     <div 
-      className="fixed z-50 bg-white rounded-lg shadow-xl border border-gray-200" 
+      className="fixed z-50 bg-white rounded-lg shadow-2xl border border-gray-200" 
       style={{
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
         width: 'auto',
-        minWidth: '350px', // カレンダーを大きくする
-        maxWidth: '90vw'
+        minWidth: '420px', // カレンダーをさらに大きく
+        maxWidth: '95vw',
+        padding: '12px'
       }}
     >
       <button 
         onClick={() => setShowCalendarModal(false)}
-        className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 z-10"
+        className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 p-1.5 rounded-full hover:bg-gray-100 z-10"
       >
-        <X className="w-5 h-5" />
+        <X className="w-6 h-6" />
       </button>
       
-      {/* DatePickerCalendarコンポーネント */}
-      <div className="p-2 scale-110 transform origin-top"> {/* カレンダーを110%に拡大 */}
+      {/* DatePickerCalendarコンポーネント - スケール拡大 */}
+      <div className="p-3 scale-125 transform origin-top"> {/* 125%に拡大 */}
         <DatePickerCalendar
           selectedDate={selectedDate}
           onChange={handleDateSelection}
         />
       </div>
       
-      {/* ボタン部分 */}
-      <div className="flex justify-between p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
-        <div className="text-sm text-gray-600">
+      {/* ボタン部分 - より大きく */}
+      <div className="flex justify-between p-5 border-t border-gray-200 bg-gray-50 rounded-b-lg mt-4">
+        <div className="text-base text-gray-600 font-medium">
           {selectedQuestions.length}個の問題を選択中
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-4">
           <button 
             onClick={() => setShowCalendarModal(false)}
-            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100 font-medium"
+            className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100 font-medium text-base"
           >
             キャンセル
           </button>
           <button 
             onClick={executeBulkEdit}
             disabled={!selectedDate}
-            className={`px-4 py-2 rounded-md text-white font-medium ${
+            className={`px-5 py-2.5 rounded-md text-white font-medium text-base ${
               selectedDate ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-400'
             }`}
           >
