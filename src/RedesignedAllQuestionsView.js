@@ -746,42 +746,38 @@ const handleDateSelection = (date) => {
         </div>
       )}
       
-{/* カレンダーモーダル - 背景ぼかしとサイズを大きくしたカレンダー */}
+　　{/* カレンダーモーダル - 背景は変えず、カレンダーのみ超大きく表示 */}
 {showCalendarModal && (
   <>
-    {/* 半透明のオーバーレイ - 背景をぼかし効果 */}
-    <div 
-      className="fixed inset-0 z-40 bg-black bg-opacity-40 backdrop-blur-sm" 
-      onClick={() => setShowCalendarModal(false)}
-    />
+    {/* オーバーレイなし - 背景はそのまま */}
     
-    {/* カレンダー本体 - より大きくて見やすいデザイン */}
+    {/* カレンダー本体 - 超大型サイズ */}
     <div 
-      className="fixed z-50 bg-white rounded-xl shadow-2xl border border-gray-300" 
+      className="fixed z-50 bg-white rounded-xl shadow-xl border border-gray-300" 
       style={{
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
-        width: 'auto',
-        minWidth: '500px',
+        width: '800px',  // かなり大きく
         maxWidth: '95vw',
-        boxShadow: '0 14px 35px rgba(0, 0, 0, 0.25)'
+        maxHeight: '90vh',
+        overflow: 'auto'
       }}
     >
       <button 
         onClick={() => setShowCalendarModal(false)}
-        className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 p-1.5 rounded-full hover:bg-gray-100 z-10 transition-colors"
+        className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100 z-10 transition-colors"
       >
-        <X className="w-6 h-6" />
+        <X className="w-8 h-8" />
       </button>
       
       {/* タイトル */}
-      <div className="text-center p-4 border-b border-gray-200">
-        <h3 className="text-lg font-bold text-gray-800">日付選択</h3>
+      <div className="text-center p-5 border-b border-gray-200">
+        <h3 className="text-2xl font-bold text-gray-800">日付選択</h3>
       </div>
       
-      {/* DatePickerCalendarコンポーネント - スケールアップして大きく表示 */}
-      <div className="p-6 scale-150 transform origin-top" style={{ transformOrigin: 'center' }}>
+      {/* DatePickerCalendarコンポーネント - とても大きく表示 */}
+      <div className="p-6 flex justify-center" style={{ transform: 'scale(2.5)', transformOrigin: 'center top', padding: '100px 0 200px 0' }}>
         <DatePickerCalendar
           selectedDate={selectedDate}
           onChange={handleDateSelection}
@@ -789,23 +785,23 @@ const handleDateSelection = (date) => {
       </div>
       
       {/* ボタン部分 */}
-      <div className="flex justify-between p-5 border-t border-gray-200 bg-gray-50 rounded-b-xl">
-        <div className="text-sm text-gray-600 font-medium flex items-center">
-          <span className="bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded-full">
+      <div className="flex justify-between p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+        <div className="text-lg font-medium flex items-center">
+          <span className="bg-indigo-100 text-indigo-700 px-4 py-2 rounded-lg">
             {selectedQuestions.length}個の問題を選択中
           </span>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-4">
           <button 
             onClick={() => setShowCalendarModal(false)}
-            className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors"
+            className="px-8 py-3 text-lg border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors"
           >
             キャンセル
           </button>
           <button 
             onClick={executeBulkEdit}
             disabled={!selectedDate}
-            className={`px-5 py-2.5 rounded-lg text-white font-medium transition-colors shadow-sm ${
+            className={`px-8 py-3 text-lg rounded-lg text-white font-medium transition-colors shadow-sm ${
               selectedDate ? 'bg-green-500 hover:bg-green-600 active:bg-green-700' : 'bg-gray-400 cursor-not-allowed'
             }`}
           >
