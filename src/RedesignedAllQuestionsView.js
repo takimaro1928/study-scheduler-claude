@@ -13,6 +13,7 @@ const RedesignedAllQuestionsView = ({
   expandedChapters,
   toggleSubject, 
   toggleChapter, 
+  setEditingQuestion,
   setBulkEditMode,
   bulkEditMode,
   selectedQuestions,
@@ -224,26 +225,26 @@ const RedesignedAllQuestionsView = ({
     setShowCalendarModal(true);
   };
   
-// 一括編集を実行
-const executeBulkEdit = () => {
-  if (selectedDate && selectedQuestions.length > 0) {
-    // デバッグ用ログ
-    console.log(`${selectedQuestions.length}個の問題を${formatDate(selectedDate)}に設定します`, selectedQuestions);
-    
-    // 親コンポーネントの関数を呼び出す
-    saveBulkEdit(selectedDate);
-    
-    // モーダルを閉じる
-    setShowCalendarModal(false);
-    
-    // 成功通知を表示
-    showNotification(`${selectedQuestions.length}件の問題を${formatDate(selectedDate)}に設定しました`);
-    
-    // 選択モードを終了
-    setBulkEditMode(false);
-    setSelectedQuestions([]);
-  }
-};
+  // 一括編集を実行
+  const executeBulkEdit = () => {
+    if (selectedDate && selectedQuestions.length > 0) {
+      // デバッグ用ログ
+      console.log(`${selectedQuestions.length}個の問題を${formatDate(selectedDate)}に設定します`, selectedQuestions);
+      
+      // 親コンポーネントの関数を呼び出す
+      saveBulkEdit(selectedDate);
+      
+      // モーダルを閉じる
+      setShowCalendarModal(false);
+      
+      // 成功通知を表示
+      showNotification(`${selectedQuestions.length}件の問題を${formatDate(selectedDate)}に設定しました`);
+      
+      // 選択モードを終了
+      setBulkEditMode(false);
+      setSelectedQuestions([]);
+    }
+  };
   
   // 通知を表示
   const showNotification = (message) => {
@@ -734,62 +735,63 @@ const executeBulkEdit = () => {
         </div>
       )}
       
-{/* カレンダーモーダル */}
-{showCalendarModal && (
-  <div className="fixed inset-0 flex items-center justify-center z-50">
-    {/* オーバーレイ - クリックで閉じられるように */}
-    <div 
-      className="absolute inset-0 bg-black bg-opacity-50"
-      onClick={() => setShowCalendarModal(false)}
-    ></div>
-    
-    {/* カレンダーコンテンツ */}
-    <div className="bg-white rounded-xl shadow-md relative z-50 p-4 max-w-md animate-fadeIn">
-      <div className="flex justify-between items-center mb-3">
-        <h3 className="text-lg font-bold text-gray-800">日付を選択</h3>
-        <button 
-          onClick={() => setShowCalendarModal(false)}
-          className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-50"
-        >
-          <X className={`${iconStyle}`} />
-        </button>
-      </div>
-      
-      {/* DatePickerCalendarコンポーネント */}
-      <DatePickerCalendar
-        selectedDate={selectedDate}
-        onChange={(date) => {
-          setSelectedDate(date);
-          // 日付選択後、自動的に閉じないようにします
-        }}
-      />
-      
-      {/* アクションボタン */}
-      <div className="flex justify-between items-center mt-4">
-        <p className="text-sm text-gray-600">
-          {selectedQuestions.length}個の問題を選択中
-        </p>
-        <div className="flex gap-2">
-          <button 
+      {/* カレンダーモーダル */}
+      {showCalendarModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          {/* オーバーレイ - クリックで閉じられるように */}
+          <div 
+            className="absolute inset-0 bg-black bg-opacity-50"
             onClick={() => setShowCalendarModal(false)}
-            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            キャンセル
-          </button>
-          <button 
-            onClick={executeBulkEdit}
-            disabled={!selectedDate}
-            className={`px-4 py-2 rounded-lg text-white ${
-              selectedDate ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-500'
-            } transition-colors`}
-          >
-            一括設定
-          </button>
+          ></div>
+          
+          {/* カレンダーコンテンツ */}
+          <div className="bg-white rounded-xl shadow-md relative z-50 p-4 max-w-md animate-fadeIn">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-lg font-bold text-gray-800">日付を選択</h3>
+              <button 
+                onClick={() => setShowCalendarModal(false)}
+                className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-50"
+              >
+                <X className={`${iconStyle}`} />
+              </button>
+            </div>
+            
+            {/* DatePickerCalendarコンポーネント - autoClose=falseを追加 */}
+            <DatePickerCalendar
+              selectedDate={selectedDate}
+              onChange={(date) => {
+                setSelectedDate(date);
+                // 自動的に閉じないようにautoCloseはfalse
+              }}
+              autoClose={false}
+            />
+            
+            {/* アクションボタン */}
+            <div className="flex justify-between items-center mt-4">
+              <p className="text-sm text-gray-600">
+                {selectedQuestions.length}個の問題を選択中
+              </p>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => setShowCalendarModal(false)}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  キャンセル
+                </button>
+                <button 
+                  onClick={executeBulkEdit}
+                  disabled={!selectedDate}
+                  className={`px-4 py-2 rounded-lg text-white ${
+                    selectedDate ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-500'
+                  } transition-colors`}
+                >
+                  一括設定
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-  </div>
-)}
+      )}
       
       {/* 通知 */}
       {notification && (
