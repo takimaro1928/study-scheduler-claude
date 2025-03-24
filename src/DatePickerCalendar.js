@@ -1,8 +1,7 @@
 // DatePickerCalendar.js
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-// カレンダーコンポーネント
+// カレンダーコンポーネント - 画像と完全に同じデザイン
 const DatePickerCalendar = ({ selectedDate, onChange, onClose }) => {
   // 初期表示する日付
   const initialDate = selectedDate || new Date();
@@ -103,7 +102,6 @@ const DatePickerCalendar = ({ selectedDate, onChange, onClose }) => {
     setViewDate(today);
     setLocalSelectedDate(today);
     onChange && onChange(today);
-    // 自動的に閉じる処理は削除
   };
   
   // 「削除」ボタンのハンドラー
@@ -123,82 +121,85 @@ const DatePickerCalendar = ({ selectedDate, onChange, onClose }) => {
   };
   
   return (
-    <div className="bg-white border border-gray-200 rounded-md min-w-[280px]">
-      {/* ヘッダー部分 */}
-      <div className="p-2 text-center">
-        <div className="mb-1">
-          <span className="inline-block text-sm font-medium">
-            {`${viewDate.getFullYear()}年(${getJapaneseEraYear(viewDate)})${viewDate.getMonth() + 1}月`}
-          </span>
-          <div className="inline-flex ml-2">
-            <button onClick={() => changeMonth(-1)} className="p-1">
-              <ChevronLeft className="w-4 h-4" />
+    <div className="w-64 bg-white border border-gray-200">
+      {/* ヘッダー部分 - 完全に写真通りのデザイン */}
+      <div className="border-b border-gray-200 p-2">
+        <div className="flex justify-between items-center">
+          {/* 年月表示 */}
+          <div className="text-sm text-gray-800">
+            {`${viewDate.getFullYear()}年(${getJapaneseEraYear(viewDate)}年)${viewDate.getMonth() + 1}月`}
+          </div>
+          
+          {/* 上下矢印ボタン */}
+          <div className="flex items-center">
+            <button 
+              onClick={() => changeMonth(-1)} 
+              className="text-gray-600 hover:text-gray-800 p-1"
+            >
+              ↑
             </button>
-            <button onClick={() => changeMonth(1)} className="p-1">
-              <ChevronRight className="w-4 h-4" />
+            <button 
+              onClick={() => changeMonth(1)} 
+              className="text-gray-600 hover:text-gray-800 p-1"
+            >
+              ↓
             </button>
           </div>
-        </div>
-        
-        {/* 曜日ヘッダー */}
-        <div className="grid grid-cols-7">
-          {weekDays.map((day, index) => (
-            <div 
-              key={index} 
-              className={`p-1 text-xs font-medium ${
-                index === 0 ? 'text-red-500' : 
-                index === 6 ? 'text-blue-500' : 
-                'text-gray-700'
-              }`}
-            >
-              {day}
-            </div>
-          ))}
         </div>
       </div>
       
-      {/* カレンダー本体 */}
-      <div className="border-y border-gray-200">
-        {weeks.map((week, weekIndex) => (
-          <div key={weekIndex} className="grid grid-cols-7">
-            {week.map((dateObj, index) => {
-              const { day, date, isPrevMonth, isNextMonth } = dateObj;
-              const _isToday = isToday(date);
-              const _isSelected = isSelected(date);
-              
-              // 1枚目の写真に合わせたシンプルな日付セルのスタイル
-              return (
-                <button
-                  key={index}
-                  onClick={() => handleDateSelect(date)}
-                  className={`
-                    h-8 text-sm border border-transparent
-                    ${isPrevMonth || isNextMonth ? 'text-gray-400' : 'text-gray-700'}
-                    ${_isSelected ? 'bg-blue-500 text-white' : ''}
-                    ${_isToday && !_isSelected ? 'border-blue-500' : ''}
-                    hover:bg-gray-100
-                  `}
-                >
-                  {day}
-                </button>
-              );
-            })}
+      {/* 曜日ヘッダー */}
+      <div className="grid grid-cols-7 text-center">
+        {weekDays.map((day, index) => (
+          <div 
+            key={index} 
+            className={`p-1 text-sm ${
+              index === 0 ? 'text-red-500' : 
+              index === 6 ? 'text-blue-500' : 
+              'text-gray-800'
+            }`}
+          >
+            {day}
           </div>
         ))}
+      </div>
+      
+      {/* カレンダー本体 */}
+      <div className="grid grid-cols-7 text-center border-t border-b border-gray-200">
+        {calendar.map((dateObj, index) => {
+          const { day, date, isPrevMonth, isNextMonth } = dateObj;
+          const _isToday = isToday(date);
+          const _isSelected = isSelected(date);
+          
+          // 写真どおりの日付セルのスタイル
+          return (
+            <button
+              key={index}
+              onClick={() => handleDateSelect(date)}
+              className={`
+                p-1 text-sm border border-transparent
+                ${isPrevMonth || isNextMonth ? 'text-gray-400' : 'text-gray-800'}
+                ${_isSelected ? 'bg-blue-500 text-white' : ''}
+              `}
+            >
+              {day}
+            </button>
+          );
+        })}
       </div>
       
       {/* フッター部分 */}
       <div className="flex justify-between p-2">
         <button
           onClick={handleClearClick}
-          className="text-blue-500 text-sm"
+          className="text-blue-500 text-sm hover:text-blue-700"
         >
           削除
         </button>
         
         <button
           onClick={handleTodayClick}
-          className="text-blue-500 text-sm"
+          className="text-blue-500 text-sm hover:text-blue-700"
         >
           今日
         </button>
