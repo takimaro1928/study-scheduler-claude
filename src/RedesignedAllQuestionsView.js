@@ -728,22 +728,22 @@ const RedesignedAllQuestionsView = ({
         </div>
       )}
       
- {/* カレンダーモーダル */}
+{/* カレンダーモーダル */}
 {showCalendarModal && (
-  <div className="fixed inset-0 flex items-center justify-center z-[1000]">
+  <div className="fixed inset-0 flex items-center justify-center z-50">
     {/* オーバーレイ - クリックで閉じられるように */}
     <div 
-      className="absolute inset-0 bg-gray-500 bg-opacity-20 backdrop-blur-sm"
+      className="absolute inset-0 bg-black bg-opacity-50"
       onClick={() => setShowCalendarModal(false)}
     ></div>
     
     {/* カレンダーコンテンツ */}
-    <div className="bg-white rounded-xl shadow-xl relative z-[1001] p-4 max-w-md animate-fadeIn">
+    <div className="bg-white rounded-xl shadow-md relative z-50 p-4 max-w-md animate-fadeIn">
       <div className="flex justify-between items-center mb-3">
         <h3 className="text-lg font-bold text-gray-800">日付を選択</h3>
         <button 
           onClick={() => setShowCalendarModal(false)}
-          className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100"
+          className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-50"
         >
           <X className={`${iconStyle}`} />
         </button>
@@ -774,7 +774,7 @@ const RedesignedAllQuestionsView = ({
             onClick={executeBulkEdit}
             disabled={!selectedDate}
             className={`px-4 py-2 rounded-lg text-white ${
-              selectedDate ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed'
+              selectedDate ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-500'
             } transition-colors`}
           >
             一括設定
