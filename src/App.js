@@ -314,29 +314,31 @@ function App() {
     setEditingQuestion(null);
   };
 
-  // 一括編集の保存
-  const saveBulkEdit = (date) => {
-    setSubjects(prevSubjects => {
-      const newSubjects = [...prevSubjects];
-      
-      selectedQuestions.forEach(questionId => {
-        for (const subject of newSubjects) {
-          for (const chapter of subject.chapters) {
-            const questionIndex = chapter.questions.findIndex(q => q.id === questionId);
-            
-            if (questionIndex !== -1) {
-              chapter.questions[questionIndex] = {
-                ...chapter.questions[questionIndex],
-                nextDate: new Date(date)
-              };
-              break;
-            }
+ // 一括編集の保存
+const saveBulkEdit = (date) => {
+  setSubjects(prevSubjects => {
+    // ディープコピーを作成
+    const newSubjects = JSON.parse(JSON.stringify(prevSubjects));
+    
+    selectedQuestions.forEach(questionId => {
+      // 全ての科目と章を検索
+      for (const subject of newSubjects) {
+        for (const chapter of subject.chapters) {
+          const questionIndex = chapter.questions.findIndex(q => q.id === questionId);
+          
+          if (questionIndex !== -1) {
+            // 問題が見つかった場合、次回日付を更新
+            chapter.questions[questionIndex].nextDate = new Date(date);
+            // これ以上検索しない（各IDは一意なはず）
+            break;
           }
         }
-      });
-      
-      return newSubjects;
+      }
     });
+    
+    return newSubjects;
+  });
+};
     
     setBulkEditMode(false);
     setSelectedQuestions([]);
