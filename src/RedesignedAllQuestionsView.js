@@ -224,20 +224,26 @@ const RedesignedAllQuestionsView = ({
     setShowCalendarModal(true);
   };
   
-  // 一括編集を実行
-  const executeBulkEdit = () => {
-    if (selectedDate && selectedQuestions.length > 0) {
-      saveBulkEdit(selectedDate);
-      setShowCalendarModal(false);
-      
-      // 成功通知を表示
-      showNotification(`${selectedQuestions.length}件の問題を${formatDate(selectedDate)}に設定しました`);
-      
-      // 選択モードを終了
-      setBulkEditMode(false);
-      setSelectedQuestions([]);
-    }
-  };
+// 一括編集を実行
+const executeBulkEdit = () => {
+  if (selectedDate && selectedQuestions.length > 0) {
+    // デバッグ用ログ
+    console.log(`${selectedQuestions.length}個の問題を${formatDate(selectedDate)}に設定します`, selectedQuestions);
+    
+    // 親コンポーネントの関数を呼び出す
+    saveBulkEdit(selectedDate);
+    
+    // モーダルを閉じる
+    setShowCalendarModal(false);
+    
+    // 成功通知を表示
+    showNotification(`${selectedQuestions.length}件の問題を${formatDate(selectedDate)}に設定しました`);
+    
+    // 選択モードを終了
+    setBulkEditMode(false);
+    setSelectedQuestions([]);
+  }
+};
   
   // 通知を表示
   const showNotification = (message) => {
