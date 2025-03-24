@@ -728,7 +728,7 @@ const RedesignedAllQuestionsView = ({
         </div>
       )}
       
-      {/* カレンダーモーダル */}
+  {/* カレンダーモーダル */}
 {showCalendarModal && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
     <div className="bg-white rounded-xl p-5 max-w-md w-full shadow-xl">
@@ -742,13 +742,11 @@ const RedesignedAllQuestionsView = ({
         </button>
       </div>
       
-      <div className="mb-4">
-        {/* DatePickerCalendarコンポーネントを使用 */}
-        <DatePickerCalendar
-          selectedDate={selectedDate}
-          onChange={(date) => setSelectedDate(date)}
-        />
-      </div>
+      {/* DatePickerCalendarコンポーネントだけを表示 */}
+      <DatePickerCalendar
+        selectedDate={selectedDate}
+        onChange={(date) => setSelectedDate(date)}
+      />
       
       <div className="flex justify-between items-center mt-4">
         <p className="text-sm text-gray-600">
