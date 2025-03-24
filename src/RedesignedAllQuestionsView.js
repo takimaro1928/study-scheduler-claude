@@ -746,27 +746,26 @@ const handleDateSelection = (date) => {
         </div>
       )}
       
-　　{/* カレンダーモーダル - 透明度を高めて元ページを見せる */}
+　{/* カレンダーモーダル - 背景ぼかしなし・見やすいカレンダー */}
 {showCalendarModal && (
   <>
-    {/* 半透明ぼかしオーバーレイ（透明度高め、ぼかし少なめ） */}
+    {/* 透明なオーバーレイ - クリックでカレンダーを閉じるためだけのもの */}
     <div 
-      className="fixed inset-0 z-40 bg-white bg-opacity-20" 
+      className="fixed inset-0 z-40" 
       onClick={() => setShowCalendarModal(false)}
-      style={{ backdropFilter: 'blur(1.5px)' }}
     />
     
-    {/* カレンダー本体 - シャドウを強めて浮かせる */}
+    {/* カレンダー本体 - 見やすさを重視 */}
     <div 
-      className="fixed z-50 bg-white rounded-lg shadow-xl border border-gray-200" 
+      className="fixed z-50 bg-white rounded-lg shadow-xl border border-gray-300" 
       style={{
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
         width: 'auto',
-        minWidth: '380px',
+        minWidth: '400px',
         maxWidth: '90vw',
-        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)'
+        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)'
       }}
     >
       <button 
@@ -786,20 +785,20 @@ const handleDateSelection = (date) => {
       
       {/* ボタン部分 */}
       <div className="flex justify-between p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-gray-600 font-medium">
           {selectedQuestions.length}個の問題を選択中
         </div>
         <div className="flex gap-3">
           <button 
             onClick={() => setShowCalendarModal(false)}
-            className="px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-100 font-medium"
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100 font-medium"
           >
             キャンセル
           </button>
           <button 
             onClick={executeBulkEdit}
             disabled={!selectedDate}
-            className={`px-4 py-2 rounded text-white font-medium ${
+            className={`px-4 py-2 rounded-md text-white font-medium ${
               selectedDate ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-400'
             }`}
           >
