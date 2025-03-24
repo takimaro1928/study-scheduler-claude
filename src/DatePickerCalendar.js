@@ -89,12 +89,17 @@ const DatePickerCalendar = ({ selectedDate, onChange, onClose }) => {
            date.getFullYear() === localSelectedDate.getFullYear();
   };
   
-  // 日付選択ハンドラー
-  const handleDateSelect = (date) => {
-    setLocalSelectedDate(date);
-    onChange && onChange(date);
-    // 自動的に閉じる処理は削除
-  };
+ // 日付選択ハンドラー - 絶対に閉じないバージョン
+const handleDateSelect = (date) => {
+  // ローカルの状態だけを更新
+  setLocalSelectedDate(date);
+  
+  // 親コンポーネントにイベントを伝達（閉じる処理はなし）
+  if (onChange) {
+    console.log('日付選択イベントを親に通知:', date);
+    onChange(date);
+  }
+};
   
   // 「今日」ボタンのハンドラー
   const handleTodayClick = () => {
