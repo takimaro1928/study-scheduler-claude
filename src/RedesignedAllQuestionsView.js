@@ -744,7 +744,7 @@ const handleDateSelection = (date) => {
         </div>
       )}
       
-     {/* カレンダーモーダル */}
+  {/* カレンダーモーダル */}
 {showCalendarModal && (
   <div className="fixed inset-0 flex items-center justify-center z-50">
     {/* オーバーレイ - クリックで閉じられるように */}
@@ -753,26 +753,26 @@ const handleDateSelection = (date) => {
       onClick={() => setShowCalendarModal(false)}
     ></div>
     
-    {/* カレンダーコンテンツ */}
-    <div className="bg-white rounded-xl shadow-md relative z-50 p-4 max-w-md animate-fadeIn">
-      <div className="flex justify-between items-center mb-3">
-        <h3 className="text-lg font-bold text-gray-800">日付を選択</h3>
+    {/* カレンダーコンテンツ - 中央配置のスタイリング修正 */}
+    <div className="bg-white rounded-lg shadow-lg relative z-50 max-w-md animate-fadeIn">
+      <div className="flex justify-between items-center px-4 py-3 bg-gray-50 border-b">
+        <h3 className="text-lg font-medium text-gray-700">日付を選択</h3>
         <button 
           onClick={() => setShowCalendarModal(false)}
-          className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-50"
+          className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100"
         >
           <X className={`${iconStyle}`} />
         </button>
       </div>
       
-     {/* DatePickerCalendarコンポーネント */}
-<DatePickerCalendar
-  selectedDate={selectedDate}
-  onChange={handleDateSelection}
-/>
+      {/* DatePickerCalendarコンポーネント */}
+      <DatePickerCalendar
+        selectedDate={selectedDate}
+        onChange={handleDateSelection}
+      />
       
       {/* アクションボタン */}
-      <div className="flex justify-between items-center mt-4">
+      <div className="flex justify-between items-center p-4 border-t bg-gray-50">
         <p className="text-sm text-gray-600">
           {selectedQuestions.length}個の問題を選択中
         </p>
