@@ -1,5 +1,5 @@
 // RedesignedAllQuestionsView.js
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Search, Filter, Info, Edit, Clock, Calendar, Check, X,
   ChevronRight, ChevronDown, ChevronUp, AlertTriangle,
@@ -22,7 +22,9 @@ const RedesignedAllQuestionsView = ({
   setSelectedDate,
   saveBulkEdit
 }) => {
-  // --- State Management ---
+  // ---------------------------------------
+  // State管理（従来のまま）
+  // ---------------------------------------
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
@@ -37,10 +39,13 @@ const RedesignedAllQuestionsView = ({
   const [notification, setNotification] = useState(null);
   const [activeTab, setActiveTab] = useState('all');
 
-  // --- Common Icon Style ---
-  const iconStyle = "w-5 h-5";
+  // アイコンの大きさを一元管理
+  // ここを w-4 h-4 や w-6 h-6 に変更すれば一括でサイズを変えられます
+  const iconStyle = "w-5 h-5"; 
 
-  // --- Filter Logic ---
+  // ---------------------------------------
+  // 期間フィルタなどのロジック（従来のまま）
+  // ---------------------------------------
   const getFilteredData = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -69,9 +74,10 @@ const RedesignedAllQuestionsView = ({
             }
             return true;
           });
+          
           return { ...chapter, questions: filteredQuestions };
         }).filter(ch => ch.questions.length > 0);
-
+        
         return { ...subject, chapters: filteredChapters };
       }).filter(sb => sb.chapters.length > 0);
     }
@@ -79,6 +85,7 @@ const RedesignedAllQuestionsView = ({
     return filteredSubjects;
   };
 
+  // 詳細フィルター
   const applyDetailedFilters = (questions) => {
     return questions.filter(question => {
       // 理解度フィルター
@@ -105,6 +112,9 @@ const RedesignedAllQuestionsView = ({
     });
   };
 
+  // ---------------------------------------
+  // 検索後のSubjects
+  // ---------------------------------------
   const filteredSubjects = getFilteredData().filter(subject => {
     return subject.chapters.some(chapter => 
       chapter.questions.some(question => 
@@ -113,7 +123,9 @@ const RedesignedAllQuestionsView = ({
     );
   });
 
-  // --- Bulk Edit Functions ---
+  // ---------------------------------------
+  // 問題選択/解除
+  // ---------------------------------------
   const toggleQuestionSelection = (questionId) => {
     setSelectedQuestions(prev => {
       if (prev.includes(questionId)) {
@@ -124,7 +136,9 @@ const RedesignedAllQuestionsView = ({
     });
   };
 
-  // --- Detail Toggle ---
+  // ---------------------------------------
+  // 詳細を開く/閉じる
+  // ---------------------------------------
   const toggleDetails = (questionId) => {
     setExpandedDetails(prev => ({
       ...prev,
@@ -139,12 +153,14 @@ const RedesignedAllQuestionsView = ({
     }
   };
 
-  // --- Inline Edit ---
+  // ---------------------------------------
+  // インライン編集
+  // ---------------------------------------
   const [editFormDataBackup, setEditFormDataBackup] = useState({});
+  
   const toggleInlineEdit = (question) => {
     const questionId = question.id;
     if (!editingInlineQuestions[questionId]) {
-      // 開始時にバックアップ
       setEditFormData({
         ...editFormData,
         [questionId]: {
@@ -164,7 +180,7 @@ const RedesignedAllQuestionsView = ({
       ...prev,
       [questionId]: !prev[questionId]
     }));
-    // 詳細が閉じていれば開く
+    
     if (!expandedDetails[questionId]) {
       setExpandedDetails(prev => ({
         ...prev,
@@ -172,23 +188,27 @@ const RedesignedAllQuestionsView = ({
       }));
     }
   };
-
+  
   const saveInlineEdit = (questionId) => {
-    // ここで実際の保存処理を行う想定
     console.log("Save inline edit:", editFormData[questionId]);
-    setEditingInlineQuestions(prev => ({ ...prev, [questionId]: false }));
+    setEditingInlineQuestions(prev => ({
+      ...prev,
+      [questionId]: false
+    }));
     showNotification("問題情報を更新しました");
   };
-
+  
   const cancelInlineEdit = (questionId) => {
-    // バックアップしたデータを復元
     setEditFormData(prev => ({
       ...prev,
       [questionId]: editFormDataBackup[questionId]
     }));
-    setEditingInlineQuestions(prev => ({ ...prev, [questionId]: false }));
+    setEditingInlineQuestions(prev => ({
+      ...prev,
+      [questionId]: false
+    }));
   };
-
+  
   const updateFormValue = (questionId, field, value) => {
     setEditFormData(prev => ({
       ...prev,
@@ -199,7 +219,9 @@ const RedesignedAllQuestionsView = ({
     }));
   };
 
-  // --- Bulk Edit Calendar ---
+  // ---------------------------------------
+  // 一括編集（カレンダーモーダル）
+  // ---------------------------------------
   const showBulkEditCalendar = () => {
     setShowCalendarModal(true);
   };
@@ -219,7 +241,9 @@ const RedesignedAllQuestionsView = ({
     }
   };
 
-  // --- Notifications ---
+  // ---------------------------------------
+  // 通知
+  // ---------------------------------------
   const showNotification = (message) => {
     setNotification(message);
     setTimeout(() => {
@@ -227,18 +251,22 @@ const RedesignedAllQuestionsView = ({
     }, 3000);
   };
 
-  // --- Date Utils ---
+  // ---------------------------------------
+  // 日付フォーマット
+  // ---------------------------------------
   const formatDateForInput = (date) => {
     const d = new Date(date);
     return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
   };
-
+  
   const formatDate = (date) => {
     const d = new Date(date);
     return `${d.getFullYear()}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')}`;
   };
 
-  // --- Understanding Style ---
+  // ---------------------------------------
+  // 理解度アイコン/バッジ
+  // ---------------------------------------
   const getUnderstandingStyle = (understanding) => {
     if (understanding === '理解○') {
       return {
@@ -257,8 +285,10 @@ const RedesignedAllQuestionsView = ({
       };
     }
   };
-
-  // --- Correct Rate Color ---
+  
+  // ---------------------------------------
+  // 正解率バーの色
+  // ---------------------------------------
   const getCorrectRateColor = (rate) => {
     if (rate >= 80) return "bg-green-500";
     if (rate >= 60) return "bg-lime-500";
@@ -267,15 +297,15 @@ const RedesignedAllQuestionsView = ({
     return "bg-red-500";
   };
 
-  // --- Render ---
+  // ---------------------------------------
+  // レンダリング
+  // ---------------------------------------
   return (
     <div className="p-4 max-w-5xl mx-auto pb-24">
-      {/* ---------- 操作パネル ---------- */}
+      {/* 上部操作パネル */}
       <div className="flex flex-col gap-5 mb-6">
-        
-        {/* 上段: 検索 + フィルター + 一括編集 */}
+        {/* 検索 + フィルター + 一括編集 */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          {/* 検索バー */}
           <div className="relative flex-grow max-w-md">
             <input
               type="text"
@@ -285,19 +315,18 @@ const RedesignedAllQuestionsView = ({
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-              <Search className={`${iconStyle}`} />
+              <Search className={iconStyle} />
             </div>
             {searchTerm && (
               <button 
                 onClick={() => setSearchTerm('')}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
-                <X className={`${iconStyle}`} />
+                <X className={iconStyle} />
               </button>
             )}
           </div>
           
-          {/* フィルター & 一括編集 */}
           <div className="flex gap-3 w-full md:w-auto">
             <button 
               onClick={() => setShowFilters(!showFilters)}
@@ -377,8 +406,6 @@ const RedesignedAllQuestionsView = ({
                 </select>
               </div>
             </div>
-            
-            {/* フィルターリセット */}
             <div className="mt-4 flex justify-end">
               <button 
                 onClick={() => {
@@ -433,7 +460,7 @@ const RedesignedAllQuestionsView = ({
         </div>
       </div>
       
-      {/* ---------- 一括編集の選択状態 ---------- */}
+      {/* 一括編集時の選択状態 */}
       {bulkEditMode && selectedQuestions.length > 0 && (
         <div className="bg-indigo-50 p-4 mb-4 rounded-xl border border-indigo-200 shadow-sm animate-fadeIn">
           <div className="flex justify-between items-center">
@@ -451,7 +478,7 @@ const RedesignedAllQuestionsView = ({
         </div>
       )}
       
-      {/* ---------- 問題一覧 ---------- */}
+      {/* 問題一覧 */}
       {filteredSubjects.length === 0 ? (
         <div className="bg-white p-10 rounded-xl shadow-sm text-center border border-gray-200">
           <p className="text-gray-500">表示できる問題がありません</p>
@@ -469,7 +496,7 @@ const RedesignedAllQuestionsView = ({
                   className="mr-3 text-gray-500 transition-transform duration-200"
                   style={{ transform: expandedSubjects[subject.id] ? 'rotate(90deg)' : 'rotate(0deg)' }}
                 >
-                  <ChevronRight className={`${iconStyle}`} />
+                  <ChevronRight className={iconStyle} />
                 </div>
                 <h3 className="font-bold text-gray-800">{subject.name}</h3>
                 <div className="ml-3 text-sm bg-indigo-100 text-indigo-700 px-2.5 py-0.5 rounded-full">
@@ -498,7 +525,7 @@ const RedesignedAllQuestionsView = ({
                             className="mr-2 text-gray-500 transition-transform duration-200"
                             style={{ transform: expandedChapters[chapter.id] ? 'rotate(90deg)' : 'rotate(0deg)' }}
                           >
-                            <ChevronRight className={`${iconStyle}`} />
+                            <ChevronRight className={iconStyle} />
                           </div>
                           <h4 className="text-gray-700 font-medium">{chapter.name}</h4>
                           <div className="ml-2 text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full">
@@ -511,12 +538,13 @@ const RedesignedAllQuestionsView = ({
                           <div className="mt-3 pl-4 space-y-2">
                             {filteredQuestions.map(question => {
                               const understandingStyle = getUnderstandingStyle(question.understanding);
+                              
                               return (
                                 <div 
                                   key={question.id} 
                                   className="border border-gray-200 rounded-lg hover:border-gray-300 transition-colors overflow-hidden"
                                 >
-                                  {/* 問題行 */}
+                                  {/* 問題行（常に表示） */}
                                   <div className="p-3 flex flex-wrap items-center gap-2 bg-white">
                                     {bulkEditMode && (
                                       <div className="flex items-center mr-1">
@@ -528,16 +556,17 @@ const RedesignedAllQuestionsView = ({
                                         />
                                       </div>
                                     )}
-                                    {/* 詳細ボタン */}
+                                    
+                                    {/* 詳細情報アイコン（左マーク） */}
                                     <button
                                       onClick={() => toggleDetails(question.id)}
                                       className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"
                                       title={expandedDetails[question.id] ? "詳細を閉じる" : "詳細を表示"}
                                     >
                                       {expandedDetails[question.id] ? (
-                                        <ChevronUp className={`${iconStyle}`} />
+                                        <ChevronUp className={iconStyle} />
                                       ) : (
-                                        <Info className={`${iconStyle}`} />
+                                        <Info className={iconStyle} />
                                       )}
                                     </button>
                                     
@@ -571,7 +600,7 @@ const RedesignedAllQuestionsView = ({
                                       {formatDate(question.nextDate)}
                                     </div>
                                     
-                                    {/* 編集ボタン */}
+                                    {/* 編集ボタン（右マーク） */}
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
@@ -580,11 +609,11 @@ const RedesignedAllQuestionsView = ({
                                       className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors ml-auto"
                                       title="編集"
                                     >
-                                      <Edit className={`${iconStyle}`} />
+                                      <Edit className={iconStyle} />
                                     </button>
                                   </div>
                                   
-                                  {/* 詳細表示 */}
+                                  {/* 問題詳細（展開時表示） */}
                                   {expandedDetails[question.id] && !editingInlineQuestions[question.id] && (
                                     <div className="border-t border-gray-200 p-3 bg-gray-50 animate-fadeIn">
                                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -676,7 +705,7 @@ const RedesignedAllQuestionsView = ({
                                         </div>
                                       </div>
                                       
-                                      {/* 編集ボタン */}
+                                      {/* ボタン */}
                                       <div className="flex justify-end gap-2 mt-4">
                                         <button
                                           onClick={() => cancelInlineEdit(question.id)}
@@ -707,18 +736,17 @@ const RedesignedAllQuestionsView = ({
           ))}
         </div>
       )}
-
-      {/* ---------- カレンダーモーダル ---------- */}
+      
+      {/* カレンダーモーダル */}
       {showCalendarModal && (
         <>
-          {/* 背景クリックで閉じる */}
           <div 
             className="fixed inset-0 z-40" 
             onClick={() => setShowCalendarModal(false)}
           />
           
           <div 
-            className="fixed z-50 bg-white rounded-lg shadow-xl border border-gray-300"
+            className="fixed z-50 bg-white rounded-lg shadow-xl border border-gray-300" 
             style={{
               top: '50%',
               left: '50%',
@@ -737,7 +765,7 @@ const RedesignedAllQuestionsView = ({
               <X className="w-5 h-5" />
             </button>
             
-            {/* カレンダー本体を拡大表示 */}
+            {/* カレンダー本体 */}
             <div className="p-4 scale-125 transform origin-top bg-white border border-gray-200 rounded-md">
               <DatePickerCalendar
                 selectedDate={selectedDate}
@@ -745,7 +773,7 @@ const RedesignedAllQuestionsView = ({
               />
             </div>
             
-            {/* ボタンエリア */}
+            {/* ボタン部分 */}
             <div className="flex justify-between p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
               <div className="text-sm text-gray-600 font-medium">
                 {selectedQuestions.length}個の問題を選択中
@@ -774,7 +802,7 @@ const RedesignedAllQuestionsView = ({
         </>
       )}
       
-      {/* ---------- 通知 ---------- */}
+      {/* 通知 */}
       {notification && (
         <div className="fixed bottom-20 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg animate-fadeIn">
           {notification}
