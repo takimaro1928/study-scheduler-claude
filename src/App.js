@@ -91,13 +91,58 @@ const generateInitialData = () => {
         { id: 506, name: "その他経営法務に関する知識 Q6", questions: generateQuestions('6', 1, 19) }
       ]
     },
-    {
-      id: 6,
-      name: "中小企業経営・中小企業政策",
-      chapters: [
-        { id: 601, name: "後日追加予定", questions: [] }
-      ]
-    }
+ // App.js の generateInitialData() 関数内のsubjects配列内にある既存の中小企業経営・政策のコードを
+// 以下のコードで置き換えてください（id:1〜5の科目の後に配置します）
+
+{
+  id: 6,
+  name: "中小企業経営・中小企業政策",
+  chapters: [
+    { id: 601, name: "中小企業経営/中小企業概論 Q1-1", questions: generateQuestions('1-1', 1, 31) },
+    { id: 602, name: "中小企業経営/令和5年度の中小企業の動向 Q1-2", questions: generateQuestions('1-2', 1, 40) },
+    { id: 603, name: "中小企業経営/環境変化に対応する中小企業 Q1-3", questions: generateQuestions('1-3', 1, 14) },
+    { id: 604, name: "中小企業経営/経営課題に立ち向かう小規模業者業 Q1-4", questions: generateQuestions('1-4', 1, 32) },
+    { id: 605, name: "中小企業政策/中小企業政策の基本 Q2-1", questions: generateQuestions('2-1', 1, 14) },
+    { id: 606, name: "中小企業政策/中小企業施策 Q2-2", questions: generateQuestions('2-2', 1, 68) },
+    { id: 607, name: "中小企業政策/中小企業政策の変遷 Q2-3", questions: generateQuestions('2-3', 1, 1) }
+  ]
+},
+{
+  id: 7,
+  name: "過去問題集",
+  chapters: [
+    { id: 701, name: "企業経営理論 令和6年度", questions: generateQuestions('企業経営理論R6', 1, 40) },
+    { id: 702, name: "企業経営理論 令和5年度", questions: generateQuestions('企業経営理論R5', 1, 37) },
+    { id: 703, name: "企業経営理論 令和4年度", questions: generateQuestions('企業経営理論R4', 1, 37) },
+    { id: 704, name: "企業経営理論 令和3年度", questions: generateQuestions('企業経営理論R3', 1, 38) },
+    { id: 705, name: "企業経営理論 令和2年度", questions: generateQuestions('企業経営理論R2', 1, 36) },
+    { id: 706, name: "運営管理 令和6年度", questions: generateQuestions('運営管理R6', 1, 41) },
+    { id: 707, name: "運営管理 令和5年度", questions: generateQuestions('運営管理R5', 1, 37) },
+    { id: 708, name: "運営管理 令和4年度", questions: generateQuestions('運営管理R4', 1, 39) },
+    { id: 709, name: "運営管理 令和3年度", questions: generateQuestions('運営管理R3', 1, 41) },
+    { id: 710, name: "運営管理 令和2年度", questions: generateQuestions('運営管理R2', 1, 42) },
+    { id: 711, name: "経済学・経済政策 令和6年度", questions: generateQuestions('経済学R6', 1, 22) },
+    { id: 712, name: "経済学・経済政策 令和5年度", questions: generateQuestions('経済学R5', 1, 22) },
+    { id: 713, name: "経済学・経済政策 令和4年度", questions: generateQuestions('経済学R4', 1, 21) },
+    { id: 714, name: "経済学・経済政策 令和3年度", questions: generateQuestions('経済学R3', 1, 23) },
+    { id: 715, name: "経済学・経済政策 令和2年度", questions: generateQuestions('経済学R2', 1, 22) },
+    { id: 716, name: "経営情報システム 令和6年度", questions: generateQuestions('経営情報R6', 1, 23) },
+    { id: 717, name: "経営情報システム 令和5年度", questions: generateQuestions('経営情報R5', 1, 25) },
+    { id: 718, name: "経営情報システム 令和4年度", questions: generateQuestions('経営情報R4', 1, 24) },
+    { id: 719, name: "経営情報システム 令和3年度", questions: generateQuestions('経営情報R3', 1, 25) },
+    { id: 720, name: "経営情報システム 令和2年度", questions: generateQuestions('経営情報R2', 1, 25) },
+    { id: 721, name: "経営法務 令和6年度", questions: generateQuestions('経営法務R6', 1, 24) },
+    { id: 722, name: "経営法務 令和5年度", questions: generateQuestions('経営法務R5', 1, 21) },
+    { id: 723, name: "経営法務 令和4年度", questions: generateQuestions('経営法務R4', 1, 22) },
+    { id: 724, name: "経営法務 令和3年度", questions: generateQuestions('経営法務R3', 1, 20) },
+    { id: 725, name: "経営法務 令和2年度", questions: generateQuestions('経営法務R2', 1, 22) },
+    { id: 726, name: "中小企業経営・政策 令和6年度", questions: generateQuestions('中小企業R6', 1, 11) },
+    { id: 727, name: "中小企業経営・政策 令和5年度", questions: generateQuestions('中小企業R5', 1, 22) },
+    { id: 728, name: "中小企業経営・政策 令和4年度", questions: generateQuestions('中小企業R4', 1, 22) },
+    { id: 729, name: "中小企業経営・政策 令和3年度", questions: generateQuestions('中小企業R3', 1, 22) },
+    { id: 730, name: "中小企業経営・政策 令和2年度", questions: generateQuestions('中小企業R2', 1, 22) }
+  ]
+}
   ];
   
   return subjects;
