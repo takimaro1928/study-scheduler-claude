@@ -9,7 +9,10 @@ import { Info } from 'lucide-react';
 import EnhancedAllQuestionsView from './EnhancedAllQuestionsView';
 import SimplifiedAllQuestionsView from './SimplifiedAllQuestionsView';
 import RedesignedAllQuestionsView from './RedesignedAllQuestionsView';
-
+import { useState, useEffect } from 'react';
+import { Menu, ChevronLeft, ChevronRight } from 'lucide-react';
+import SideNavigation from './components/SideNavigation';
+import { CSSTransition, TransitionGroup } from 'react-transition-group'; // npm install react-transition-group
 
 // 初期データの作成
 const generateInitialData = () => {
