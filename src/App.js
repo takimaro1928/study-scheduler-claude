@@ -9,8 +9,6 @@ import { Info } from 'lucide-react';
 import EnhancedAllQuestionsView from './EnhancedAllQuestionsView';
 import SimplifiedAllQuestionsView from './SimplifiedAllQuestionsView';
 import RedesignedAllQuestionsView from './RedesignedAllQuestionsView';
-import { useState, useEffect } from 'react';
-import { Menu, ChevronLeft, ChevronRight } from 'lucide-react';
 import SideNavigation from './components/SideNavigation';
 import { CSSTransition, TransitionGroup } from 'react-transition-group'; // npm install react-transition-group
 
@@ -183,7 +181,8 @@ function App() {
   const [editingQuestion, setEditingQuestion] = useState(null);
   const [bulkEditMode, setBulkEditMode] = useState(false);
   const [selectedQuestions, setSelectedQuestions] = useState([]);
-
+　const [isNavOpen, setIsNavOpen] = useState(false);
+  
   useEffect(() => {
     // 初期データの読み込み
     const initialData = generateInitialData();
@@ -1115,56 +1114,39 @@ const MainView = () => {
 };
 
   // App.js ヘッダーとナビゲーション部分
-  return (
+ return (
     <div className="min-h-screen bg-gray-50">
-      <header className="app-header">
-        <div className="max-w-5xl mx-auto">
-          <h1 className="text-2xl font-bold tracking-tight">学習スケジュール管理</h1>
-          <p className="text-sm opacity-90 mt-1">暗記曲線に基づく効率的な学習を実現</p>
+      <SideNavigation 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        isOpen={isNavOpen} 
+        setIsOpen={setIsNavOpen} 
+      />
+      
+      <div className="md:ml-72 transition-all duration-300 ease-in-out">
+        <header className="app-header">
+          <div className="max-w-5xl mx-auto">
+            <h1 className="text-2xl font-bold tracking-tight">学習スケジュール管理</h1>
+            <p className="text-sm opacity-90 mt-1">暗記曲線に基づく効率的な学習を実現</p>
+          </div>
+        </header>
+        
+        <div className="animate-fade-in">
+          <MainView />
         </div>
-      </header>
+        
+        {/* 問題編集モーダル */}
+        {editingQuestion && (
+          <QuestionEditModal
+            question={editingQuestion}
+            onSave={saveQuestionEdit}
+            onCancel={() => setEditingQuestion(null)}
+          />
+        )}
+      </div>
       
-      <MainView />
-      
-      {/* 問題編集モーダル */}
-      {editingQuestion && (
-        <QuestionEditModal
-          question={editingQuestion}
-          onSave={saveQuestionEdit}
-          onCancel={() => setEditingQuestion(null)}
-        />
-      )}
-      
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg flex justify-around p-2 z-10">
-  <button 
-    onClick={() => setActiveTab('today')}
-    className={`nav-item ${activeTab === 'today' ? 'active' : ''}`}
-  >
-    <Clock className="h-6 w-6" />
-    <span className="text-xs mt-1 font-medium">今日</span>
-  </button>
-  <button 
-    onClick={() => setActiveTab('schedule')}
-    className={`nav-item ${activeTab === 'schedule' ? 'active' : ''}`}
-  >
-    <Calendar className="h-6 w-6" />
-    <span className="text-xs mt-1 font-medium">スケジュール</span>
-  </button>
-  <button 
-    onClick={() => setActiveTab('all')}
-    className={`nav-item ${activeTab === 'all' ? 'active' : ''}`}
-  >
-    <List className="h-6 w-6" />
-    <span className="text-xs mt-1 font-medium">全問題</span>
-  </button>
-  <button 
-    onClick={() => setActiveTab('trends')}
-    className={`nav-item ${activeTab === 'trends' ? 'active' : ''}`}
-  >
-    <Info className="h-6 w-6" />
-    <span className="text-xs mt-1 font-medium">傾向分析</span>
-  </button>
-</nav>
+      {/* 通知エリア - 右下に表示 */}
+      <div id="notification-area" className="fixed bottom-4 right-4 z-50"></div>
     </div>
   );
 }
