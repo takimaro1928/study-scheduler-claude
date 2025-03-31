@@ -10,7 +10,6 @@ import EnhancedAllQuestionsView from './EnhancedAllQuestionsView';
 import SimplifiedAllQuestionsView from './SimplifiedAllQuestionsView';
 import RedesignedAllQuestionsView from './RedesignedAllQuestionsView';
 import TopNavigation from './components/TopNavigation';
-import { CSSTransition, TransitionGroup } from 'react-transition-group'; // npm install react-transition-group
 
 // 初期データの作成
 const generateInitialData = () => {
@@ -1113,49 +1112,40 @@ const MainView = () => {
   }
 };
 
-// App.js のヘッダー部分を以下のコードに置き換えます
-
-{/* App.js ヘッダーとナビゲーション部分 */}
-// src/App.js (修正部分)
-
-// インポート部分を変更
-// import SideNavigation from './components/SideNavigation'; の代わりに：
-import TopNavigation from './components/TopNavigation';
-
-// returnの部分を以下のように修正
-return (
-  <div className="min-h-screen bg-gray-50">
-    <TopNavigation 
-      activeTab={activeTab} 
-      setActiveTab={setActiveTab} 
-    />
-    
-    {/* ヘッダー・タイトル部分 */}
-    <div className="bg-indigo-600 p-6">
-      <div className="max-w-5xl mx-auto">
-        <h1 className="text-xl font-bold tracking-tight text-white">学習スケジュール管理</h1>
-        <p className="text-xs text-indigo-100 opacity-90 mt-1">暗記曲線に基づく効率的な学習を実現</p>
-      </div>
-    </div>
-    
-    {/* メインコンテンツ */}
-    <div className="animate-fade-in">
-      <MainView />
+ // App.js のreturnブロック
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <TopNavigation 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+      />
       
-      {/* 問題編集モーダル */}
-      {editingQuestion && (
-        <QuestionEditModal
-          question={editingQuestion}
-          onSave={saveQuestionEdit}
-          onCancel={() => setEditingQuestion(null)}
-        />
-      )}
+      {/* ヘッダー・タイトル部分 */}
+      <div className="bg-indigo-600 p-6">
+        <div className="max-w-5xl mx-auto">
+          <h1 className="text-xl font-bold tracking-tight text-white">学習スケジュール管理</h1>
+          <p className="text-xs text-indigo-100 opacity-90 mt-1">暗記曲線に基づく効率的な学習を実現</p>
+        </div>
+      </div>
+      
+      {/* メインコンテンツ */}
+      <div className="animate-fade-in">
+        <MainView />
+        
+        {/* 問題編集モーダル */}
+        {editingQuestion && (
+          <QuestionEditModal
+            question={editingQuestion}
+            onSave={saveQuestionEdit}
+            onCancel={() => setEditingQuestion(null)}
+          />
+        )}
+      </div>
+      
+      {/* 通知エリア */}
+      <div id="notification-area" className="fixed bottom-4 right-4 z-50"></div>
     </div>
-    
-    {/* 通知エリア */}
-    <div id="notification-area" className="fixed bottom-4 right-4 z-50"></div>
-  </div>
-);
+  );
 }
 
 export default App;
