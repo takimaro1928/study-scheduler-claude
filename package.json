@@ -34,3 +34,6 @@
     ]
   }
 }
+
+# もし入っていなければインストール
+npm install lucide-react
