@@ -234,6 +234,77 @@ body {
   color: white;
 }
 
+
 .nav-item:not(.active):hover {
   background-color: rgba(99, 102, 241, 0.1);
+}
+
+/* Add this to the end of src/index.css */
+
+/* サイドナビゲーションの改善スタイル */
+.nav-item-modern {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  transition: all 0.2s ease;
+  color: var(--text);
+  margin-bottom: 0.375rem;
+}
+
+.nav-item-modern.active {
+  background-color: var(--primary-light);
+  color: white;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+}
+
+.nav-item-modern:not(.active):hover {
+  background-color: #f3f4f6;
+}
+
+/* グラス効果のあるナビゲーション */
+.glass {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border-right: 1px solid rgba(229, 231, 235, 0.5);
+}
+
+/* ヘッダースタイルの改善 */
+.app-header {
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  padding: 1.25rem 1.5rem;
+  color: white;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+  position: relative;
+  z-index: 10;
+}
+
+@media (min-width: 768px) {
+  .app-header {
+    margin-left: 18rem; /* サイドナビゲーションの幅 */
+    border-radius: 0 0 0 1.5rem;
+  }
+}
+
+/* モバイルヘッダーの調整 */
+@media (max-width: 767px) {
+  .app-header {
+    padding-left: 3.5rem; /* モバイルメニューボタンのスペース */
+  }
+}
+
+/* アニメーションの追加 */
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.3s ease-out forwards;
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
