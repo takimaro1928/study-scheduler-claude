@@ -17,10 +17,10 @@ const TopNavigation = ({ activeTab, setActiveTab }) => {
 
   return (
     <>
-      {/* トップナビゲーション */}
+      {/* トップバー */}
       <header className="bg-white border-b border-gray-200 fixed top-0 left-0 right-0 z-30">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between h-16 px-4">
+        <div className="w-full mx-auto">
+          <div className="flex items-center justify-between h-12 px-4">
             {/* ロゴ部分 */}
             <div className="flex items-center">
               <div className="flex items-center mr-2">
@@ -29,11 +29,10 @@ const TopNavigation = ({ activeTab, setActiveTab }) => {
               <h1 className="text-lg font-bold text-gray-800">学習マネージャー</h1>
             </div>
 
-            {/* メニューボタン（常に表示） */}
+            {/* メニューボタン */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              aria-label="メニュー"
             >
               <Menu size={24} />
             </button>
@@ -41,32 +40,30 @@ const TopNavigation = ({ activeTab, setActiveTab }) => {
         </div>
       </header>
 
-      {/* サイドメニュー（メニューボタンクリック時のみ表示） */}
+      {/* サイドメニュー */}
       {isMenuOpen && (
         <div className="fixed inset-0 z-40 flex">
-          {/* オーバーレイ背景 */}
+          {/* 黒背景オーバーレイ */}
           <div 
-            className="fixed inset-0 bg-black bg-opacity-25" 
+            className="fixed inset-0 bg-black bg-opacity-50" 
             onClick={() => setIsMenuOpen(false)}
           ></div>
           
-          {/* メニュー内容 */}
-          <div className="relative w-64 max-w-xs bg-white h-full flex-1 flex flex-col shadow-xl">
-            <div className="px-4 pt-5 pb-4 flex items-center justify-between border-b border-gray-200">
-              <div className="flex items-center">
-                <span className="text-2xl mr-2">📚</span>
-                <h2 className="text-lg font-medium text-gray-800">メインメニュー</h2>
-              </div>
+          {/* メニュー本体 - 位置を右側に変更 */}
+          <div className="fixed right-0 top-0 h-full w-64 bg-white shadow-lg overflow-y-auto z-50">
+            {/* メニューヘッダー */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+              <h2 className="text-lg font-medium text-gray-800">メインメニュー</h2>
               <button
                 onClick={() => setIsMenuOpen(false)}
-                className="p-2 rounded-md text-gray-400 hover:text-gray-500"
+                className="p-1 rounded-full text-gray-500 hover:bg-gray-100"
               >
                 <X size={20} />
               </button>
             </div>
             
-            {/* メニューアイテム */}
-            <div className="flex-1 overflow-y-auto pt-2">
+            {/* メニュー項目 */}
+            <div className="py-2">
               {navItems.map(item => (
                 <button
                   key={item.id}
@@ -90,7 +87,7 @@ const TopNavigation = ({ activeTab, setActiveTab }) => {
       )}
 
       {/* ページコンテンツのための余白 */}
-      <div className="h-16"></div>
+      <div className="h-12"></div>
     </>
   );
 };
