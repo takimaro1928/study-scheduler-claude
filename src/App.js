@@ -1112,7 +1112,7 @@ const MainView = () => {
   }
 };
 
- // App.js のreturnブロック
+ // App.jsの最後の部分
   return (
     <div className="min-h-screen bg-gray-50">
       <TopNavigation 
@@ -1128,7 +1128,6 @@ const MainView = () => {
         </div>
       </div>
       
-      {/* メインコンテンツ */}
       <div className="animate-fade-in">
         <MainView />
         
