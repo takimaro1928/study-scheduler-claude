@@ -1147,3 +1147,6 @@ return (
     <div id="notification-area" className="fixed bottom-4 right-4 z-50"></div>
   </div>
 );
+}
+
+export default App;
