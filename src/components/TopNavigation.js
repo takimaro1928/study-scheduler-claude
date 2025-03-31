@@ -1,142 +1,193 @@
 // src/components/TopNavigation.js
 import React, { useState } from 'react';
-import { X, Calendar, Clock, List, Info, BookOpen, Settings, Menu, User } from 'lucide-react';
 
 const TopNavigation = ({ activeTab, setActiveTab }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // ナビゲーションアイテム
   const navItems = [
-    { id: 'today', label: '今日の問題', icon: <Clock size={18} /> },
-    { id: 'schedule', label: 'スケジュール', icon: <Calendar size={18} /> },
-    { id: 'all', label: '全問題一覧', icon: <List size={18} /> },
-    { id: 'trends', label: '傾向分析', icon: <Info size={18} /> },
-    { id: 'stats', label: '学習統計', icon: <BookOpen size={18} /> },
-    { id: 'settings', label: '設定', icon: <Settings size={18} /> },
+    { id: 'today', label: '今日の問題', icon: '🕒' },
+    { id: 'schedule', label: 'スケジュール', icon: '📅' },
+    { id: 'all', label: '全問題一覧', icon: '📋' },
+    { id: 'trends', label: '傾向分析', icon: 'ℹ️' },
+    { id: 'stats', label: '学習統計', icon: '📚' },
+    { id: 'settings', label: '設定', icon: '⚙️' },
   ];
 
   return (
     <>
-      {/* デスクトップナビゲーション - 上部固定 */}
-      <header className="bg-white border-b border-gray-200 fixed top-0 left-0 right-0 z-30">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between h-16 px-4">
+      {/* デスクトップナビゲーション */}
+      <div style={{
+        backgroundColor: 'white',
+        borderBottom: '1px solid #e5e7eb',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 30,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+      }}>
+        <div style={{ 
+          maxWidth: '1280px', 
+          margin: '0 auto', 
+          padding: '0 16px'
+        }}>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'space-between', 
+            height: '64px' 
+          }}>
             {/* ロゴ部分 */}
-            <div className="flex items-center">
-              <div className="flex items-center mr-2">
-                <span className="text-2xl">📚</span>
-              </div>
-              <h1 className="text-lg font-bold text-gray-800">学習マネージャー</h1>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <span style={{ fontSize: '24px', marginRight: '8px' }}>📚</span>
+              <h1 style={{ 
+                fontSize: '18px', 
+                fontWeight: 'bold', 
+                color: '#1f2937'
+              }}>学習マネージャー</h1>
             </div>
 
-            {/* デスクトップメニュー */}
-            <nav className="hidden md:flex space-x-1">
+            {/* ナビゲーションリンク */}
+            <nav style={{ 
+              display: 'flex', 
+              gap: '4px',
+              '@media (max-width: 768px)': {
+                display: 'none'
+              }
+            }}>
               {navItems.map(item => (
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                    activeTab === item.id
-                      ? 'bg-indigo-100 text-indigo-700'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                  }`}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    backgroundColor: activeTab === item.id ? '#eef2ff' : 'transparent',
+                    color: activeTab === item.id ? '#4f46e5' : '#4b5563',
+                    border: 'none',
+                    cursor: 'pointer'
+                  }}
                 >
-                  <span className="mr-1.5">{item.icon}</span>
+                  <span style={{ marginRight: '6px' }}>{item.icon}</span>
                   {item.label}
                 </button>
               ))}
             </nav>
 
             {/* モバイルメニューボタン */}
-            <div className="md:hidden flex items-center">
-              <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              >
-                <Menu size={24} />
-              </button>
-            </div>
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              style={{
+                padding: '8px',
+                backgroundColor: 'transparent',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                display: 'none',
+                '@media (max-width: 768px)': {
+                  display: 'block'
+                }
+              }}
+            >
+              ☰
+            </button>
 
             {/* ユーザー情報 */}
-            <div className="hidden md:flex items-center ml-4">
-              <div className="flex items-center border-l border-gray-200 pl-3">
-                <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
-                  <User size={16} />
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center',
+              marginLeft: '16px',
+              '@media (max-width: 768px)': {
+                display: 'none'
+              }
+            }}>
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                borderLeft: '1px solid #e5e7eb', 
+                paddingLeft: '12px' 
+              }}>
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  backgroundColor: '#eef2ff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#4f46e5',
+                  fontWeight: 'bold'
+                }}>
+                  U
                 </div>
-                <div className="ml-2">
-                  <p className="text-xs font-medium text-gray-800">ユーザー</p>
-                  <p className="text-xs text-gray-500">初級レベル</p>
+                <div style={{ marginLeft: '8px' }}>
+                  <p style={{ 
+                    fontSize: '12px', 
+                    fontWeight: '500', 
+                    color: '#1f2937',
+                    margin: 0 
+                  }}>ユーザー</p>
+                  <p style={{ 
+                    fontSize: '12px', 
+                    color: '#6b7280',
+                    margin: 0 
+                  }}>初級レベル</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
       {/* モバイルメニュー（展開時のみ表示） */}
       {isMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-40 flex">
-          {/* オーバーレイ背景 */}
-          <div 
-            className="fixed inset-0 bg-black bg-opacity-25" 
-            onClick={() => setIsMenuOpen(false)}
-          ></div>
-          
-          {/* メニュー内容 */}
-          <div className="relative w-full max-w-xs bg-white pt-5 pb-4 flex-1 flex flex-col">
-            <div className="px-4 flex items-center justify-between">
-              <div className="flex items-center">
-                <span className="text-2xl">📚</span>
-                <h2 className="ml-2 text-lg font-medium text-gray-800">メインメニュー</h2>
-              </div>
-              <button
-                onClick={() => setIsMenuOpen(false)}
-                className="p-2 rounded-md text-gray-400 hover:text-gray-500"
-              >
-                <X size={24} />
-              </button>
-            </div>
-            
-            {/* モバイルナビリンク */}
-            <div className="mt-5 flex-1 px-2 space-y-1">
-              {navItems.map(item => (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    setActiveTab(item.id);
-                    setIsMenuOpen(false);
-                  }}
-                  className={`w-full flex items-center px-3 py-3 text-base font-medium rounded-md ${
-                    activeTab === item.id
-                      ? 'bg-indigo-100 text-indigo-700'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                >
-                  <span className="mr-3">{item.icon}</span>
-                  {item.label}
-                </button>
-              ))}
-            </div>
-            
-            {/* モバイルユーザー情報 */}
-            <div className="pt-4 pb-3 border-t border-gray-200">
-              <div className="flex items-center px-4">
-                <div className="flex-shrink-0">
-                  <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
-                    <User size={20} />
-                  </div>
-                </div>
-                <div className="ml-3">
-                  <p className="text-base font-medium text-gray-800">ユーザー</p>
-                  <p className="text-sm text-gray-500">初級レベル</p>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div style={{
+          position: 'fixed',
+          top: '64px',
+          left: 0,
+          right: 0,
+          backgroundColor: 'white',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+          zIndex: 40,
+          padding: '8px'
+        }}>
+          {navItems.map(item => (
+            <button
+              key={item.id}
+              onClick={() => {
+                setActiveTab(item.id);
+                setIsMenuOpen(false);
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                width: '100%',
+                padding: '12px 16px',
+                borderRadius: '6px',
+                fontSize: '16px',
+                fontWeight: '500',
+                backgroundColor: activeTab === item.id ? '#eef2ff' : 'transparent',
+                color: activeTab === item.id ? '#4f46e5' : '#4b5563',
+                border: 'none',
+                cursor: 'pointer',
+                textAlign: 'left',
+                marginBottom: '4px'
+              }}
+            >
+              <span style={{ marginRight: '12px' }}>{item.icon}</span>
+              {item.label}
+            </button>
+          ))}
         </div>
       )}
-      
+
       {/* ページコンテンツのための余白 */}
-      <div className="h-16"></div>
+      <div style={{ height: '64px' }}></div>
     </>
   );
 };
