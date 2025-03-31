@@ -1,6 +1,6 @@
 // src/components/TopNavigation.js
 import React, { useState } from 'react';
-import { Clock, Calendar, List, Info, BookOpen, Settings, Menu, X, User } from 'lucide-react';
+import { Clock, Calendar, List, Info, BookOpen, Settings, Menu, X } from 'lucide-react';
 
 const TopNavigation = ({ activeTab, setActiveTab }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -29,53 +29,21 @@ const TopNavigation = ({ activeTab, setActiveTab }) => {
               <h1 className="text-lg font-bold text-gray-800">学習マネージャー</h1>
             </div>
 
-            {/* デスクトップメニュー */}
-            <nav className="hidden md:flex space-x-1">
-              {navItems.map(item => (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveTab(item.id)}
-                  className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                    activeTab === item.id
-                      ? 'bg-indigo-100 text-indigo-700'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                  }`}
-                >
-                  <span className="mr-1.5">{item.icon}</span>
-                  {item.label}
-                </button>
-              ))}
-            </nav>
-
-            {/* モバイルメニューボタン */}
-            <div className="md:hidden flex items-center">
-              <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              >
-                <Menu size={24} />
-              </button>
-            </div>
-
-            {/* ユーザー情報 */}
-            <div className="hidden md:flex items-center ml-4">
-              <div className="flex items-center border-l border-gray-200 pl-3">
-                <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
-                  <User size={16} />
-                </div>
-                <div className="ml-2">
-                  <p className="text-xs font-medium text-gray-800">ユーザー</p>
-                  <p className="text-xs text-gray-500">初級レベル</p>
-                </div>
-              </div>
-            </div>
+            {/* メニューボタン（常に表示） */}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              aria-label="メニュー"
+            >
+              <Menu size={24} />
+            </button>
           </div>
         </div>
       </header>
 
-      {/* モバイルメニュー（展開時のみ表示） */}
+      {/* サイドメニュー（メニューボタンクリック時のみ表示） */}
       {isMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-40 flex">
+        <div className="fixed inset-0 z-40 flex">
           {/* オーバーレイ背景 */}
           <div 
             className="fixed inset-0 bg-black bg-opacity-25" 
@@ -83,22 +51,22 @@ const TopNavigation = ({ activeTab, setActiveTab }) => {
           ></div>
           
           {/* メニュー内容 */}
-          <div className="relative w-full max-w-xs bg-white pt-5 pb-4 flex-1 flex flex-col">
-            <div className="px-4 flex items-center justify-between">
+          <div className="relative w-64 max-w-xs bg-white h-full flex-1 flex flex-col shadow-xl">
+            <div className="px-4 pt-5 pb-4 flex items-center justify-between border-b border-gray-200">
               <div className="flex items-center">
-                <span className="text-2xl">📚</span>
-                <h2 className="ml-2 text-lg font-medium text-gray-800">メインメニュー</h2>
+                <span className="text-2xl mr-2">📚</span>
+                <h2 className="text-lg font-medium text-gray-800">メインメニュー</h2>
               </div>
               <button
                 onClick={() => setIsMenuOpen(false)}
                 className="p-2 rounded-md text-gray-400 hover:text-gray-500"
               >
-                <X size={24} />
+                <X size={20} />
               </button>
             </div>
             
-            {/* モバイルナビリンク */}
-            <div className="mt-5 flex-1 px-2 space-y-1">
+            {/* メニューアイテム */}
+            <div className="flex-1 overflow-y-auto pt-2">
               {navItems.map(item => (
                 <button
                   key={item.id}
@@ -106,7 +74,7 @@ const TopNavigation = ({ activeTab, setActiveTab }) => {
                     setActiveTab(item.id);
                     setIsMenuOpen(false);
                   }}
-                  className={`w-full flex items-center px-3 py-3 text-base font-medium rounded-md ${
+                  className={`w-full flex items-center px-4 py-3 text-base font-medium ${
                     activeTab === item.id
                       ? 'bg-indigo-100 text-indigo-700'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
