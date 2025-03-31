@@ -1112,39 +1112,38 @@ const MainView = () => {
   }
 };
 
- // App.jsの最後の部分
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <TopNavigation 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
-      />
-      
-      {/* ヘッダー・タイトル部分 */}
-      <div className="bg-indigo-600 p-6">
-        <div className="max-w-5xl mx-auto">
-          <h1 className="text-xl font-bold tracking-tight text-white">学習スケジュール管理</h1>
-          <p className="text-xs text-indigo-100 opacity-90 mt-1">暗記曲線に基づく効率的な学習を実現</p>
-        </div>
+return (
+  <div className="min-h-screen bg-gray-50">
+    <TopNavigation 
+      activeTab={activeTab} 
+      setActiveTab={setActiveTab} 
+    />
+    
+    {/* ヘッダー・タイトル部分 */}
+    <div className="bg-indigo-600 p-6">
+      <div className="max-w-5xl mx-auto">
+        <h1 className="text-xl font-bold tracking-tight text-white">学習スケジュール管理</h1>
+        <p className="text-xs text-indigo-100 opacity-90 mt-1">暗記曲線に基づく効率的な学習を実現</p>
       </div>
-      
-      <div className="animate-fade-in">
-        <MainView />
-        
-        {/* 問題編集モーダル */}
-        {editingQuestion && (
-          <QuestionEditModal
-            question={editingQuestion}
-            onSave={saveQuestionEdit}
-            onCancel={() => setEditingQuestion(null)}
-          />
-        )}
-      </div>
-      
-      {/* 通知エリア */}
-      <div id="notification-area" className="fixed bottom-4 right-4 z-50"></div>
     </div>
-  );
+    
+    <div className="animate-fade-in">
+      <MainView />
+      
+      {/* 問題編集モーダル */}
+      {editingQuestion && (
+        <QuestionEditModal
+          question={editingQuestion}
+          onSave={saveQuestionEdit}
+          onCancel={() => setEditingQuestion(null)}
+        />
+      )}
+    </div>
+    
+    {/* 通知エリア */}
+    <div id="notification-area" className="fixed bottom-4 right-4 z-50"></div>
+  </div>
+);
 }
 
 export default App;
