@@ -14,7 +14,7 @@ const SideNavigation = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
 
   return (
     <>
-      {/* モバイルメニューボタン */}
+      {/* モバイルメニューボタン - 位置を調整 */}
       <button
         className="fixed top-4 left-4 z-50 p-2 bg-white rounded-full shadow-md md:hidden"
         onClick={() => setIsOpen(true)}
@@ -30,25 +30,32 @@ const SideNavigation = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
         />
       )}
       
-      {/* サイドナビゲーション */}
+      {/* サイドナビゲーション - スタイリング改善 */}
       <div 
-        className={`fixed top-0 left-0 h-full glass z-50 w-72 transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 left-0 h-full bg-white shadow-lg z-50 w-72 transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         } md:translate-x-0`}
       >
-        <div className="p-5 border-b border-gray-100 flex justify-between items-center">
-          <h2 className="text-xl font-bold text-gray-800">学習マネージャー</h2>
+        {/* ヘッダー部分 */}
+        <div className="py-6 px-5 border-b border-gray-100 flex justify-between items-center">
+          <div className="flex items-center">
+            <div className="w-8 h-8 flex items-center justify-center bg-indigo-600 text-white rounded-lg mr-3">
+              📚
+            </div>
+            <h2 className="text-lg font-bold text-gray-800">学習マネージャー</h2>
+          </div>
           <button 
             onClick={() => setIsOpen(false)}
-            className="p-1 rounded-full hover:bg-gray-100 text-gray-500 md:hidden"
+            className="p-1.5 rounded-full hover:bg-gray-100 text-gray-500 md:hidden"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
         
-        <div className="p-3 mt-4">
-          <p className="text-xs uppercase text-gray-500 font-semibold tracking-wider ml-3 mb-2">メインメニュー</p>
-          <nav className="space-y-1">
+        {/* メニュー部分 */}
+        <div className="p-4 mt-2">
+          <p className="text-xs uppercase text-gray-400 font-semibold tracking-wider px-3 mb-3">メインメニュー</p>
+          <nav className="space-y-2">
             {navItems.slice(0, 4).map(item => (
               <button 
                 key={item.id}
@@ -56,15 +63,17 @@ const SideNavigation = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
                   setActiveTab(item.id);
                   setIsOpen(false);
                 }}
-                className={`nav-item-modern w-full ${
-                  activeTab === item.id ? 'active' : ''
+                className={`flex items-center w-full px-3 py-3 rounded-xl text-left transition-colors ${
+                  activeTab === item.id 
+                    ? 'bg-indigo-50 text-indigo-700 font-medium' 
+                    : 'text-gray-600 hover:bg-gray-50'
                 }`}
               >
                 {React.cloneElement(item.icon, { 
                   size: 20,
-                  className: `mr-3 ${activeTab === item.id ? 'text-white' : 'text-gray-500'}` 
+                  className: `${activeTab === item.id ? 'text-indigo-600' : 'text-gray-500'} mr-3` 
                 })}
-                <span className="font-medium">{item.label}</span>
+                <span>{item.label}</span>
                 {activeTab === item.id && (
                   <ChevronRight className="w-4 h-4 ml-auto" />
                 )}
@@ -72,8 +81,8 @@ const SideNavigation = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
             ))}
           </nav>
           
-          <p className="text-xs uppercase text-gray-500 font-semibold tracking-wider ml-3 mb-2 mt-8">設定</p>
-          <nav className="space-y-1">
+          <p className="text-xs uppercase text-gray-400 font-semibold tracking-wider px-3 mb-3 mt-8">設定</p>
+          <nav className="space-y-2">
             {navItems.slice(4).map(item => (
               <button 
                 key={item.id}
@@ -81,15 +90,17 @@ const SideNavigation = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
                   setActiveTab(item.id);
                   setIsOpen(false);
                 }}
-                className={`nav-item-modern w-full ${
-                  activeTab === item.id ? 'active' : ''
+                className={`flex items-center w-full px-3 py-3 rounded-xl text-left transition-colors ${
+                  activeTab === item.id 
+                    ? 'bg-indigo-50 text-indigo-700 font-medium' 
+                    : 'text-gray-600 hover:bg-gray-50'
                 }`}
               >
                 {React.cloneElement(item.icon, { 
                   size: 20,
-                  className: `mr-3 ${activeTab === item.id ? 'text-white' : 'text-gray-500'}` 
+                  className: `${activeTab === item.id ? 'text-indigo-600' : 'text-gray-500'} mr-3` 
                 })}
-                <span className="font-medium">{item.label}</span>
+                <span>{item.label}</span>
                 {activeTab === item.id && (
                   <ChevronRight className="w-4 h-4 ml-auto" />
                 )}
@@ -98,9 +109,10 @@ const SideNavigation = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
           </nav>
         </div>
         
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-100">
+        {/* ユーザー情報部分 */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-100 bg-gray-50">
           <div className="flex items-center">
-            <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
+            <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold shadow-sm">
               U
             </div>
             <div className="ml-3">
@@ -111,7 +123,7 @@ const SideNavigation = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
         </div>
       </div>
       
-      {/* メインコンテンツ用のパディング（サイドメニュー用） */}
+      {/* メインコンテンツ用のパディング */}
       <div className="hidden md:block w-72"></div>
     </>
   );
