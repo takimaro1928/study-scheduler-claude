@@ -1131,31 +1131,15 @@ return (
     />
     
     {/* ヘッダー・タイトル部分 */}
-    <div style={{
-      backgroundColor: '#4f46e5',
-      color: 'white',
-      padding: '24px 16px',
-      marginBottom: '16px'
-    }}>
-      <div style={{ maxWidth: '1024px', margin: '0 auto' }}>
-        <h1 style={{ 
-          fontSize: '20px', 
-          fontWeight: 'bold', 
-          marginBottom: '4px' 
-        }}>学習スケジュール管理</h1>
-        <p style={{ 
-          fontSize: '12px', 
-          opacity: 0.9 
-        }}>暗記曲線に基づく効率的な学習を実現</p>
+    <div className="bg-indigo-600 p-6">
+      <div className="max-w-5xl mx-auto">
+        <h1 className="text-xl font-bold tracking-tight text-white">学習スケジュール管理</h1>
+        <p className="text-xs text-indigo-100 opacity-90 mt-1">暗記曲線に基づく効率的な学習を実現</p>
       </div>
     </div>
     
     {/* メインコンテンツ */}
-    <div style={{ 
-      maxWidth: '1024px', 
-      margin: '0 auto', 
-      padding: '0 16px' 
-    }}>
+    <div className="max-w-7xl mx-auto py-6 px-4">
       <MainView />
       
       {/* 問題編集モーダル */}
@@ -1169,12 +1153,7 @@ return (
     </div>
     
     {/* 通知エリア */}
-    <div id="notification-area" style={{
-      position: 'fixed',
-      bottom: '16px',
-      right: '16px',
-      zIndex: 50
-    }}></div>
+    <div id="notification-area" className="fixed bottom-4 right-4 z-50"></div>
   </div>
 );
 }
