@@ -1113,7 +1113,9 @@ const MainView = () => {
   }
 };
 
-  // App.js ヘッダーとナビゲーション部分
+// App.js のヘッダー部分を以下のコードに置き換えます
+
+{/* App.js ヘッダーとナビゲーション部分 */}
  return (
     <div className="min-h-screen bg-gray-50">
       <SideNavigation 
@@ -1126,12 +1128,12 @@ const MainView = () => {
       <div className="md:ml-72 transition-all duration-300 ease-in-out">
         <header className="app-header">
           <div className="max-w-5xl mx-auto">
-            <h1 className="text-2xl font-bold tracking-tight">学習スケジュール管理</h1>
-            <p className="text-sm opacity-90 mt-1">暗記曲線に基づく効率的な学習を実現</p>
+            <h1 className="text-xl font-bold tracking-tight">学習スケジュール管理</h1>
+            <p className="text-xs opacity-90 mt-1">暗記曲線に基づく効率的な学習を実現</p>
           </div>
         </header>
         
-        <div className="animate-fade-in">
+        <div className="animate-fade-in p-4">
           <MainView />
         </div>
         
