@@ -1139,7 +1139,7 @@ return (
     </div>
     
     {/* メインコンテンツ */}
-    <div className="max-w-7xl mx-auto py-6 px-4">
+    <div className="animate-fade-in">
       <MainView />
       
       {/* 問題編集モーダル */}
