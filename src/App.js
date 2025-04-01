@@ -1120,8 +1120,8 @@ return (
       setActiveTab={setActiveTab} 
     />
     
-    {/* トップナビゲーション分の余白 */}
-    <div className="pt-16">
+    {/* メインコンテンツ */}
+    <div>
       {/* ヘッダー・タイトル部分 */}
       <div className="bg-indigo-600 p-6">
         <div className="max-w-5xl mx-auto">
