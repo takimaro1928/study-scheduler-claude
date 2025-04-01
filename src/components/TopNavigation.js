@@ -5,17 +5,6 @@ import { Clock, Calendar, List, Info, BookOpen, Settings, Menu, X } from 'lucide
 const TopNavigation = ({ activeTab, setActiveTab }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // メニューを閉じる関数
-  const closeMenu = () => {
-    setIsMenuOpen(false);
-  };
-
-  // メニュー項目とクリック時のハンドラー
-  const handleMenuItemClick = (tabId) => {
-    setActiveTab(tabId);
-    closeMenu(); // メニュー項目クリック後にメニューを閉じる
-  };
-
   // メニュー項目
   const navItems = [
     { id: 'today', label: '今日の問題', icon: <Clock size={20} /> },
@@ -27,13 +16,13 @@ const TopNavigation = ({ activeTab, setActiveTab }) => {
   ];
 
   return (
-    <>
-      {/* メインナビゲーションバー */}
-      <header className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 py-2 px-4 flex items-center z-40">
+    <div className="relative">
+      {/* トップバー */}
+      <header className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 py-2 px-4 flex items-center z-30">
         <button
-          className="text-gray-600 hover:text-gray-900"
-          onClick={() => setIsMenuOpen(true)}
-          aria-label="メインメニューを開く"
+          className="text-gray-600 hover:text-gray-800"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          aria-label="メニューを開く"
         >
           <Menu size={24} />
         </button>
@@ -42,61 +31,55 @@ const TopNavigation = ({ activeTab, setActiveTab }) => {
           <h1 className="text-lg font-bold text-gray-800">学習マネージャー</h1>
         </div>
       </header>
-
-      {/* サイドナビゲーション（メニュー） */}
+      
+      {/* サイドメニュー - モバイル表示 */}
       <div 
-        className={`fixed top-0 left-0 w-64 h-full bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-50 ${
+        className={`fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-40 transform transition-transform duration-300 ease-in-out ${
           isMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {/* メニューヘッダー */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        <div className="flex justify-between items-center p-4 border-b border-gray-200">
           <div className="flex items-center">
-            <span className="text-2xl mr-2">📚</span>
-            <h2 className="text-lg font-medium text-gray-800">メインメニュー</h2>
+            <span className="text-xl mr-2">📚</span>
+            <h2 className="text-lg font-medium">メインメニュー</h2>
           </div>
           <button 
+            onClick={() => setIsMenuOpen(false)}
             className="text-gray-500 hover:text-gray-700"
-            onClick={closeMenu}
-            aria-label="メニューを閉じる"
           >
             <X size={20} />
           </button>
         </div>
         
-        {/* メニュー項目 */}
         <nav className="mt-2">
           {navItems.map(item => (
             <button
               key={item.id}
-              onClick={() => handleMenuItemClick(item.id)}
+              onClick={() => {
+                setActiveTab(item.id);
+                setIsMenuOpen(false);
+              }}
               className={`w-full flex items-center px-4 py-3 text-left ${
                 activeTab === item.id 
                   ? 'bg-indigo-100 text-indigo-700' 
                   : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
-              <span className="mr-3 opacity-75">{item.icon}</span>
+              <span className="mr-3">{item.icon}</span>
               <span className="font-medium">{item.label}</span>
             </button>
           ))}
         </nav>
       </div>
-
-      {/* オーバーレイ背景（メニュー表示時のみ） */}
+      
+      {/* オーバーレイ背景 */}
       {isMenuOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-25 z-40"
-          onClick={closeMenu}
-          aria-hidden="true"
+          className="fixed inset-0 bg-black bg-opacity-50 z-30"
+          onClick={() => setIsMenuOpen(false)}
         ></div>
       )}
-
-      {/* メインコンテンツ用のパディング */}
-      <div className="pt-12">
-        {/* ここにメインコンテンツが入る（App.jsで管理） */}
-      </div>
-    </>
+    </div>
   );
 };
 
