@@ -3,10 +3,9 @@ import React, { useState } from 'react';
 import { Clock, Calendar, List, Info, BookOpen, Settings, Menu, X } from 'lucide-react';
 
 const TopNavigation = ({ activeTab, setActiveTab }) => {
-  // メニューの開閉状態
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // メニューアイテム定義
+  // メニュー項目
   const navItems = [
     { id: 'today', label: '今日の問題', icon: <Clock size={20} /> },
     { id: 'schedule', label: 'スケジュール', icon: <Calendar size={20} /> },
@@ -15,81 +14,76 @@ const TopNavigation = ({ activeTab, setActiveTab }) => {
     { id: 'stats', label: '学習統計', icon: <BookOpen size={20} /> },
     { id: 'settings', label: '設定', icon: <Settings size={20} /> },
   ];
-  
-  // タブ切り替えとメニューを閉じる
-  const handleNavClick = (tabId) => {
-    setActiveTab(tabId);
-    setIsMenuOpen(false);
-  };
 
   return (
     <>
-      {/* ハンバーガーボタンとヘッダー */}
-      <header className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm h-14 flex items-center px-4 z-40">
-        <button 
-          onClick={() => setIsMenuOpen(!isMenuOpen)} 
-          className="p-2 rounded-md hover:bg-gray-100"
-          aria-label="メニューを開く"
+      {/* ヘッダー */}
+      <header className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 py-2 px-4 flex items-center z-30">
+        <button
+          className="text-gray-600 hover:text-gray-800"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          aria-label="メインメニューを開く"
         >
-          <Menu size={24} className="text-gray-700" />
+          <Menu size={24} />
         </button>
-        
-        <div className="ml-3 flex items-center">
+        <div className="flex items-center ml-3">
           <span className="text-xl mr-2">📚</span>
-          <h1 className="font-bold text-gray-800">学習マネージャー</h1>
+          <h1 className="text-lg font-bold text-gray-800">学習マネージャー</h1>
         </div>
       </header>
-      
-      {/* モバイルメニュー (オーバーレイ) */}
+
+      {/* オーバーレイ - メニュー表示時のみ */}
       {isMenuOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40" 
+          className="fixed inset-0 bg-black bg-opacity-25 z-40"
           onClick={() => setIsMenuOpen(false)}
         ></div>
       )}
-      
-      {/* サイドナビゲーション */}
+
+      {/* サイドメニュー */}
       <div 
-        className={`fixed top-0 left-0 bottom-0 w-64 bg-white shadow-lg z-50 transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 left-0 h-full w-64 bg-white z-50 transform transition-all duration-300 ease-in-out ${
           isMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* メニューヘッダー */}
-        <div className="h-14 flex items-center justify-between px-4 border-b border-gray-200">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <div className="flex items-center">
             <span className="text-xl mr-2">📚</span>
-            <h2 className="font-medium text-gray-800">メインメニュー</h2>
+            <h2 className="font-medium text-gray-700">メインメニュー</h2>
           </div>
           <button 
-            onClick={() => setIsMenuOpen(false)} 
-            className="p-1 rounded-full hover:bg-gray-100"
-            aria-label="メニューを閉じる"
+            onClick={() => setIsMenuOpen(false)}
+            className="text-gray-500 hover:text-gray-700"
           >
-            <X size={20} className="text-gray-500" />
+            <X size={20} />
           </button>
         </div>
-        
+
         {/* メニュー項目 */}
-        <nav className="mt-2">
+        <nav className="py-2">
           {navItems.map(item => (
             <button
               key={item.id}
-              onClick={() => handleNavClick(item.id)}
-              className={`w-full flex items-center px-4 py-3 text-left transition-colors ${
+              onClick={() => {
+                setActiveTab(item.id);
+                setIsMenuOpen(false);
+              }}
+              className={`w-full flex items-center px-4 py-3 text-left ${
                 activeTab === item.id 
-                  ? 'bg-indigo-100 text-indigo-700 font-medium' 
-                  : 'text-gray-700 hover:bg-gray-50'
+                  ? 'bg-indigo-100 text-indigo-700' 
+                  : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
               <span className="mr-3">{item.icon}</span>
-              <span>{item.label}</span>
+              <span className="font-medium">{item.label}</span>
             </button>
           ))}
         </nav>
       </div>
-      
-      {/* メインコンテンツのためのスペーサー */}
-      <div className="h-14"></div>
+
+      {/* メインコンテンツ余白調整 */}
+      <div className="h-12"></div>
     </>
   );
 };
