@@ -5,6 +5,17 @@ import { Clock, Calendar, List, Info, BookOpen, Settings, Menu, X } from 'lucide
 const TopNavigation = ({ activeTab, setActiveTab }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // メニューを閉じる関数
+  const closeMenu = () => {
+    setIsMenuOpen(false);
+  };
+
+  // メニュー項目とクリック時のハンドラー
+  const handleMenuItemClick = (tabId) => {
+    setActiveTab(tabId);
+    closeMenu(); // メニュー項目クリック後にメニューを閉じる
+  };
+
   // メニュー項目
   const navItems = [
     { id: 'today', label: '今日の問題', icon: <Clock size={20} /> },
@@ -16,12 +27,27 @@ const TopNavigation = ({ activeTab, setActiveTab }) => {
   ];
 
   return (
-    <div className="flex h-screen">
-      {/* サイドナビゲーション - モバイル時は非表示 */}
+    <>
+      {/* メインナビゲーションバー */}
+      <header className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 py-2 px-4 flex items-center z-40">
+        <button
+          className="text-gray-600 hover:text-gray-900"
+          onClick={() => setIsMenuOpen(true)}
+          aria-label="メインメニューを開く"
+        >
+          <Menu size={24} />
+        </button>
+        <div className="flex items-center ml-4">
+          <span className="text-xl mr-2">📚</span>
+          <h1 className="text-lg font-bold text-gray-800">学習マネージャー</h1>
+        </div>
+      </header>
+
+      {/* サイドナビゲーション（メニュー） */}
       <div 
-        className={`fixed top-0 left-0 w-64 h-full bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-40 ${
+        className={`fixed top-0 left-0 w-64 h-full bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-50 ${
           isMenuOpen ? 'translate-x-0' : '-translate-x-full'
-        } md:translate-x-0`}
+        }`}
       >
         {/* メニューヘッダー */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
@@ -30,8 +56,9 @@ const TopNavigation = ({ activeTab, setActiveTab }) => {
             <h2 className="text-lg font-medium text-gray-800">メインメニュー</h2>
           </div>
           <button 
-            className="md:hidden text-gray-500 hover:text-gray-700"
-            onClick={() => setIsMenuOpen(false)}
+            className="text-gray-500 hover:text-gray-700"
+            onClick={closeMenu}
+            aria-label="メニューを閉じる"
           >
             <X size={20} />
           </button>
@@ -42,7 +69,7 @@ const TopNavigation = ({ activeTab, setActiveTab }) => {
           {navItems.map(item => (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => handleMenuItemClick(item.id)}
               className={`w-full flex items-center px-4 py-3 text-left ${
                 activeTab === item.id 
                   ? 'bg-indigo-100 text-indigo-700' 
@@ -56,31 +83,20 @@ const TopNavigation = ({ activeTab, setActiveTab }) => {
         </nav>
       </div>
 
-      {/* メインコンテンツエリア */}
-      <div className="flex-1 flex flex-col md:ml-64">
-        {/* トップバー */}
-        <header className="bg-white border-b border-gray-200 py-2 px-4 flex items-center">
-          <button
-            className="mr-2 text-gray-600 md:hidden"
-            onClick={() => setIsMenuOpen(true)}
-          >
-            <Menu size={24} />
-          </button>
-          <div className="flex items-center">
-            <span className="text-xl mr-2">📚</span>
-            <h1 className="text-lg font-bold text-gray-800">学習マネージャー</h1>
-          </div>
-        </header>
-        
-        {/* オーバーレイ背景（モバイル時のみ） */}
-        {isMenuOpen && (
-          <div 
-            className="fixed inset-0 bg-black bg-opacity-25 z-30 md:hidden"
-            onClick={() => setIsMenuOpen(false)}
-          ></div>
-        )}
+      {/* オーバーレイ背景（メニュー表示時のみ） */}
+      {isMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-25 z-40"
+          onClick={closeMenu}
+          aria-hidden="true"
+        ></div>
+      )}
+
+      {/* メインコンテンツ用のパディング */}
+      <div className="pt-12">
+        {/* ここにメインコンテンツが入る（App.jsで管理） */}
       </div>
-    </div>
+    </>
   );
 };
 
