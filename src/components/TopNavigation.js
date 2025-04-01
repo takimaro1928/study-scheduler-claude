@@ -14,6 +14,11 @@ const TopNavigation = ({ activeTab, setActiveTab }) => {
     { id: 'settings', label: '設定', icon: <Settings size={20} /> },
   ];
 
+  // 画面操作を禁止するスタイル（メニュー表示時）
+  const bodyStyle = isMenuOpen 
+    ? { overflow: 'hidden', height: '100vh' } 
+    : {};
+
   return (
     <>
       {/* ヘッダー */}
@@ -33,55 +38,61 @@ const TopNavigation = ({ activeTab, setActiveTab }) => {
 
       {/* サイドメニュー + オーバーレイ */}
       {isMenuOpen && (
-        <div className="fixed inset-0 z-50">
-          {/* 暗いオーバーレイ - メニュー以外の部分をクリックで閉じる */}
+        <>
+          {/* オーバーレイ（背景）*/}
           <div 
-            className="fixed inset-0 bg-black bg-opacity-30" 
+            className="fixed inset-0 bg-gray-900 bg-opacity-20 z-40" 
             onClick={() => setIsMenuOpen(false)}
+            style={{ backdropFilter: 'blur(2px)' }}
           ></div>
           
-          {/* サイドメニュー本体 - 2枚目画像のスタイルに近づける */}
-          <div className="fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-50 overflow-y-auto menu-slide-in">
+          {/* サイドメニュー（左側メニュー）*/}
+          <div 
+            className="fixed top-0 left-0 h-full bg-white z-50 shadow-xl"
+            style={{
+              width: '280px',
+              transition: 'transform 0.3s ease-in-out',
+              transform: isMenuOpen ? 'translateX(0)' : 'translateX(-100%)',
+              overflowY: 'auto'
+            }}
+          >
             {/* メニューヘッダー */}
-            <div className="flex items-center justify-between py-2 px-3 border-b border-gray-200">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <div className="flex items-center">
-                <span className="text-lg mr-1">📚</span>
-                <span className="font-medium text-gray-800">メインメニュー</span>
+                <span className="text-xl mr-2">📚</span>
+                <span className="text-base font-medium">メインメニュー</span>
               </div>
               <button 
                 onClick={() => setIsMenuOpen(false)}
-                className="text-gray-500 hover:text-gray-700 p-1 rounded-full"
+                className="text-gray-500 hover:text-gray-700 focus:outline-none"
               >
-                <X size={18} />
+                <X size={20} />
               </button>
             </div>
             
-            {/* メニュー項目 - 2枚目画像のスタイルを再現 */}
-            <nav className="py-2">
-              {navItems.map(item => (
+            {/* メニュー項目リスト */}
+            <div>
+              {navItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => {
                     setActiveTab(item.id);
                     setIsMenuOpen(false);
                   }}
-                  className={`w-full flex items-center px-4 py-3 text-left border-b border-gray-100 ${
-                    activeTab === item.id 
-                      ? 'bg-indigo-50 text-indigo-700' 
-                      : 'text-gray-700 hover:bg-gray-50'
-                  }`}
+                  className={`w-full flex items-center px-4 py-3.5 border-b border-gray-100 text-left
+                    ${activeTab === item.id ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-gray-50'}`}
                 >
-                  <span className="mr-3 opacity-80">{item.icon}</span>
+                  <div className="mr-3 opacity-75">{item.icon}</div>
                   <span className="font-medium">{item.label}</span>
                 </button>
               ))}
-            </nav>
+            </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* メインコンテンツの余白調整 */}
-      <div className="pt-14"></div>
+      <div className="pt-14" style={bodyStyle}></div>
     </>
   );
 };
