@@ -10,6 +10,7 @@ import EnhancedAllQuestionsView from './EnhancedAllQuestionsView';
 import SimplifiedAllQuestionsView from './SimplifiedAllQuestionsView';
 import RedesignedAllQuestionsView from './RedesignedAllQuestionsView';
 import TopNavigation from './components/TopNavigation';
+import TodayView from './TodayView';
 
 // 初期データの作成
 const generateInitialData = () => {
@@ -263,26 +264,53 @@ function App() {
   };
 
   // 問題の解答を記録する
-  const recordAnswer = (questionId, isCorrect, understanding) => {
-    setSubjects(prevSubjects => {
-      const newSubjects = [...prevSubjects];
-      
-      for (const subject of newSubjects) {
-        for (const chapter of subject.chapters) {
-          const questionIndex = chapter.questions.findIndex(q => q.id === questionId);
+const recordAnswer = (questionId, isCorrect, understanding) => {
+  setSubjects(prevSubjects => {
+    const newSubjects = [...prevSubjects];
+    
+    for (const subject of newSubjects) {
+      for (const chapter of subject.chapters) {
+        const questionIndex = chapter.questions.findIndex(q => q.id === questionId);
+        
+        if (questionIndex !== -1) {
+          const question = {...chapter.questions[questionIndex]};
           
-          if (questionIndex !== -1) {
-            const question = {...chapter.questions[questionIndex]};
-            
-            // 正解/不正解に基づいて次回の日付と間隔を更新
-            const today = new Date();
-            let nextDate = new Date();
-            let newInterval = '';
-            
-            if (isCorrect) {
-              // 正解の場合、間隔を延長
+          // 正解/不正解に基づいて次回の日付と間隔を更新
+          const today = new Date();
+          let nextDate = new Date();
+          let newInterval = '';
+          
+          if (isCorrect) {
+            // 曖昧と理解済みで分岐
+            if (understanding.startsWith('曖昧△')) {
+              // 曖昧な場合は理由に応じて日数を設定
+              const reason = understanding.split(':')[1] || '';
+              
+              if (reason.includes('たまたま当て')) {
+                // 偶然正解した → 2日後
+                nextDate.setDate(today.getDate() + 2);
+                newInterval = '2日';
+              } else if (reason.includes('他の選択肢の意味')) {
+                // 正解の選択肢は理解していたが、他の選択肢の意味が分かっていなかった → 10日後
+                nextDate.setDate(today.getDate() + 10);
+                newInterval = '10日';
+              } else if (reason.includes('違う答えを思い浮かべ')) {
+                // 合っていたが、別の理由を思い浮かべていた → 5日後
+                nextDate.setDate(today.getDate() + 5);
+                newInterval = '5日';
+              } else {
+                // その他 → 20日後
+                nextDate.setDate(today.getDate() + 20);
+                newInterval = '20日';
+              }
+            } else {
+              // 理解済みの場合は従来の間隔延長ルール
               switch(question.interval) {
                 case '1日': 
+                case '2日': // 追加：「曖昧：たまたま正解」からのパターン
+                case '5日': // 追加：「曖昧：違う答え」からのパターン
+                case '10日': // 追加：「曖昧：他の選択肢」からのパターン
+                case '20日': // 追加：「曖昧：その他」からのパターン
                   nextDate.setDate(today.getDate() + 3);
                   newInterval = '3日';
                   break;
@@ -308,33 +336,34 @@ function App() {
                   newInterval = '2ヶ月';
                   break;
               }
-            } else {
-              // 不正解の場合、翌日に設定
-              nextDate.setDate(today.getDate() + 1);
-              newInterval = '1日';
             }
-            
-            // 問題の状態を更新
-            chapter.questions[questionIndex] = {
-              ...question,
-              lastAnswered: today,
-              nextDate: nextDate,
-              interval: newInterval,
-              answerCount: question.answerCount + 1,
-              understanding: understanding,
-              correctRate: isCorrect 
-                ? Math.round((question.correctRate * question.answerCount + 100) / (question.answerCount + 1))
-                : Math.round((question.correctRate * question.answerCount) / (question.answerCount + 1)),
-            };
-            
-            return newSubjects;
+          } else {
+            // 不正解の場合、翌日に設定
+            nextDate.setDate(today.getDate() + 1);
+            newInterval = '1日';
           }
+          
+          // 問題の状態を更新
+          chapter.questions[questionIndex] = {
+            ...question,
+            lastAnswered: today,
+            nextDate: nextDate,
+            interval: newInterval,
+            answerCount: question.answerCount + 1,
+            understanding: understanding,
+            correctRate: isCorrect 
+              ? Math.round((question.correctRate * question.answerCount + 100) / (question.answerCount + 1))
+              : Math.round((question.correctRate * question.answerCount) / (question.answerCount + 1)),
+          };
+          
+          return newSubjects;
         }
       }
-      
-      return prevSubjects;
-    });
-  };
+    }
+    
+    return prevSubjects;
+  });
+};
 
   // 問題の編集を保存
   const saveQuestionEdit = (questionData) => {
@@ -1086,7 +1115,11 @@ const saveBulkEdit = (date) => {
 const MainView = () => {
   switch (activeTab) {
     case 'today':
-      return <TodayView />;
+      return <TodayView 
+        getTodayQuestions={getTodayQuestions} 
+        recordAnswer={recordAnswer} 
+        formatDate={formatDate}
+      />;
     case 'schedule':
       return <ScheduleView />;
     case 'all':
@@ -1108,7 +1141,11 @@ const MainView = () => {
     case 'trends':
       return <AmbiguousTrendsPage subjects={subjects} />;
     default:
-      return <TodayView />;
+      return <TodayView 
+        getTodayQuestions={getTodayQuestions} 
+        recordAnswer={recordAnswer}
+        formatDate={formatDate}
+      />;
   }
 };
 
