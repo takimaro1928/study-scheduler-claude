@@ -1113,6 +1113,7 @@ const MainView = () => {
 };
 
 // App.jsのreturn部分
+// App.jsのreturn部分
 return (
   <div className="min-h-screen bg-gray-50">
     <TopNavigation 
@@ -1120,29 +1121,32 @@ return (
       setActiveTab={setActiveTab} 
     />
     
-    {/* メインコンテンツエリア */}
-    <div className="bg-indigo-600 p-6">
-      <div className="max-w-5xl mx-auto">
-        <h1 className="text-xl font-bold tracking-tight text-white">学習スケジュール管理</h1>
-        <p className="text-xs text-indigo-100 opacity-90 mt-1">暗記曲線に基づく効率的な学習を実現</p>
+    {/* メインコンテンツ */}
+    <div>
+      {/* ヘッダー・タイトル部分 */}
+      <div className="bg-indigo-600 p-6">
+        <div className="max-w-5xl mx-auto">
+          <h1 className="text-xl font-bold tracking-tight text-white">学習スケジュール管理</h1>
+          <p className="text-xs text-indigo-100 opacity-90 mt-1">暗記曲線に基づく効率的な学習を実現</p>
+        </div>
+      </div>
+      
+      <div className="p-4">
+        <MainView />
+        
+        {/* 問題編集モーダル */}
+        {editingQuestion && (
+          <QuestionEditModal
+            question={editingQuestion}
+            onSave={saveQuestionEdit}
+            onCancel={() => setEditingQuestion(null)}
+          />
+        )}
       </div>
     </div>
     
-    <div className="p-4">
-      <MainView />
-      
-      {/* 問題編集モーダル */}
-      {editingQuestion && (
-        <QuestionEditModal
-          question={editingQuestion}
-          onSave={saveQuestionEdit}
-          onCancel={() => setEditingQuestion(null)}
-        />
-      )}
-    </div>
-    
     {/* 通知エリア */}
-    <div id="notification-area" className="fixed bottom-4 right-4 z-30"></div>
+    <div id="notification-area" className="fixed bottom-4 right-4 z-50"></div>
   </div>
 );
 }
