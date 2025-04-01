@@ -499,3 +499,47 @@ button:focus {
 .border-gray-100 {
   border-color: #f3f4f6;
 }
+/* index.cssに追加 */
+.bg-opacity-30 {
+  --tw-bg-opacity: 0.3;
+}
+
+/* メニューが開いたときのスタイル */
+@media (max-width: 768px) {
+  body.menu-open {
+    overflow: hidden;
+  }
+}
+
+/* サイドメニューのスタイル */
+.side-menu {
+  transition: transform 0.3s ease-in-out;
+  width: 250px;
+  max-width: 80vw;
+}
+
+/* アクティブな項目のスタイル */
+.nav-item-active {
+  background-color: #eef2ff;
+  color: #4f46e5;
+}
+
+/* メニュー項目のホバー */
+.nav-item:hover:not(.nav-item-active) {
+  background-color: #f9fafb;
+}
+
+/* メニュー項目の区切り線 */
+.menu-divider {
+  height: 1px;
+  background-color: #f3f4f6;
+  margin: 4px 0;
+}
+
+/* アイコンの位置調整 */
+.menu-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 12px;
+  opacity: 0.8;
+}
