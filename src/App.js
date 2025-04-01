@@ -1112,8 +1112,6 @@ const MainView = () => {
   }
 };
 
-// App.jsのreturn部分
-// App.jsのreturn部分
 return (
   <div className="min-h-screen bg-gray-50">
     <TopNavigation 
@@ -1146,7 +1144,7 @@ return (
     </div>
     
     {/* 通知エリア */}
-    <div id="notification-area" className="fixed bottom-4 right-4 z-50"></div>
+    <div id="notification-area" className="fixed bottom-4 right-4 z-20"></div>
   </div>
 );
 }
