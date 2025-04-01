@@ -619,3 +619,22 @@ body {
 .pt-14 {
   padding-top: 3.5rem;
 }
+/* サイドメニューのアニメーション */
+@keyframes slideInFromLeft {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* サイドメニューにアニメーションを適用 */
+.fixed.top-0.left-0.h-full.w-80 {
+  animation: slideInFromLeft 0.3s ease-out;
+}
+
+/* サイドメニューのスタイル補完 */
+.fixed.top-0.left-0.h-full.w-80 {
+  z-index: 50;
+}
