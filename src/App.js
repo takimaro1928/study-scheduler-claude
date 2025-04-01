@@ -1120,32 +1120,29 @@ return (
       setActiveTab={setActiveTab} 
     />
     
-    {/* メインコンテンツ - ナビゲーションバーの下にパディング追加 */}
-    <div className="pt-12">
-      {/* ヘッダー・タイトル部分 */}
-      <div className="bg-indigo-600 p-6">
-        <div className="max-w-5xl mx-auto">
-          <h1 className="text-xl font-bold tracking-tight text-white">学習スケジュール管理</h1>
-          <p className="text-xs text-indigo-100 opacity-90 mt-1">暗記曲線に基づく効率的な学習を実現</p>
-        </div>
-      </div>
-      
-      <div className="p-4">
-        <MainView />
-        
-        {/* 問題編集モーダル */}
-        {editingQuestion && (
-          <QuestionEditModal
-            question={editingQuestion}
-            onSave={saveQuestionEdit}
-            onCancel={() => setEditingQuestion(null)}
-          />
-        )}
+    {/* メインコンテンツエリア */}
+    <div className="bg-indigo-600 p-6">
+      <div className="max-w-5xl mx-auto">
+        <h1 className="text-xl font-bold tracking-tight text-white">学習スケジュール管理</h1>
+        <p className="text-xs text-indigo-100 opacity-90 mt-1">暗記曲線に基づく効率的な学習を実現</p>
       </div>
     </div>
     
+    <div className="p-4">
+      <MainView />
+      
+      {/* 問題編集モーダル */}
+      {editingQuestion && (
+        <QuestionEditModal
+          question={editingQuestion}
+          onSave={saveQuestionEdit}
+          onCancel={() => setEditingQuestion(null)}
+        />
+      )}
+    </div>
+    
     {/* 通知エリア */}
-    <div id="notification-area" className="fixed bottom-4 right-4 z-20"></div>
+    <div id="notification-area" className="fixed bottom-4 right-4 z-30"></div>
   </div>
 );
 }
