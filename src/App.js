@@ -1,6 +1,6 @@
 // App.js
 import React, { useState, useEffect } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, List, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, List, Clock, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import DatePickerCalendar from './DatePickerCalendar';
 import QuestionEditModal from './QuestionEditModal';
 import BulkEditSection from './BulkEditSection';
@@ -11,6 +11,7 @@ import SimplifiedAllQuestionsView from './SimplifiedAllQuestionsView';
 import RedesignedAllQuestionsView from './RedesignedAllQuestionsView';
 import TopNavigation from './components/TopNavigation';
 import TodayView from './TodayView';
+import { AlertTriangle } from 'lucide-react';
 
 // 初期データの作成
 const generateInitialData = () => {
@@ -263,7 +264,8 @@ function App() {
     }));
   };
 
-  // 問題の解答を記録する
+　　// 問題の解答を記録する
+　　　　　　// recordAnswer関数の修正
 const recordAnswer = (questionId, isCorrect, understanding) => {
   setSubjects(prevSubjects => {
     const newSubjects = [...prevSubjects];
@@ -286,7 +288,7 @@ const recordAnswer = (questionId, isCorrect, understanding) => {
               // 曖昧な場合は理由に応じて日数を設定
               const reason = understanding.split(':')[1] || '';
               
-              if (reason.includes('たまたま当て')) {
+              if (reason.includes('偶然正解')) {
                 // 偶然正解した → 2日後
                 nextDate.setDate(today.getDate() + 2);
                 newInterval = '2日';
@@ -294,7 +296,7 @@ const recordAnswer = (questionId, isCorrect, understanding) => {
                 // 正解の選択肢は理解していたが、他の選択肢の意味が分かっていなかった → 10日後
                 nextDate.setDate(today.getDate() + 10);
                 newInterval = '10日';
-              } else if (reason.includes('違う答えを思い浮かべ')) {
+              } else if (reason.includes('別の理由を思い浮かべ') || reason.includes('合っていたが')) {
                 // 合っていたが、別の理由を思い浮かべていた → 5日後
                 nextDate.setDate(today.getDate() + 5);
                 newInterval = '5日';
@@ -307,8 +309,8 @@ const recordAnswer = (questionId, isCorrect, understanding) => {
               // 理解済みの場合は従来の間隔延長ルール
               switch(question.interval) {
                 case '1日': 
-                case '2日': // 追加：「曖昧：たまたま正解」からのパターン
-                case '5日': // 追加：「曖昧：違う答え」からのパターン
+                case '2日': // 追加：「曖昧：偶然正解」からのパターン
+                case '5日': // 追加：「曖昧：別の理由」からのパターン
                 case '10日': // 追加：「曖昧：他の選択肢」からのパターン
                 case '20日': // 追加：「曖昧：その他」からのパターン
                   nextDate.setDate(today.getDate() + 3);
@@ -437,51 +439,119 @@ const saveBulkEdit = (date) => {
   };
 
   // 今日のコンポーネント
-  const TodayView = () => {
-    const todayQuestions = getTodayQuestions();
-    const [expandedAmbiguousId, setExpandedAmbiguousId] = useState(null);
+ 　　// App.js内のTodayView関数コンポーネント
+const TodayView = () => {
+  const todayQuestions = getTodayQuestions();
+  const [expandedAmbiguousId, setExpandedAmbiguousId] = useState(null);
+  
+  // 追加: 各問題の状態を管理する
+  const [questionStates, setQuestionStates] = useState({});
+  
+  // 問題の回答を記録する関数
+  const recordCompleteAnswer = (questionId, isCorrect, understanding) => {
+    // 正解/不正解と理解度を記録
+    recordAnswer(questionId, isCorrect, understanding);
     
-    // 問題の回答を記録する関数
-    const recordCompleteAnswer = (questionId, isCorrect, understanding) => {
-      // 正解/不正解と理解度を記録
-      recordAnswer(questionId, isCorrect, understanding);
+    // 不正解の場合は状態をリセット
+    if (!isCorrect) {
+      setQuestionStates(prev => ({
+        ...prev,
+        [questionId]: { 
+          showAnswered: false,
+          showComprehension: false
+        }
+      }));
     }
+  }
+  
+  // 正解・不正解ボタンを押したときの処理
+  const handleAnswerClick = (questionId, isCorrect) => {
+    if (isCorrect) {
+      // 正解の場合: 理解度確認ボタンを表示
+      setQuestionStates(prev => ({
+        ...prev,
+        [questionId]: { 
+          showAnswered: true,
+          showComprehension: true
+        }
+      }));
+    } else {
+      // 不正解の場合: 直接記録して次へ
+      recordCompleteAnswer(questionId, false, '理解できていない×');
+    }
+  };
+  
+  // 曖昧ボタンをクリックした時の処理
+  const handleAmbiguousClick = (questionId) => {
+    // 同じボタンをもう一度クリックしたら閉じる
+    if (expandedAmbiguousId === questionId) {
+      setExpandedAmbiguousId(null);
+    } else {
+      setExpandedAmbiguousId(questionId);
+    }
+  }
+  
+  // 曖昧な理由を選択した時の処理
+  const selectAmbiguousReason = (questionId, reason) => {
+    // 曖昧な理由を含めて記録
+    recordAnswer(questionId, true, `曖昧△:${reason}`);
+    setExpandedAmbiguousId(null); // 選択後は閉じる
     
-    // 曖昧ボタンをクリックした時の処理
-    const handleAmbiguousClick = (questionId) => {
-      // 同じボタンをもう一度クリックしたら閉じる
-      if (expandedAmbiguousId === questionId) {
-        setExpandedAmbiguousId(null);
-      } else {
-        setExpandedAmbiguousId(questionId);
+    // 状態をリセット
+    setQuestionStates(prev => ({
+      ...prev,
+      [questionId]: { 
+        showAnswered: false,
+        showComprehension: false
       }
-    }
+    }));
+  }
+  
+  // 理解済みボタンをクリックしたときの処理
+  const handleUnderstandClick = (questionId) => {
+    // 理解済みとして記録
+    recordCompleteAnswer(questionId, true, '理解○');
     
-    // 曖昧な理由を選択した時の処理
-    const selectAmbiguousReason = (questionId, reason) => {
-      // 曖昧な理由を含めて記録
-      recordAnswer(questionId, true, `曖昧△:${reason}`);
-      setExpandedAmbiguousId(null); // 選択後は閉じる
-    }
-    
-    return (
-      <div className="p-6 w-full sm:w-10/12 md:w-8/12 lg:w-7/12 xl:w-6/12 mx-auto pb-20">
-        <h2 className="text-2xl font-bold mb-8 text-gray-800 flex items-center justify-center">
-          <Clock className="w-6 h-6 mr-3 text-indigo-500" />
-          <span>今日解く問題</span>
-          <span className="ml-3 text-lg bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full font-medium">
-            {formatDate(new Date())}
-          </span>
-        </h2>
-        
-        {todayQuestions.length === 0 ? (
-          <div className="card p-8 text-center bg-gradient-to-br from-blue-50 to-indigo-50">
-            <p className="text-indigo-800 font-medium text-lg">今日解く問題はありません 🎉</p>
-            <p className="text-indigo-600 mt-2">おつかれさまでした！</p>
-          </div>
-        ) : (
-          <div className="space-y-8">
-            {todayQuestions.map(question => (
+    // 状態をリセット
+    setQuestionStates(prev => ({
+      ...prev,
+      [questionId]: { 
+        showAnswered: false,
+        showComprehension: false
+      }
+    }));
+  }
+  
+  // 問題の初期状態を取得
+  const getQuestionState = (questionId) => {
+    return questionStates[questionId] || { 
+      showAnswered: false,
+      showComprehension: false
+    };
+  };
+  
+  return (
+    <div className="p-6 w-full sm:w-10/12 md:w-8/12 lg:w-7/12 xl:w-6/12 mx-auto pb-20">
+      <h2 className="text-2xl font-bold mb-8 text-gray-800 flex items-center justify-center">
+        <Clock className="w-6 h-6 mr-3 text-indigo-500" />
+        <span>今日解く問題</span>
+        <span className="ml-3 text-lg bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full font-medium">
+          {formatDate(new Date())}
+        </span>
+      </h2>
+      
+      {todayQuestions.length === 0 ? (
+        <div className="card p-8 text-center bg-gradient-to-br from-blue-50 to-indigo-50">
+          <p className="text-indigo-800 font-medium text-lg">今日解く問題はありません 🎉</p>
+          <p className="text-indigo-600 mt-2">おつかれさまでした！</p>
+        </div>
+      ) : (
+        <div className="space-y-8">
+          {todayQuestions.map(question => {
+            // 各問題の現在の状態を取得
+            const questionState = getQuestionState(question.id);
+            
+            return (
               <div key={question.id} className="card p-6">
                 {/* 科目情報 */}
                 <div className="text-sm text-indigo-600 mb-1 font-medium">{question.subjectName}</div>
@@ -493,94 +563,118 @@ const saveBulkEdit = (date) => {
                 </div>
                 
                 {/* 解答結果ボタン - 正解/不正解 */}
-                <div className="mb-5">
-                  <div className="text-sm font-medium text-gray-700 mb-3 flex items-center">
-                    <span className="inline-block w-2 h-2 bg-indigo-500 rounded-full mr-2"></span>
-                    解答結果
-                  </div>
-                  <div className="flex gap-3">
-                    <button 
-                      onClick={() => recordCompleteAnswer(question.id, true, question.understanding)}
-                      className="flex-1 py-4 px-4 bg-white border-2 border-green-400 text-green-700 rounded-xl hover:bg-green-50 transition-all flex items-center justify-center font-bold shadow-sm"
-                    >
-                      <CheckCircle className="w-5 h-5 mr-2" /> 正解 ⭕️
-                    </button>
-                    <button 
-                      onClick={() => recordCompleteAnswer(question.id, false, question.understanding)}
-                      className="flex-1 py-4 px-4 bg-white border-2 border-red-400 text-red-700 rounded-xl hover:bg-red-50 transition-all flex items-center justify-center font-bold shadow-sm"
-                    >
-                      <XCircle className="w-5 h-5 mr-2" /> 不正解 ❌
-                    </button>
-                  </div>
-                </div>
-                
-                {/* 理解度セクション */}
-                <div>
-                  <div className="text-sm font-medium text-gray-700 mb-3 flex items-center">
-                    <span className="inline-block w-2 h-2 bg-indigo-500 rounded-full mr-2"></span>
-                    理解度
-                  </div>
-                  <div className="flex gap-3">
-                    <button 
-                      onClick={() => recordCompleteAnswer(question.id, true, '理解○')}
-                      className="flex-1 py-4 btn-success rounded-xl font-bold"
-                    >
-                      理解できた
-                    </button>
-                    <button 
-                      onClick={() => handleAmbiguousClick(question.id)}
-                      className={`flex-1 py-4 ${expandedAmbiguousId === question.id ? 'btn-warning bg-opacity-90' : 'btn-warning'} rounded-xl font-bold`}
-                    >
-                      曖昧 {expandedAmbiguousId === question.id ? '🔼' : '🔽'}
-                    </button>
-                  </div>
-                  
-                  {/* 曖昧さの理由選択（ドロップダウン） */}
-                  {expandedAmbiguousId === question.id && (
-                    <div className="mt-4 rounded-xl overflow-hidden border border-yellow-200 animate-fadeIn shadow-lg">
-                      <div className="bg-gradient-to-r from-yellow-100 to-amber-100 p-3">
-                        <div className="text-sm font-medium text-amber-800">曖昧だった理由を選択してください:</div>
-                      </div>
-                      <div className="divide-y divide-yellow-100">
-                        <button 
-                          onClick={() => selectAmbiguousReason(question.id, '他の選択肢の意味がわからなかった')}
-                          className="w-full py-3 px-4 text-left bg-white hover:bg-yellow-50 transition-all text-gray-700 flex items-center"
-                        >
-                          <span className="w-2 h-2 bg-yellow-400 rounded-full mr-3"></span>
-                          他の選択肢の意味がわからなかった
-                        </button>
-                        <button 
-                          onClick={() => selectAmbiguousReason(question.id, 'たまたま当ててしまった')}
-                          className="w-full py-3 px-4 text-left bg-white hover:bg-yellow-50 transition-all text-gray-700 flex items-center"
-                        >
-                          <span className="w-2 h-2 bg-yellow-400 rounded-full mr-3"></span>
-                          たまたま当ててしまった
-                        </button>
-                        <button 
-                          onClick={() => selectAmbiguousReason(question.id, '合っていたけど違う答えを思い浮かべてた')}
-                          className="w-full py-3 px-4 text-left bg-white hover:bg-yellow-50 transition-all text-gray-700 flex items-center"
-                        >
-                          <span className="w-2 h-2 bg-yellow-400 rounded-full mr-3"></span>
-                          合っていたけど違う答えを思い浮かべてた
-                        </button>
-                        <button 
-                          onClick={() => selectAmbiguousReason(question.id, 'その他')}
-                          className="w-full py-3 px-4 text-left bg-white hover:bg-yellow-50 transition-all text-gray-700 flex items-center"
-                        >
-                          <span className="w-2 h-2 bg-yellow-400 rounded-full mr-3"></span>
-                          その他
-                        </button>
-                      </div>
+                {!questionState.showAnswered && (
+                  <div className="mb-5">
+                    <div className="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                      <span className="inline-block w-2 h-2 bg-indigo-500 rounded-full mr-2"></span>
+                      解答結果
                     </div>
-                  )}
-                </div>
+                    <div className="flex gap-3">
+                      <button 
+                        onClick={() => handleAnswerClick(question.id, true)}
+                        className="flex-1 py-4 px-4 bg-white border-2 border-green-400 text-green-700 rounded-xl hover:bg-green-50 transition-all flex items-center justify-center font-bold shadow-sm"
+                      >
+                        <CheckCircle className="w-5 h-5 mr-2" /> 正解 ⭕️
+                      </button>
+                      <button 
+                        onClick={() => handleAnswerClick(question.id, false)}
+                        className="flex-1 py-4 px-4 bg-white border-2 border-red-400 text-red-700 rounded-xl hover:bg-red-50 transition-all flex items-center justify-center font-bold shadow-sm"
+                      >
+                        <XCircle className="w-5 h-5 mr-2" /> 不正解 ❌
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
+                {/* 理解度セクション - 正解ボタンを押した後に表示 */}
+                {questionState.showComprehension && (
+                  <div className="mb-5 animate-fadeIn">
+                    <div className="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                      <span className="inline-block w-2 h-2 bg-indigo-500 rounded-full mr-2"></span>
+                      理解度を選択してください
+                    </div>
+                    <div className="flex gap-3">
+                      <button 
+                        onClick={() => handleUnderstandClick(question.id)}
+                        className="flex-1 py-4 bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-xl font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center"
+                      >
+                        <CheckCircle className="w-5 h-5 mr-2" />
+                        理解済み（完全に定着）
+                      </button>
+                      <button 
+                        onClick={() => handleAmbiguousClick(question.id)}
+                        className={`flex-1 py-4 ${
+                          expandedAmbiguousId === question.id 
+                            ? 'bg-gradient-to-br from-amber-500 to-yellow-600 text-white' 
+                            : 'bg-gradient-to-br from-amber-400 to-yellow-500 text-white'
+                        } rounded-xl font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center`}
+                      >
+                        <AlertTriangle className="w-5 h-5 mr-2" />
+                        曖昧（記憶の定着に疑問）
+                        {expandedAmbiguousId === question.id ? ' 🔼' : ' 🔽'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
+                {/* 曖昧さの理由選択（ドロップダウン） */}
+                {expandedAmbiguousId === question.id && (
+                  <div className="mt-4 rounded-xl overflow-hidden border border-yellow-200 animate-fadeIn shadow-lg">
+                    <div className="bg-gradient-to-r from-amber-200 to-yellow-200 p-4">
+                      <div className="text-sm font-semibold text-amber-900">曖昧だった理由を選択してください:</div>
+                    </div>
+                    <div className="divide-y divide-yellow-100 bg-white">
+                      <button 
+                        onClick={() => selectAmbiguousReason(question.id, '偶然正解した')}
+                        className="w-full py-4 px-5 text-left hover:bg-yellow-50 transition-all text-gray-800 flex items-center justify-between"
+                      >
+                        <div className="flex items-center">
+                          <span className="w-3 h-3 bg-yellow-500 rounded-full mr-3"></span>
+                          <span className="font-medium">偶然正解した</span>
+                        </div>
+                        <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">2日後</span>
+                      </button>
+                      <button 
+                        onClick={() => selectAmbiguousReason(question.id, '正解の選択肢は理解していたが、他の選択肢の意味が分かっていなかった')}
+                        className="w-full py-4 px-5 text-left hover:bg-yellow-50 transition-all text-gray-800 flex items-center justify-between"
+                      >
+                        <div className="flex items-center flex-1 mr-2">
+                          <span className="w-3 h-3 bg-yellow-500 rounded-full mr-3 flex-shrink-0"></span>
+                          <span className="font-medium">正解の選択肢は理解していたが、他の選択肢の意味が分かっていなかった</span>
+                        </div>
+                        <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full whitespace-nowrap">10日後</span>
+                      </button>
+                      <button 
+                        onClick={() => selectAmbiguousReason(question.id, '合っていたが、別の理由を思い浮かべていた')}
+                        className="w-full py-4 px-5 text-left hover:bg-yellow-50 transition-all text-gray-800 flex items-center justify-between"
+                      >
+                        <div className="flex items-center">
+                          <span className="w-3 h-3 bg-yellow-500 rounded-full mr-3"></span>
+                          <span className="font-medium">合っていたが、別の理由を思い浮かべていた</span>
+                        </div>
+                        <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">5日後</span>
+                      </button>
+                      <button 
+                        onClick={() => selectAmbiguousReason(question.id, 'その他')}
+                        className="w-full py-4 px-5 text-left hover:bg-yellow-50 transition-all text-gray-800 flex items-center justify-between"
+                      >
+                        <div className="flex items-center">
+                          <span className="w-3 h-3 bg-yellow-500 rounded-full mr-3"></span>
+                          <span className="font-medium">その他</span>
+                        </div>
+                        <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">20日後</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
 
   // 全問題一覧コンポーネント
   const AllQuestionsView = () => {
