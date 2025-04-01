@@ -11,7 +11,7 @@ import SimplifiedAllQuestionsView from './SimplifiedAllQuestionsView';
 import RedesignedAllQuestionsView from './RedesignedAllQuestionsView';
 import TopNavigation from './components/TopNavigation';
 import TodayView from './TodayView';
-import { AlertTriangle } from 'lucide-react';
+
 
 // 初期データの作成
 const generateInitialData = () => {
