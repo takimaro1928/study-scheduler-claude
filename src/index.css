@@ -327,3 +327,41 @@ body {
   }
 }
 
+/* src/index.css の最後に追加 */
+
+/* ハンバーガーメニュー関連のスタイル */
+.transition-transform {
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+/* メニューアニメーション */
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+.animate-slide-in {
+  animation: slideInLeft 0.3s ease-out forwards;
+}
+
+/* オーバーレイのフェードイン */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 0.25; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* メニュー選択時のスタイル */
+.menu-item-active {
+  background-color: #eef2ff; /* indigo-50 */
+  color: #4f46e5; /* indigo-600 */
+}
+
+.menu-item:hover:not(.menu-item-active) {
+  background-color: #f9fafb; /* gray-50 */
+}
