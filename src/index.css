@@ -571,3 +571,51 @@ body {
 .pt-16 {
   padding-top: 4rem;
 }
+/* サイドメニュー用スタイル */
+.fixed {
+  position: fixed;
+}
+
+.inset-0 {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.z-40 {
+  z-index: 40;
+}
+
+.z-50 {
+  z-index: 50;
+}
+
+/* オーバーレイのスタイル */
+.bg-opacity-30 {
+  --tw-bg-opacity: 0.3;
+}
+
+.bg-black {
+  background-color: rgba(0, 0, 0, var(--tw-bg-opacity));
+}
+
+/* サイドメニューのアニメーション */
+@keyframes slideInFromLeft {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* サイドメニューのアニメーションを追加 */
+.relative.w-64 {
+  animation: slideInFromLeft 0.3s ease-out;
+}
+
+/* ヘッダー固定用の余白 */
+.pt-14 {
+  padding-top: 3.5rem;
+}
