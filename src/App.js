@@ -1112,6 +1112,7 @@ const MainView = () => {
   }
 };
 
+// App.jsのreturn部分
 return (
   <div className="min-h-screen bg-gray-50">
     <TopNavigation 
@@ -1119,8 +1120,8 @@ return (
       setActiveTab={setActiveTab} 
     />
     
-    {/* メインコンテンツ - 左側のナビゲーションに合わせてマージンを設定 */}
-    <div className="md:ml-64 transition-all duration-300">
+    {/* メインコンテンツ - ヘッダーの下にマージンを設定 */}
+    <div className="pt-14">
       {/* ヘッダー・タイトル部分 */}
       <div className="bg-indigo-600 p-6">
         <div className="max-w-5xl mx-auto">
