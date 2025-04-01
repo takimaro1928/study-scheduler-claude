@@ -727,3 +727,23 @@ div[style*="overflow-y: auto"]::-webkit-scrollbar-thumb {
 .bg-indigo-50.text-indigo-700 {
   border-left: 3px solid #4f46e5;
 }
+/* メニューアニメーション */
+@keyframes slideIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+#menu-overlay > div:first-child {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* ボタンのリセット */
+button {
+  appearance: none;
+}
+
+/* アクティブメニュー項目 */
+button[style*="background-color: rgb(238, 242, 255)"] {
+  border-left: 3px solid #4f46e5 !important;
+  padding-left: 13px !important;
+}
