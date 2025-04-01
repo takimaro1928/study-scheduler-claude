@@ -464,3 +464,38 @@ body {
 .bg-opacity-25 {
   --bg-opacity: 0.25;
 }
+/* src/index.css に追加 */
+.translate-x-0 {
+  transform: translateX(0);
+}
+
+.-translate-x-full {
+  transform: translateX(-100%);
+}
+
+.transition-transform {
+  transition-property: transform;
+  transition-duration: 300ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.duration-300 {
+  transition-duration: 300ms;
+}
+
+.bg-opacity-40 {
+  --tw-bg-opacity: 0.4;
+}
+
+.bg-gray-800 {
+  --tw-bg-color: rgba(31, 41, 55, var(--tw-bg-opacity));
+}
+
+/* メニュー項目のスタイル補完 */
+button:focus {
+  outline: none;
+}
+
+.border-gray-100 {
+  border-color: #f3f4f6;
+}
