@@ -365,3 +365,18 @@ body {
 .menu-item:hover:not(.menu-item-active) {
   background-color: #f9fafb; /* gray-50 */
 }
+/* src/index.css に追加 */
+.transition-transform {
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 0.5; }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
+}
