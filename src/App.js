@@ -1112,6 +1112,7 @@ const MainView = () => {
   }
 };
 
+// App.jsのreturn部分
 return (
   <div className="min-h-screen bg-gray-50">
     <TopNavigation 
@@ -1120,7 +1121,7 @@ return (
     />
     
     {/* メインコンテンツ */}
-    <div>
+    <div className={activeTab === 'today' ? 'today-view' : ''}>
       {/* ヘッダー・タイトル部分 */}
       <div className="bg-indigo-600 p-6">
         <div className="max-w-5xl mx-auto">
@@ -1144,7 +1145,7 @@ return (
     </div>
     
     {/* 通知エリア */}
-    <div id="notification-area" className="fixed bottom-4 right-4 z-20"></div>
+    <div id="notification-area" className="fixed bottom-4 right-4 z-30"></div>
   </div>
 );
 }
