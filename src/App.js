@@ -1120,8 +1120,8 @@ return (
       setActiveTab={setActiveTab} 
     />
     
-    {/* メインコンテンツ - ヘッダーの下にマージンを設定 */}
-    <div className="pt-14">
+    {/* メインコンテンツ - ナビゲーションバーの下にパディング追加 */}
+    <div className="pt-12">
       {/* ヘッダー・タイトル部分 */}
       <div className="bg-indigo-600 p-6">
         <div className="max-w-5xl mx-auto">
@@ -1145,7 +1145,7 @@ return (
     </div>
     
     {/* 通知エリア */}
-    <div id="notification-area" className="fixed bottom-4 right-4 z-50"></div>
+    <div id="notification-area" className="fixed bottom-4 right-4 z-20"></div>
   </div>
 );
 }
