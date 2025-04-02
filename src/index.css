@@ -774,3 +774,82 @@ button[style*="background-color: rgb(238, 242, 255)"] {
   color: #000000 !important;
   font-weight: 600 !important;
 }
+/* これを src/index.css ファイルの最後に追加してください */
+
+/* 全体的なテキストコントラスト強化 */
+body {
+  color: #000000 !important; /* 基本テキスト色を黒に */
+}
+
+/* 理解度選択・曖昧理由選択の強化スタイル - グローバル設定 */
+/* ラベルとタイトルのコントラスト強化 */
+.text-gray-500, .text-gray-600, .text-gray-700 {
+  color: #000000 !important;
+  font-weight: 600 !important;
+}
+
+/* 理解度・曖昧理由選択肢のテキスト強化 */
+.divide-yellow-100 button,
+.divide-yellow-200 button {
+  color: #000000 !important;
+  font-weight: 700 !important;
+}
+
+/* 理解度・曖昧理由の選択肢ラベル強化 */
+.font-medium {
+  font-weight: 700 !important;
+}
+
+/* ボタンとラベルのテキスト強化 */
+button {
+  font-weight: 700 !important;
+}
+
+/* 正解・不正解ボタンのテキスト強化 */
+.border-green-400, .border-red-400 {
+  border-width: 3px !important;
+}
+
+/* 曖昧の理由選択肢のスタイル強化 */
+.bg-yellow-50 {
+  background-color: #fef9c3 !important; /* より鮮明な黄色の背景 */
+}
+
+/* 日数表示の強化 */
+.text-xs.text-gray-500,
+span.text-xs {
+  color: #1d4ed8 !important; /* 濃い青色 */
+  font-weight: 700 !important;
+  font-size: 0.875rem !important; /* サイズアップ */
+  background-color: #dbeafe !important; /* 薄い青色の背景 */
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 9999px !important;
+}
+
+/* 理解度を選択してください等のテキスト強化 */
+.text-sm, .text-xs {
+  color: #000000 !important;
+  font-weight: 700 !important;
+  font-size: 1rem !important;
+}
+
+/* ドロップダウンの選択肢強化 */
+.divide-yellow-100 button span,
+.divide-yellow-200 button span {
+  color: #000000 !important;
+  font-weight: 700 !important;
+  font-size: 1rem !important;
+}
+
+/* 日後の表示を強調 */
+.text-gray-500:contains("日後"),
+.text-blue-600:contains("日後"),
+.text-blue-700:contains("日後") {
+  color: #1e40af !important; /* 濃い青 */
+  font-weight: 800 !important;
+  background-color: #dbeafe !important;
+  padding: 0.25rem 0.75rem !important;
+  border-radius: 9999px !important;
+  font-size: 1rem !important;
+  border: 2px solid #3b82f6 !important;
+}
