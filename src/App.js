@@ -682,6 +682,10 @@ const TodayView = () => {
     </div>
   </div>
 )}
+ </div>
+    </div>
+  );
+};  // <-- この行を追加
 
   // 全問題一覧コンポーネント
   const AllQuestionsView = () => {
