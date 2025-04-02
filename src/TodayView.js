@@ -63,7 +63,7 @@ const TodayView = ({
               
               {/* 解答結果ボタン - 正解/不正解 */}
               <div className="mb-5">
-                <div className="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                <div className="text-sm font-bold text-black mb-3 flex items-center">
                   <span className="inline-block w-2 h-2 bg-indigo-500 rounded-full mr-2"></span>
                   解答結果
                 </div>
@@ -85,77 +85,77 @@ const TodayView = ({
               
               {/* 理解度セクション */}
               <div>
-                <div className="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                <div className="text-sm font-bold text-black mb-3 flex items-center">
                   <span className="inline-block w-2 h-2 bg-indigo-500 rounded-full mr-2"></span>
                   理解度
                 </div>
                 <div className="flex gap-3">
                   <button 
                     onClick={() => recordCompleteAnswer(question.id, true, '理解○')}
-                    className="flex-1 py-4 bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-xl font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center"
+                    className="flex-1 py-4 bg-gradient-to-br from-green-600 to-emerald-700 text-white rounded-xl font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center"
                   >
                     <CheckCircle className="w-5 h-5 mr-2" />
-                    理解済み（完全に定着）
+                    <span className="text-lg">理解済み（完全に定着）</span>
                   </button>
                   <button 
                     onClick={() => handleAmbiguousClick(question.id)}
                     className={`flex-1 py-4 ${expandedAmbiguousId === question.id 
-                      ? 'bg-gradient-to-br from-amber-500 to-yellow-600 text-white' 
-                      : 'bg-gradient-to-br from-amber-400 to-yellow-500 text-white'
+                      ? 'bg-gradient-to-br from-yellow-600 to-amber-700 text-white' 
+                      : 'bg-gradient-to-br from-yellow-500 to-amber-600 text-white'
                     } rounded-xl font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center`}
                   >
                     <AlertTriangle className="w-5 h-5 mr-2" />
-                    曖昧（記憶の定着に疑問）
+                    <span className="text-lg">曖昧（記憶の定着に疑問）</span>
                     {expandedAmbiguousId === question.id ? ' 🔼' : ' 🔽'}
                   </button>
                 </div>
                 
                 {/* 曖昧さの理由選択（ドロップダウン） */}
                 {expandedAmbiguousId === question.id && (
-                  <div className="mt-4 rounded-xl overflow-hidden border border-yellow-200 animate-fadeIn shadow-lg">
-                    <div className="bg-gradient-to-r from-amber-200 to-yellow-200 p-4">
-                      <div className="text-sm font-semibold text-amber-900">曖昧だった理由を選択してください:</div>
+                  <div className="mt-4 rounded-xl overflow-hidden border border-yellow-300 animate-fadeIn shadow-lg">
+                    <div className="bg-gradient-to-r from-yellow-300 to-amber-300 p-4">
+                      <div className="text-base font-bold text-black">曖昧だった理由を選択してください:</div>
                     </div>
-                    <div className="divide-y divide-yellow-100 bg-white">
+                    <div className="divide-y divide-yellow-200 bg-white">
                       <button 
                         onClick={() => selectAmbiguousReason(question.id, '偶然正解した')}
-                        className="w-full py-4 px-5 text-left hover:bg-yellow-50 transition-all text-gray-800 flex items-center justify-between"
+                        className="w-full py-5 px-5 text-left hover:bg-yellow-50 transition-all text-black flex items-center justify-between"
                       >
                         <div className="flex items-center">
-                          <span className="w-3 h-3 bg-yellow-500 rounded-full mr-3"></span>
-                          <span className="font-medium">偶然正解した</span>
+                          <span className="w-4 h-4 bg-yellow-500 rounded-full mr-3"></span>
+                          <span className="font-bold text-base">偶然正解した</span>
                         </div>
-                        <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">2日後</span>
+                        <span className="text-base font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">2日後</span>
                       </button>
                       <button 
                         onClick={() => selectAmbiguousReason(question.id, '正解の選択肢は理解していたが、他の選択肢の意味が分かっていなかった')}
-                        className="w-full py-4 px-5 text-left hover:bg-yellow-50 transition-all text-gray-800 flex items-center justify-between"
+                        className="w-full py-5 px-5 text-left hover:bg-yellow-50 transition-all text-black flex items-center justify-between"
                       >
                         <div className="flex items-center flex-1 mr-2">
-                          <span className="w-3 h-3 bg-yellow-500 rounded-full mr-3 flex-shrink-0"></span>
-                          <span className="font-medium">正解の選択肢は理解していたが、他の選択肢の意味が分かっていなかった</span>
+                          <span className="w-4 h-4 bg-yellow-500 rounded-full mr-3 flex-shrink-0"></span>
+                          <span className="font-bold text-base">正解の選択肢は理解していたが、他の選択肢の意味が分かっていなかった</span>
                         </div>
-                        <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full whitespace-nowrap">10日後</span>
+                        <span className="text-base font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full whitespace-nowrap">10日後</span>
                       </button>
                       <button 
                         onClick={() => selectAmbiguousReason(question.id, '合っていたが、別の理由を思い浮かべていた')}
-                        className="w-full py-4 px-5 text-left hover:bg-yellow-50 transition-all text-gray-800 flex items-center justify-between"
+                        className="w-full py-5 px-5 text-left hover:bg-yellow-50 transition-all text-black flex items-center justify-between"
                       >
                         <div className="flex items-center">
-                          <span className="w-3 h-3 bg-yellow-500 rounded-full mr-3"></span>
-                          <span className="font-medium">合っていたが、別の理由を思い浮かべていた</span>
+                          <span className="w-4 h-4 bg-yellow-500 rounded-full mr-3"></span>
+                          <span className="font-bold text-base">合っていたが、別の理由を思い浮かべていた</span>
                         </div>
-                        <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">5日後</span>
+                        <span className="text-base font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">5日後</span>
                       </button>
                       <button 
                         onClick={() => selectAmbiguousReason(question.id, 'その他')}
-                        className="w-full py-4 px-5 text-left hover:bg-yellow-50 transition-all text-gray-800 flex items-center justify-between"
+                        className="w-full py-5 px-5 text-left hover:bg-yellow-50 transition-all text-black flex items-center justify-between"
                       >
                         <div className="flex items-center">
-                          <span className="w-3 h-3 bg-yellow-500 rounded-full mr-3"></span>
-                          <span className="font-medium">その他</span>
+                          <span className="w-4 h-4 bg-yellow-500 rounded-full mr-3"></span>
+                          <span className="font-bold text-base">その他</span>
                         </div>
-                        <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">20日後</span>
+                        <span className="text-base font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">20日後</span>
                       </button>
                     </div>
                   </div>
