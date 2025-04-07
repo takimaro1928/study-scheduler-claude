@@ -915,3 +915,65 @@ span.text-base.font-bold.text-blue-700 {
   font-size: 1rem !important;
   border: 2px solid #3b82f6 !important;
 }
+/* 学習アプリのスタイル強化 - インラインスタイルの代替 */
+.study-button-text {
+  color: #000000;
+  font-size: 1.125rem;
+  font-weight: 800;
+  text-shadow: 0 1px 3px rgba(255, 255, 255, 0.8);
+}
+
+.understanding-button {
+  background: linear-gradient(to bottom right, #22c55e, #16a34a);
+  color: #000000;
+  font-weight: 700;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.understanding-button:hover {
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.ambiguous-button {
+  background: linear-gradient(to bottom right, #f59e0b, #d97706);
+  color: #000000;
+  font-weight: 700;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.ambiguous-button:hover {
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.reason-option {
+  color: #000000;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.day-badge {
+  color: #1e40af;
+  font-weight: 800;
+  background-color: #dbeafe;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  border: 2px solid #3b82f6;
+  font-size: 1rem;
+}
+
+.reason-panel {
+  background-color: #fef9c3;
+  border: 1px solid #fde68a;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.reason-panel-header {
+  background: linear-gradient(to right, #fbbf24, #f59e0b);
+  color: #000000;
+  font-weight: 700;
+  padding: 0.75rem;
+}
