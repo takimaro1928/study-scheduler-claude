@@ -576,14 +576,13 @@ const TodayView = () => {
  　　　　　　　　　　　 className="flex-1 py-4 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center"
  　　　　　　　　　　　 style={{ opacity: 1 }}
 　　　　　　　　　　　>
- 　　　　　　　　　　　 <CheckCircle className="w-5 h-5 mr-2 text-white" />
+ 　　　　　　　　　　　 <CheckCircle className="w-5 h-5 mr-2 text-black" />
  　　　　　　　　　　　 <span className="text-lg font-bold" style={{
-   　　　　　　　　　　　 color: 'white', 
+   　　　　　　　　　　　 color:'black', 
     　　　　　　　　　　　opacity: 1,
-   　　　　　　　　　　　 textShadow: '0 1px 2px rgba(0,0,0,0.5)'
+   　　　　　　　　　　　 textShadow: '0 1px 2px rgba(255,255,255,0.8)'
 　　　　　　　　　　　  }}>理解済み（完全に定着）</span>
 　　　　　　　　　　　　</button>
-  
                      　<button 
  　　　　　　　　　　　　　 onClick={() => handleAmbiguousClick(question.id)}
  　　　　　　　　　　　　　 className={`flex-1 py-4 ${
@@ -593,11 +592,11 @@ const TodayView = () => {
  　　　　　　　　　　　　　 } rounded-xl font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center`}
  　　　　　　　　　　　　　 style={{ opacity: 1 }}
 　　　　　　　　　　　　　>
- 　　　　　　　　　　　　　　<AlertTriangle className="w-5 h-5 mr-2 text-white" />
+ 　　　　　　　　　　　　　　<AlertTriangle className="w-5 h-5 mr-2 text-black" />
  　　　　　　　　　　　　　 <span className="text-lg font-bold" style={{
-   　　　　　　　　　　　　　 color: 'white', 
+   　　　　　　　　　　　　　 color:'black', 
     　　　　　　　　　　　　　opacity: 1,
-  　 　　　　　　　　　　　　 textShadow: '0 1px 2px rgba(0,0,0,0.5)'
+  　 　　　　　　　　　　　　 textShadow: '0 1px 2px (255,255,255,0.8)'
 　　　　　　　　　　　　　　 }}>曖昧（記憶の定着に疑問）</span>
  　　　　　　　　　　　　　　 {expandedAmbiguousId === question.id ? ' 🔼' : ' 🔽'}
 　　　　　　　　　　　　</button>
