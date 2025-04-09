@@ -295,6 +295,10 @@ function App() {
                   nextDate.setDate(today.getDate() + 20);
                   newInterval = '20日';
                 }
+
+　　　　　　　　　// 曖昧理由をそのまま保存（分析ページで使用するため）
+              console.log("曖昧理由を記録:", reason);
+                
               } else {
                 switch(question.interval) {
                   case '1日': 
@@ -332,7 +336,8 @@ function App() {
               nextDate.setDate(today.getDate() + 1);
               newInterval = '1日';
             }
-            
+
+            // 問題データ更新
             chapter.questions[questionIndex] = {
               ...question,
               lastAnswered: today,
