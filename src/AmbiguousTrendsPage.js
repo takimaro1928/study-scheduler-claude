@@ -28,7 +28,21 @@ const AmbiguousTrendsPage = ({ subjects }) => {
   
   // 曖昧な問題データを取得
   const ambiguousQuestions = getAmbiguousQuestions(subjects);
-  
+
+　 // ここに自動更新用のuseEffectを追加
+  useEffect(() => {
+    // subjectsが変更されたとき、曖昧問題を再取得
+    const updatedAmbiguousQuestions = getAmbiguousQuestions(subjects);
+    setAmbiguousQuestions(updatedAmbiguousQuestions);
+
+　　 // 理由別にグループ化
+    const updatedReasonGroups = groupByReason(updatedAmbiguousQuestions);
+    // 状態を更新（必要に応じて）
+    
+    console.log("曖昧問題データを更新しました:", updatedAmbiguousQuestions.length);
+  }, [subjects]); // subjects配列が変わるたびに実行
+
+    
   // 理由別にグループ化
   const reasonGroups = groupByReason(ambiguousQuestions);
   
@@ -59,10 +73,21 @@ const AmbiguousTrendsPage = ({ subjects }) => {
           // 曖昧△を含む問題を抽出
           if (question.understanding && question.understanding.startsWith('曖昧△')) {
             // 理由を抽出
-            let reason = '理由なし';
-            if (question.understanding.includes(':')) {
-              reason = question.understanding.split(':')[1];
-            }
+          　 let reason = 'その他';
+         　　 if (question.understanding.includes(':')) {
+            reason = question.understanding.split(':')[1];
+         　 }
+
+             // 標準理由に変換（表記揺れに対応）
+          if (reason.includes('偶然正解') || reason === '偶然正解した') {
+            reason = '偶然正解した';
+          } else if (reason.includes('他の選択肢の意味') || reason === '正解の選択肢は理解していたが、他の選択肢の意味が分かっていなかった') {
+            reason = '正解の選択肢は理解していたが、他の選択肢の意味が分かっていなかった';
+          } else if (reason.includes('別の理由を思い浮かべ') || reason === '合っていたが、別の理由を思い浮かべていた') {
+            reason = '合っていたが、別の理由を思い浮かべていた';
+          } else if (reason !== 'その他') {
+            reason = 'その他';
+          }
             
             ambiguousQuestions.push({
               id: question.id,
