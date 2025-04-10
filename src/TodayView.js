@@ -1,20 +1,20 @@
 // src/TodayView.js
 // TodayView.jsx
+// デザインは3枚の画像に合わせ、機能は元のロジックを引き継いだコード
+
 import React, { useState } from 'react';
 // lucide-react からアイコンをインポート
-import { Clock, Check, X, AlertTriangle, ChevronsUpDown } from 'lucide-react'; // 青い四角の代わりに ChevronsUpDown を仮使用
+import { Clock, Check, X, AlertTriangle, ChevronsUpDown } from 'lucide-react'; // App.jsに合わせたインポート
 
-// --- ロジック部分は提供された App.js の recordAnswer を呼び出す前提 ---
-//     TodayView 内部のロジックはUI状態管理が中心
+// --- ロジック部分は元のコード（最初に送ってくれたTodayViewのもの）をベース ---
 const TodayView = ({ getTodayQuestions, recordAnswer, formatDate }) => {
+  // App.jsから渡される関数を使う
   const todayQuestions = getTodayQuestions();
   const [expandedAmbiguousId, setExpandedAmbiguousId] = useState(null);
   // questionStates は、正解後に理解度ボタンを表示するためだけに使用
   const [questionStates, setQuestionStates] = useState({});
 
-  // App.js の recordAnswer を呼び出す関数群
-  // recordCompleteAnswer は不要になったので削除（App.js側で行うため）
-
+  // ハンドラ関数群 (元のコードのロジックを維持しつつ、UIリセット処理を調整)
   const handleAnswerClick = (questionId, isCorrect) => {
     if (isCorrect) {
       // 正解の場合、UI状態を変更して理解度ボタンを表示
@@ -22,10 +22,10 @@ const TodayView = ({ getTodayQuestions, recordAnswer, formatDate }) => {
         ...prev,
         [questionId]: { showComprehension: true }
       }));
+      // recordAnswer は理解度選択後 or 曖昧理由選択後に呼び出す
     } else {
       // 不正解の場合、App.jsのrecordAnswerを呼び出し、UI状態はリセット
       recordAnswer(questionId, false, '理解できていない×');
-       // UI状態をリセット (TodayView側ではこれ以上何もしない)
        setQuestionStates(prev => {
          const newState = {...prev};
          delete newState[questionId]; // 当該問題の状態を削除して初期状態に戻す
@@ -75,7 +75,7 @@ const TodayView = ({ getTodayQuestions, recordAnswer, formatDate }) => {
     'その他'
   ];
 
-  // --- JSX 部分のデザインを指示された画像に合わせて修正 ---
+  // --- JSX 部分のデザインを指示された3枚の画像に合わせて修正 ---
   return (
     <div className="px-4 py-6 sm:px-6 lg:px-8 w-full max-w-3xl mx-auto pb-20">
       {/* ページタイトル */}
@@ -98,6 +98,7 @@ const TodayView = ({ getTodayQuestions, recordAnswer, formatDate }) => {
             const isAmbiguousPanelOpen = expandedAmbiguousId === question.id;
 
             return (
+              // 問題カード
               <div key={question.id} className="bg-white shadow-sm rounded-lg p-4 sm:p-6">
                 <div className="text-xs text-blue-600 mb-1 font-medium">{question.subjectName}</div>
                 <div className="font-semibold text-base sm:text-lg text-gray-800 mb-2 sm:mb-3">{question.chapterName}</div>
@@ -107,15 +108,17 @@ const TodayView = ({ getTodayQuestions, recordAnswer, formatDate }) => {
 
                 {/* --- 正誤ボタンエリア (理解度ボタンが表示されていない時) --- */}
                 {!questionState.showComprehension && (
-                  <div className="mb-1"> {/* 下マージン調整 */}
+                  <div className="mb-1">
                     <div className="text-xs sm:text-sm font-medium text-gray-700 mb-2">■ 解答結果</div>
                     <div className="flex gap-3 sm:gap-4">
+                      {/* 正解ボタン */}
                       <button
                         onClick={() => handleAnswerClick(question.id, true)}
                         className="flex-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-white border-2 border-green-500 text-green-600 rounded-lg hover:bg-green-50 transition-all flex items-center justify-center font-semibold text-sm sm:text-base shadow-sm"
                       >
                         <Check className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" strokeWidth={2.5} /> 正解
                       </button>
+                      {/* 不正解ボタン */}
                       <button
                         onClick={() => handleAnswerClick(question.id, false)}
                         className="flex-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-white border-2 border-red-500 text-red-600 rounded-lg hover:bg-red-50 transition-all flex items-center justify-center font-semibold text-sm sm:text-base shadow-sm"
@@ -128,24 +131,26 @@ const TodayView = ({ getTodayQuestions, recordAnswer, formatDate }) => {
 
                 {/* --- 理解度ボタンエリア (正解ボタンが押された後) --- */}
                 {questionState.showComprehension && (
-                  <div className="mb-1"> {/* 下マージン調整 */}
+                  <div className="mb-1">
                     <div className="text-xs sm:text-sm font-medium text-gray-700 mb-2">■ 理解度を選択してください</div>
                     <div className="flex gap-3 sm:gap-4">
+                       {/* 理解済みボタン */}
                       <button
                         onClick={() => handleUnderstandClick(question.id)}
-                        className="flex-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-white border-2 border-gray-600 text-gray-700 rounded-lg hover:bg-gray-100 transition-all flex items-center justify-center font-semibold text-xs sm:text-sm shadow-sm" // 文字サイズ調整
+                        className="flex-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-white border-2 border-gray-600 text-gray-700 rounded-lg hover:bg-gray-100 transition-all flex items-center justify-center font-semibold text-xs sm:text-sm shadow-sm"
                       >
                         <Check className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" strokeWidth={2.5} /> 理解済み（完全に定着）
                       </button>
+                       {/* 曖昧ボタン */}
                       <button
                         onClick={() => handleAmbiguousClick(question.id)}
-                        className={`flex-1 py-2.5 sm:py-3 pl-3 sm:pl-4 pr-2 sm:pr-3 bg-white border-2 border-gray-600 text-gray-700 rounded-lg hover:bg-gray-100 transition-all flex items-center justify-between font-semibold text-xs sm:text-sm shadow-sm`} // 文字サイズ調整
+                        className={`flex-1 py-2.5 sm:py-3 pl-3 sm:pl-4 pr-2 sm:pr-3 bg-white border-2 border-gray-600 text-gray-700 rounded-lg hover:bg-gray-100 transition-all flex items-center justify-between font-semibold text-xs sm:text-sm shadow-sm`}
                       >
                         <div className="flex items-center">
                           <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" strokeWidth={2.5}/>
                           <span>曖昧（記憶の定着に疑問）</span>
                         </div>
-                        {/* ドロップダウン風アイコン */}
+                         {/* ドロップダウン風アイコン */}
                         <ChevronsUpDown className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 ml-1 sm:ml-2 flex-shrink-0" />
                       </button>
                     </div>
@@ -163,7 +168,7 @@ const TodayView = ({ getTodayQuestions, recordAnswer, formatDate }) => {
                         <button
                           key={reason}
                           onClick={() => selectAmbiguousReason(question.id, reason)}
-                          className="w-full py-2.5 sm:py-3 px-3 sm:px-4 text-left hover:bg-amber-50 transition-colors text-gray-700 flex items-center justify-between text-xs sm:text-sm" // 文字サイズ調整
+                          className="w-full py-2.5 sm:py-3 px-3 sm:px-4 text-left hover:bg-amber-50 transition-colors text-gray-700 flex items-center justify-between text-xs sm:text-sm"
                         >
                           <div className="flex items-center flex-1 mr-2">
                             <span className="inline-block w-1.5 h-1.5 bg-orange-500 rounded-full mr-2 flex-shrink-0"></span>
