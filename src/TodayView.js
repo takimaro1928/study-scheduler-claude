@@ -1,203 +1,188 @@
 // src/TodayView.js
-// TodayView.jsx
-// デザインは指示された3枚の画像に合わせ、機能は元のロジックを引き継いだコード
-
 import React, { useState } from 'react';
-// lucide-react からアイコンをインポート
-import { Clock, Check, X, AlertTriangle, ChevronsUpDown } from 'lucide-react'; // App.jsに合わせたインポート
+import { Clock, Check, X, AlertTriangle } from 'lucide-react';
 
-// --- ロジック部分は元のコード（最初に送ってくれたTodayViewのもの）をベース ---
 const TodayView = ({ getTodayQuestions, recordAnswer, formatDate }) => {
-  // App.jsから渡される関数を使う
   const todayQuestions = getTodayQuestions();
   const [expandedAmbiguousId, setExpandedAmbiguousId] = useState(null);
-  // questionStates は、正解後に理解度ボタンを表示するためだけに使用
   const [questionStates, setQuestionStates] = useState({});
 
-  // ハンドラ関数群 (元のコードのロジックを維持しつつ、UIリセット処理を調整)
+  // 問題の状態を取得（初期状態では解答結果の選択肢を表示）
+  const getQuestionState = (questionId) => {
+    return questionStates[questionId] || { 
+      showComprehension: false 
+    };
+  };
+
+  // 正解/不正解の選択
   const handleAnswerClick = (questionId, isCorrect) => {
     if (isCorrect) {
-      // 正解の場合、UI状態を変更して理解度ボタンを表示
+      // 正解の場合、理解度選択に進む
       setQuestionStates(prev => ({
         ...prev,
         [questionId]: { showComprehension: true }
       }));
-      // recordAnswer は理解度選択後 or 曖昧理由選択後に呼び出す
     } else {
-      // 不正解の場合、App.jsのrecordAnswerを呼び出し、UI状態はリセット
+      // 不正解の場合、そのまま記録
       recordAnswer(questionId, false, '理解できていない×');
-       setQuestionStates(prev => {
-         const newState = {...prev};
-         delete newState[questionId]; // 当該問題の状態を削除して初期状態に戻す
-         return newState;
-       });
+      setQuestionStates(prev => {
+        const newState = {...prev};
+        delete newState[questionId];
+        return newState;
+      });
     }
   };
 
+  // 「理解済み」ボタンの処理
+  const handleUnderstandClick = (questionId) => {
+    recordAnswer(questionId, true, '理解○');
+    setQuestionStates(prev => {
+      const newState = {...prev};
+      delete newState[questionId];
+      return newState;
+    });
+  };
+
+  // 「曖昧」ボタンの処理
   const handleAmbiguousClick = (questionId) => {
-    // 曖昧理由パネルの開閉
     setExpandedAmbiguousId(prevId => (prevId === questionId ? null : questionId));
   };
 
+  // 曖昧理由選択の処理
   const selectAmbiguousReason = (questionId, reason) => {
-    // 理由とともにApp.jsのrecordAnswerを呼び出し、UI状態をリセット
-    recordAnswer(questionId, true, `曖昧△:${reason}`); // 正解(true)として記録
+    recordAnswer(questionId, true, `曖昧△:${reason}`);
     setExpandedAmbiguousId(null);
-     setQuestionStates(prev => {
-         const newState = {...prev};
-         delete newState[questionId];
-         return newState;
-       });
+    setQuestionStates(prev => {
+      const newState = {...prev};
+      delete newState[questionId];
+      return newState;
+    });
   };
 
-  const handleUnderstandClick = (questionId) => {
-     // 理解済みとしてApp.jsのrecordAnswerを呼び出し、UI状態をリセット
-    recordAnswer(questionId, true, '理解○');
-     setQuestionStates(prev => {
-         const newState = {...prev};
-         delete newState[questionId];
-         return newState;
-       });
-  };
-
-   const getQuestionState = (questionId) => {
-    // questionStates に当該IDがあれば理解度ボタン表示中、なければ正誤ボタン表示
-    return questionStates[questionId] || { showComprehension: false };
-  };
-
-  // 曖昧さの理由リスト（6つ）
+  // 画像3の曖昧理由選択肢のデータ（写真に合わせて更新）
   const ambiguousReasons = [
-    '偶然正解した',
-    '正解の選択肢は理解していたが、他の選択肢の意味が分かっていなかった',
-    '合っていたが、別の理由を思い浮かべていた',
-    '自信はなかったけど、これかなとは思っていた', // 追加
-    '問題を覚えてしまっていた',                 // 追加
-    'その他'
+    { text: '偶然正解した', days: 2 },
+    { text: '正解の選択肢は理解していたが、他の選択肢の意味が分かっていなかった', days: 10 },
+    { text: '合っていたが、別の理由を思い浮かべていた', days: 5 },
+    { text: 'その他', days: 20 }
   ];
 
-  // --- JSX 部分のデザインを指示された3枚の画像に合わせて修正 ---
   return (
-    <div className="px-4 py-6 sm:px-6 lg:px-8 w-full max-w-3xl mx-auto pb-20">
-      {/* ページタイトル */}
-      <h2 className="text-xl sm:text-2xl font-bold mb-6 sm:mb-8 text-gray-800 flex items-center justify-center">
-        <span>① 今日解く問題</span>
-        {/* 日付バッジ (画像1枚目) */}
-        <span className="ml-3 text-sm sm:text-base bg-indigo-100 text-indigo-700 px-3 py-0.5 rounded-full font-medium">
+    <div className="p-4 pb-20 max-w-3xl mx-auto">
+      {/* ヘッダー - 写真通りのデザイン */}
+      <h2 className="text-xl font-bold mb-6 flex items-center justify-center">
+        <Clock className="w-5 h-5 mr-2" />
+        <span>今日解く問題</span>
+        <span className="ml-3 text-sm bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full">
           {formatDate(new Date())}
         </span>
       </h2>
 
+      {/* 問題がない場合 */}
       {todayQuestions.length === 0 ? (
-        <div className="bg-white shadow-sm rounded-lg p-8 text-center border border-gray-200">
-          <p className="text-gray-700 font-medium text-lg">今日解く問題はありません 🎉</p>
+        <div className="bg-white p-8 rounded-lg border text-center">
+          <p className="text-gray-700 font-medium">今日解く問題はありません</p>
           <p className="text-gray-500 mt-2">おつかれさまでした！</p>
         </div>
       ) : (
-        <div className="space-y-5 sm:space-y-6">
+        <div className="space-y-6">
           {todayQuestions.map(question => {
             const questionState = getQuestionState(question.id);
             const isAmbiguousPanelOpen = expandedAmbiguousId === question.id;
 
             return (
-              // 問題カード (画像1枚目)
-              <div key={question.id} className="bg-white shadow-sm rounded-lg p-4 sm:p-6">
-                {/* 科目名 (画像1枚目) */}
-                <div className="text-xs text-blue-600 mb-1 font-medium">{question.subjectName}</div>
-                {/* 章名 (画像1枚目) */}
-                <div className="font-semibold text-base sm:text-lg text-gray-800 mb-2 sm:mb-3">{question.chapterName}</div>
-                 {/* 問題番号チップ (画像1枚目) */}
-                <div className="inline-block bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-xs font-medium mb-4 sm:mb-5">
+              <div key={question.id} className="bg-white shadow-sm rounded-lg border border-gray-200 p-4">
+                {/* 問題情報 */}
+                <div className="text-xs text-blue-600 mb-1">{question.subjectName}</div>
+                <div className="font-bold text-lg mb-2">{question.chapterName}</div>
+                <div className="inline-block bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-xs mb-4">
                   問題 {question.id}
                 </div>
 
-                {/* --- 正誤ボタンエリア (画像1枚目 / 理解度ボタンが表示されていない時) --- */}
+                {/* 表示状態１：解答結果選択（正解/不正解） - 画像1のデザイン */}
                 {!questionState.showComprehension && (
-                  <div className="mb-1">
-                    {/* ラベル (画像1枚目) */}
-                    <div className="text-xs sm:text-sm font-medium text-gray-700 mb-2">■ 解答結果</div>
-                     {/* ボタンコンテナ */}
-                    <div className="flex gap-3 sm:gap-4">
-                      {/* 正解ボタン (画像1枚目) */}
+                  <div>
+                    <div className="flex items-center mb-2">
+                      <div className="w-2 h-2 bg-indigo-500 rounded-full mr-2"></div>
+                      <span className="text-sm font-medium text-gray-700">解答結果</span>
+                    </div>
+                    <div className="flex gap-3">
                       <button
                         onClick={() => handleAnswerClick(question.id, true)}
-                        className="flex-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-white border-2 border-green-500 text-green-600 rounded-lg hover:bg-green-50 transition-all flex items-center justify-center font-semibold text-sm sm:text-base shadow-sm"
+                        className="flex-1 py-3 bg-white border-2 border-green-400 text-green-700 rounded-lg flex items-center justify-center font-medium"
                       >
-                        <Check className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" strokeWidth={2.5} /> 正解
+                        <Check className="w-5 h-5 mr-2" /> 正解 ⭕️
                       </button>
-                      {/* 不正解ボタン (画像1枚目) */}
                       <button
                         onClick={() => handleAnswerClick(question.id, false)}
-                        className="flex-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-white border-2 border-red-500 text-red-600 rounded-lg hover:bg-red-50 transition-all flex items-center justify-center font-semibold text-sm sm:text-base shadow-sm"
+                        className="flex-1 py-3 bg-white border-2 border-red-400 text-red-700 rounded-lg flex items-center justify-center font-medium"
                       >
-                        <X className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" strokeWidth={2.5} /> 不正解
+                        <X className="w-5 h-5 mr-2" /> 不正解 ❌
                       </button>
                     </div>
                   </div>
                 )}
 
-                {/* --- 理解度ボタンエリア (画像2枚目 / 正解ボタンが押された後) --- */}
+                {/* 表示状態２：理解度選択 - 画像2のデザイン */}
                 {questionState.showComprehension && (
-                  <div className="mb-1">
-                     {/* ラベル (画像2枚目) */}
-                    <div className="text-xs sm:text-sm font-medium text-gray-700 mb-2">■ 理解度を選択してください</div>
-                     {/* ボタンコンテナ */}
-                    <div className="flex gap-3 sm:gap-4">
-                       {/* 理解済みボタン (画像2枚目) */}
+                  <div>
+                    <div className="flex items-center mb-2">
+                      <div className="w-2 h-2 bg-indigo-500 rounded-full mr-2"></div>
+                      <span className="text-sm font-medium text-gray-700">理解度を選択してください</span>
+                    </div>
+                    <div className="flex gap-3">
                       <button
                         onClick={() => handleUnderstandClick(question.id)}
-                        className="flex-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-white border-2 border-gray-600 text-gray-700 rounded-lg hover:bg-gray-100 transition-all flex items-center justify-center font-semibold text-xs sm:text-sm shadow-sm"
+                        className="flex-1 py-3 border border-gray-300 rounded-lg flex items-center justify-center bg-white text-gray-800"
                       >
-                        <Check className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" strokeWidth={2.5} /> 理解済み（完全に定着）
+                        <Check className="w-5 h-5 mr-2" />
+                        理解済み（完全に定着）
                       </button>
-                       {/* 曖昧ボタン (画像2枚目) */}
                       <button
                         onClick={() => handleAmbiguousClick(question.id)}
-                        className={`flex-1 py-2.5 sm:py-3 pl-3 sm:pl-4 pr-2 sm:pr-3 bg-white border-2 border-gray-600 text-gray-700 rounded-lg hover:bg-gray-100 transition-all flex items-center justify-between font-semibold text-xs sm:text-sm shadow-sm`}
+                        className="flex-1 py-3 border border-gray-300 rounded-lg flex items-center justify-between bg-white text-gray-800 px-3"
                       >
                         <div className="flex items-center">
-                          <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" strokeWidth={2.5}/>
-                          <span>曖昧（記憶の定着に疑問）</span>
+                          <AlertTriangle className="w-5 h-5 mr-2" />
+                          曖昧（記憶の定着に疑問）
                         </div>
-                         {/* ドロップダウン風アイコン (画像2枚目) */}
-                        <ChevronsUpDown className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 ml-1 sm:ml-2 flex-shrink-0" />
+                        {isAmbiguousPanelOpen ? "▲" : "▼"}
                       </button>
                     </div>
                   </div>
                 )}
 
-                {/* --- 曖昧理由選択パネル (画像3枚目) --- */}
+                {/* 表示状態３：曖昧理由選択パネル - 画像3のデザイン */}
                 {isAmbiguousPanelOpen && (
-                   <div className="mt-3 rounded-md overflow-hidden border border-amber-400 bg-white shadow-sm">
-                     {/* パネルヘッダー (画像3枚目) */}
-                    <div className="bg-amber-100 p-2 sm:p-3 border-b border-amber-300">
-                      <div className="text-xs sm:text-sm font-semibold text-amber-800">曖昧だった理由を選択してください:</div>
+                  <div className="mt-4 border border-yellow-400 rounded-lg overflow-hidden">
+                    <div className="bg-yellow-100 p-3 border-b border-yellow-300">
+                      <div className="font-medium text-amber-800">曖昧だった理由を選択してください:</div>
                     </div>
-                    {/* 理由選択肢コンテナ (画像3枚目) */}
-                    <div className="divide-y divide-gray-200">
-                      {ambiguousReasons.map((reason) => (
-                        <button
-                          key={reason}
-                          onClick={() => selectAmbiguousReason(question.id, reason)}
-                          className="w-full py-2.5 sm:py-3 px-3 sm:px-4 text-left hover:bg-amber-50 transition-colors text-gray-700 flex items-center justify-between text-xs sm:text-sm"
+                    <div className="bg-white">
+                      {ambiguousReasons.map((reason, index) => (
+                        <button 
+                          key={index}
+                          onClick={() => selectAmbiguousReason(question.id, reason.text)}
+                          className="w-full py-3 px-4 text-left hover:bg-yellow-50 transition-colors border-b border-yellow-100 flex justify-between items-center"
                         >
-                          <div className="flex items-center flex-1 mr-2">
-                             {/* オレンジ色のドット (画像3枚目) */}
-                            <span className="inline-block w-1.5 h-1.5 bg-orange-500 rounded-full mr-2 flex-shrink-0"></span>
-                            <span className="font-medium">{reason}</span>
+                          <div className="flex items-center">
+                            <span className="inline-block w-3 h-3 bg-orange-500 rounded-full mr-3"></span>
+                            <span className="font-medium">{reason.text}</span>
                           </div>
-                           {/* 日付バッジ (画像3枚目デザイン、ただし日付は要件定義通り8日後) */}
-                          <span className="text-xs font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full whitespace-nowrap">8日後</span>
+                          <span className="text-sm font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full whitespace-nowrap">
+                            {reason.days}日後
+                          </span>
                         </button>
                       ))}
                     </div>
                   </div>
                 )}
-              </div> // card end
+              </div>
             );
           })}
-        </div> // space-y end
+        </div>
       )}
-    </div> // container end
+    </div>
   );
 };
 
