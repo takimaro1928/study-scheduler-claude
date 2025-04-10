@@ -180,9 +180,40 @@ function App() {
   const [bulkEditMode, setBulkEditMode] = useState(false);
   const [selectedQuestions, setSelectedQuestions] = useState([]);
   const [isNavOpen, setIsNavOpen] = useState(false);
-  
-  useEffect(() => {
-    // 初期データの読み込み
+
+// 初期データのロード - LocalStorageから取得する
+useEffect(() => {
+  // 初期データのロード（初回のみ）
+  const savedData = localStorage.getItem('studyData');
+  if (savedData) {
+    try {
+      const parsedData = JSON.parse(savedData);
+      setSubjects(parsedData);
+      
+      // 初期状態で最初の科目を展開
+      const initialExpandedSubjects = {};
+      parsedData.forEach(subject => {
+        initialExpandedSubjects[subject.id] = false;
+      });
+      initialExpandedSubjects[1] = true; // 最初の科目だけ展開
+      setExpandedSubjects(initialExpandedSubjects);
+      
+      console.log('保存された学習データを読み込みました');
+    } catch (e) {
+      console.error('保存データの読み込みに失敗しました:', e);
+      const initialData = generateInitialData();
+      setSubjects(initialData);
+      
+      // 初期状態で最初の科目を展開
+      const initialExpandedSubjects = {};
+      initialData.forEach(subject => {
+        initialExpandedSubjects[subject.id] = false;
+      });
+      initialExpandedSubjects[1] = true; // 最初の科目だけ展開
+      setExpandedSubjects(initialExpandedSubjects);
+    }
+  } else {
+    // 保存データがない場合、初期データをロード
     const initialData = generateInitialData();
     setSubjects(initialData);
     
@@ -193,7 +224,17 @@ function App() {
     });
     initialExpandedSubjects[1] = true; // 最初の科目だけ展開
     setExpandedSubjects(initialExpandedSubjects);
-  }, []);
+  }
+}, []);
+
+// subjects変更時に保存するuseEffect
+useEffect(() => {
+  // データ変更時にLocalStorageに保存
+  if (subjects.length > 0) {
+    localStorage.setItem('studyData', JSON.stringify(subjects));
+    console.log('学習データを保存しました');
+  }
+}, [subjects]);
 
   // 今日の問題を取得
   const getTodayQuestions = () => {
