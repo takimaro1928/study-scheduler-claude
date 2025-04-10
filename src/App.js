@@ -303,102 +303,94 @@ useEffect(() => {
   };
 
   // 問題の解答を記録する（recordAnswer関数の修正）
-  const recordAnswer = (questionId, isCorrect, understanding) => {
-    setSubjects(prevSubjects => {
-      const newSubjects = [...prevSubjects];
-      
-      for (const subject of newSubjects) {
-        for (const chapter of subject.chapters) {
-          const questionIndex = chapter.questions.findIndex(q => q.id === questionId);
+// App.js内のrecordAnswer関数を修正
+const recordAnswer = (questionId, isCorrect, understanding) => {
+  setSubjects(prevSubjects => {
+    const newSubjects = [...prevSubjects];
+    
+    for (const subject of newSubjects) {
+      for (const chapter of subject.chapters) {
+        const questionIndex = chapter.questions.findIndex(q => q.id === questionId);
+        
+        if (questionIndex !== -1) {
+          const question = { ...chapter.questions[questionIndex] };
           
-          if (questionIndex !== -1) {
-            const question = { ...chapter.questions[questionIndex] };
-            
-            // 正解/不正解に基づいて次回の日付と間隔を更新
-            const today = new Date();
-            let nextDate = new Date();
-            let newInterval = '';
-            
-            if (isCorrect) {
-              if (understanding.startsWith('曖昧△')) {
-                const reason = understanding.split(':')[1] || '';
-                
-                if (reason.includes('偶然正解')) {
-                  nextDate.setDate(today.getDate() + 2);
-                  newInterval = '2日';
-                } else if (reason.includes('他の選択肢の意味')) {
-                  nextDate.setDate(today.getDate() + 10);
-                  newInterval = '10日';
-                } else if (reason.includes('別の理由を思い浮かべ') || reason.includes('合っていたが')) {
-                  nextDate.setDate(today.getDate() + 5);
-                  newInterval = '5日';
-                } else {
-                  nextDate.setDate(today.getDate() + 20);
-                  newInterval = '20日';
-                }
-
-　　　　　　　　　// 曖昧理由をそのまま保存（分析ページで使用するため）
-              console.log("曖昧理由を記録:", reason);
-                
-              } else {
-                switch(question.interval) {
-                  case '1日': 
-                  case '2日': 
-                  case '5日': 
-                  case '10日': 
-                  case '20日':
-                    nextDate.setDate(today.getDate() + 3);
-                    newInterval = '3日';
-                    break;
-                  case '3日': 
-                    nextDate.setDate(today.getDate() + 7);
-                    newInterval = '7日';
-                    break;
-                  case '7日': 
-                    nextDate.setDate(today.getDate() + 14);
-                    newInterval = '14日';
-                    break;
-                  case '14日': 
-                    nextDate.setMonth(today.getMonth() + 1);
-                    newInterval = '1ヶ月';
-                    break;
-                  case '1ヶ月': 
-                    nextDate.setMonth(today.getMonth() + 2);
-                    newInterval = '2ヶ月';
-                    break;
-                  case '2ヶ月':
-                  default:
-                    nextDate.setMonth(today.getMonth() + 2);
-                    newInterval = '2ヶ月';
-                    break;
-                }
-              }
+          // 正解/不正解に基づいて次回の日付と間隔を更新
+          const today = new Date();
+          let nextDate = new Date();
+          let newInterval = '';
+          
+          if (isCorrect) {
+            if (understanding.startsWith('曖昧△')) {
+              // どの曖昧理由を選んでも一律8日後
+              nextDate.setDate(today.getDate() + 8);
+              newInterval = '8日';
+              
+              // 理由は記録用に保存するが、スケジュールには影響させない
+              const reason = understanding.split(':')[1] || '';
+              console.log("曖昧理由を記録（スケジュールには影響なし）:", reason);
             } else {
-              nextDate.setDate(today.getDate() + 1);
-              newInterval = '1日';
+              // 理解済みの場合は通常のスケジュール
+              switch(question.interval) {
+                case '1日': 
+                case '2日': 
+                case '5日':
+                case '8日':
+                case '10日': 
+                case '15日':
+                case '20日':
+                  nextDate.setDate(today.getDate() + 3);
+                  newInterval = '3日';
+                  break;
+                case '3日': 
+                  nextDate.setDate(today.getDate() + 7);
+                  newInterval = '7日';
+                  break;
+                case '7日': 
+                  nextDate.setDate(today.getDate() + 14);
+                  newInterval = '14日';
+                  break;
+                case '14日': 
+                  nextDate.setMonth(today.getMonth() + 1);
+                  newInterval = '1ヶ月';
+                  break;
+                case '1ヶ月': 
+                  nextDate.setMonth(today.getMonth() + 2);
+                  newInterval = '2ヶ月';
+                  break;
+                case '2ヶ月':
+                default:
+                  nextDate.setMonth(today.getMonth() + 2);
+                  newInterval = '2ヶ月';
+                  break;
+              }
             }
-
-            // 問題データ更新
-            chapter.questions[questionIndex] = {
-              ...question,
-              lastAnswered: today,
-              nextDate: nextDate,
-              interval: newInterval,
-              answerCount: question.answerCount + 1,
-              understanding: understanding,
-              correctRate: isCorrect 
-                ? Math.round((question.correctRate * question.answerCount + 100) / (question.answerCount + 1))
-                : Math.round((question.correctRate * question.answerCount) / (question.answerCount + 1)),
-            };
-            
-            return newSubjects;
+          } else {
+            nextDate.setDate(today.getDate() + 1);
+            newInterval = '1日';
           }
+
+          // 問題データ更新
+          chapter.questions[questionIndex] = {
+            ...question,
+            lastAnswered: today,
+            nextDate: nextDate,
+            interval: newInterval,
+            answerCount: question.answerCount + 1,
+            understanding: understanding,
+            correctRate: isCorrect 
+              ? Math.round((question.correctRate * question.answerCount + 100) / (question.answerCount + 1))
+              : Math.round((question.correctRate * question.answerCount) / (question.answerCount + 1)),
+          };
+          
+          return newSubjects;
         }
       }
-      
-      return prevSubjects;
-    });
-  };
+    }
+    
+    return prevSubjects;
+  });
+};
 
   // 問題の編集を保存
   const saveQuestionEdit = (questionData) => {
