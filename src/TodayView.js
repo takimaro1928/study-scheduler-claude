@@ -1,9 +1,9 @@
 // TodayView.jsx
-// 【最終確定版 v2】カード形式 + 適度なボタン + 柔らかい色合い
+// 【再掲・最終目標デザイン版】カード形式 + 適度なボタン + 参照画像のデザイン
 
 import React, { useState } from 'react';
 // lucide-react からアイコンをインポート
-import { Check, X, AlertTriangle, ChevronsUpDown } from 'lucide-react'; // Clock はタイトルから削除
+import { Check, X, AlertTriangle, ChevronsUpDown } from 'lucide-react';
 
 const TodayView = ({ getTodayQuestions, recordAnswer, formatDate }) => {
   const todayQuestions = getTodayQuestions();
@@ -39,7 +39,7 @@ const TodayView = ({ getTodayQuestions, recordAnswer, formatDate }) => {
     '自信はなかったけど、これかなとは思っていた', '問題を覚えてしまっていた', 'その他'
   ];
 
-  // --- JSX 部分: カード + 適度なボタン + 柔らかい色合いで修正 ---
+  // --- JSX 部分: 指示されたデザイン + おしゃれ感を意識して修正 ---
   return (
     <div className="px-4 py-6 sm:px-6 w-full max-w-2xl mx-auto pb-20"> {/* 最大幅調整 */}
       {/* ページタイトル */}
@@ -51,19 +51,20 @@ const TodayView = ({ getTodayQuestions, recordAnswer, formatDate }) => {
       </h2>
 
       {todayQuestions.length === 0 ? (
+        // 問題がない場合の表示 (カード風)
         <div className="bg-white shadow-md rounded-xl p-8 text-center border border-gray-100">
           <p className="text-gray-600 font-medium text-base sm:text-lg">今日解く問題はありません 🎉</p>
           <p className="text-gray-500 mt-2 text-sm">素晴らしい！ゆっくり休んでください。</p>
         </div>
       ) : (
-        // 問題リスト (カード形式)
+         // 問題リスト (カード形式)
         <div className="space-y-5 sm:space-y-6"> {/* カード間隔調整 */}
           {todayQuestions.map(question => {
             const questionState = getQuestionState(question.id);
             const isAmbiguousPanelOpen = expandedAmbiguousId === question.id;
 
             return (
-              // 問題カード (影を少し柔らかく)
+              // 問題カード (影、角丸を調整)
               <div key={question.id} className="bg-white shadow-md rounded-lg border border-gray-100 overflow-hidden transition-shadow duration-300 hover:shadow-lg"> {/* rounded-lgに変更 */}
                 <div className="p-5 sm:p-6"> {/* カード内パディング */}
                   {/* 問題情報 */}
