@@ -4,8 +4,6 @@
 import React, { useState } from 'react';
 // lucide-react からアイコンをインポート
 import { Check, X, AlertTriangle, ChevronsUpDown } from 'lucide-react';
-// CSSファイルをインポート (もし別ファイルにした場合)
-import './TodayView.css'; // この行を追加/またはindex.cssで読み込む
 
 const TodayView = ({ getTodayQuestions, recordAnswer, formatDate }) => {
   const todayQuestions = getTodayQuestions();
