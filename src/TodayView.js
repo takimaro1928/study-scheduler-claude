@@ -109,57 +109,83 @@ const TodayView = ({
                     {expandedAmbiguousId === question.id ? ' 🔼' : ' 🔽'}
                   </button>
                 </div>
-                
-                {/* 曖昧さの理由選択（ドロップダウン） */}
-                {expandedAmbiguousId === question.id && (
-                  <div className="mt-4 rounded-xl overflow-hidden border border-yellow-300 animate-fadeIn shadow-lg">
-                    <div className="bg-gradient-to-r from-yellow-300 to-amber-300 p-4">
-                      <div className="text-base font-bold text-black">曖昧だった理由を選択してください:</div>
-                    </div>
-                    <div className="divide-y divide-yellow-200 bg-white">
-                      <button 
-                        onClick={() => selectAmbiguousReason(question.id, '偶然正解した')}
-                        className="w-full py-5 px-5 text-left hover:bg-yellow-50 transition-all text-black flex items-center justify-between"
-                      >
-                        <div className="flex items-center">
-                          <span className="w-4 h-4 bg-yellow-500 rounded-full mr-3"></span>
-                          <span className="font-bold text-base">偶然正解した</span>
-                        </div>
-                        <span className="text-base font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">2日後</span>
-                      </button>
-                      <button 
-                        onClick={() => selectAmbiguousReason(question.id, '正解の選択肢は理解していたが、他の選択肢の意味が分かっていなかった')}
-                        className="w-full py-5 px-5 text-left hover:bg-yellow-50 transition-all text-black flex items-center justify-between"
-                      >
-                        <div className="flex items-center flex-1 mr-2">
-                          <span className="w-4 h-4 bg-yellow-500 rounded-full mr-3 flex-shrink-0"></span>
-                          <span className="font-bold text-base">正解の選択肢は理解していたが、他の選択肢の意味が分かっていなかった</span>
-                        </div>
-                        <span className="text-base font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full whitespace-nowrap">10日後</span>
-                      </button>
-                      <button 
-                        onClick={() => selectAmbiguousReason(question.id, '合っていたが、別の理由を思い浮かべていた')}
-                        className="w-full py-5 px-5 text-left hover:bg-yellow-50 transition-all text-black flex items-center justify-between"
-                      >
-                        <div className="flex items-center">
-                          <span className="w-4 h-4 bg-yellow-500 rounded-full mr-3"></span>
-                          <span className="font-bold text-base">合っていたが、別の理由を思い浮かべていた</span>
-                        </div>
-                        <span className="text-base font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">5日後</span>
-                      </button>
-                      <button 
-                        onClick={() => selectAmbiguousReason(question.id, 'その他')}
-                        className="w-full py-5 px-5 text-left hover:bg-yellow-50 transition-all text-black flex items-center justify-between"
-                      >
-                        <div className="flex items-center">
-                          <span className="w-4 h-4 bg-yellow-500 rounded-full mr-3"></span>
-                          <span className="font-bold text-base">その他</span>
-                        </div>
-                        <span className="text-base font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">20日後</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
+
+                                                           {/* 曖昧さの理由選択（ドロップダウン） */}
+{expandedAmbiguousId === question.id && (
+  <div className="mt-4 rounded-xl overflow-hidden border border-yellow-300 animate-fadeIn shadow-lg" style={{ opacity: 1 }}>
+    <div className="bg-gradient-to-r from-amber-300 to-yellow-300 p-4">
+      <div className="text-base font-bold text-black" style={{ opacity: 1 }}>曖昧だった理由を選択してください:</div>
+    </div>
+    <div className="divide-y divide-yellow-200 bg-white">
+      <button 
+        onClick={() => selectAmbiguousReason(question.id, '偶然正解した')}
+        className="w-full py-4 px-5 text-left hover:bg-yellow-50 transition-all text-black flex items-center justify-between"
+        style={{ opacity: 1 }}
+      >
+        <div className="flex items-center">
+          <span className="w-4 h-4 bg-yellow-500 rounded-full mr-3"></span>
+          <span className="font-bold text-black" style={{ opacity: 1 }}>偶然正解した</span>
+        </div>
+        <span className="text-base font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full" style={{ opacity: 1 }}>8日後</span>
+      </button>
+      <button 
+        onClick={() => selectAmbiguousReason(question.id, '正解の選択肢は理解していたが、他の選択肢の意味が分かっていなかった')}
+        className="w-full py-4 px-5 text-left hover:bg-yellow-50 transition-all text-black flex items-center justify-between"
+        style={{ opacity: 1 }}
+      >
+        <div className="flex items-center flex-1 mr-2">
+          <span className="w-4 h-4 bg-yellow-500 rounded-full mr-3 flex-shrink-0"></span>
+          <span className="font-bold text-black" style={{ opacity: 1 }}>正解の選択肢は理解していたが、他の選択肢の意味が分かっていなかった</span>
+        </div>
+        <span className="text-base font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full whitespace-nowrap" style={{ opacity: 1 }}>8日後</span>
+      </button>
+      <button 
+        onClick={() => selectAmbiguousReason(question.id, '合っていたが、別の理由を思い浮かべていた')}
+        className="w-full py-4 px-5 text-left hover:bg-yellow-50 transition-all text-black flex items-center justify-between"
+        style={{ opacity: 1 }}
+      >
+        <div className="flex items-center">
+          <span className="w-4 h-4 bg-yellow-500 rounded-full mr-3"></span>
+          <span className="font-bold text-black" style={{ opacity: 1 }}>合っていたが、別の理由を思い浮かべていた</span>
+        </div>
+        <span className="text-base font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full" style={{ opacity: 1 }}>8日後</span>
+      </button>
+      <button 
+        onClick={() => selectAmbiguousReason(question.id, '自信はなかったけど、これかなとは思っていた')}
+        className="w-full py-4 px-5 text-left hover:bg-yellow-50 transition-all text-black flex items-center justify-between"
+        style={{ opacity: 1 }}
+      >
+        <div className="flex items-center">
+          <span className="w-4 h-4 bg-yellow-500 rounded-full mr-3"></span>
+          <span className="font-bold text-black" style={{ opacity: 1 }}>自信はなかったけど、これかなとは思っていた</span>
+        </div>
+        <span className="text-base font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full" style={{ opacity: 1 }}>8日後</span>
+      </button>
+      <button 
+        onClick={() => selectAmbiguousReason(question.id, '問題を覚えてしまっていた')}
+        className="w-full py-4 px-5 text-left hover:bg-yellow-50 transition-all text-black flex items-center justify-between"
+        style={{ opacity: 1 }}
+      >
+        <div className="flex items-center">
+          <span className="w-4 h-4 bg-yellow-500 rounded-full mr-3"></span>
+          <span className="font-bold text-black" style={{ opacity: 1 }}>問題を覚えてしまっていた</span>
+        </div>
+        <span className="text-base font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full" style={{ opacity: 1 }}>8日後</span>
+      </button>
+      <button 
+        onClick={() => selectAmbiguousReason(question.id, 'その他')}
+        className="w-full py-4 px-5 text-left hover:bg-yellow-50 transition-all text-black flex items-center justify-between"
+        style={{ opacity: 1 }}
+      >
+        <div className="flex items-center">
+          <span className="w-4 h-4 bg-yellow-500 rounded-full mr-3"></span>
+          <span className="font-bold text-black" style={{ opacity: 1 }}>その他</span>
+        </div>
+        <span className="text-base font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full" style={{ opacity: 1 }}>8日後</span>
+      </button>
+    </div>
+  </div>
+)}
               </div>
             </div>
           ))}
