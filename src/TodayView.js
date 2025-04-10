@@ -1,9 +1,11 @@
 // TodayView.jsx
-// 【再掲・最終目標デザイン版】カード形式 + 適度なボタン + 参照画像のデザイン
+// カスタムCSSクラスを使用するように className を変更
 
 import React, { useState } from 'react';
 // lucide-react からアイコンをインポート
 import { Check, X, AlertTriangle, ChevronsUpDown } from 'lucide-react';
+// CSSファイルをインポート (もし別ファイルにした場合)
+import './TodayView.css'; // この行を追加/またはindex.cssで読み込む
 
 const TodayView = ({ getTodayQuestions, recordAnswer, formatDate }) => {
   const todayQuestions = getTodayQuestions();
@@ -39,116 +41,108 @@ const TodayView = ({ getTodayQuestions, recordAnswer, formatDate }) => {
     '自信はなかったけど、これかなとは思っていた', '問題を覚えてしまっていた', 'その他'
   ];
 
-  // --- JSX 部分: 指示されたデザイン + おしゃれ感を意識して修正 ---
+  // --- JSX 部分: カスタムCSSクラスを使用 ---
   return (
-    <div className="px-4 py-6 sm:px-6 w-full max-w-2xl mx-auto pb-20"> {/* 最大幅調整 */}
+    <div className="today-container">
       {/* ページタイトル */}
-      <h2 className="text-xl sm:text-2xl font-semibold mb-6 sm:mb-8 text-gray-700 flex items-center justify-center">
+      <h2 className="today-title-container">
         <span>今日解く問題</span>
-        <span className="ml-3 text-sm sm:text-base bg-indigo-100 text-indigo-700 px-3 py-0.5 rounded-full font-medium shadow-sm">
+        <span className="today-date-badge">
           {formatDate(new Date())}
         </span>
       </h2>
 
       {todayQuestions.length === 0 ? (
-        // 問題がない場合の表示 (カード風)
-        <div className="bg-white shadow-md rounded-xl p-8 text-center border border-gray-100">
-          <p className="text-gray-600 font-medium text-base sm:text-lg">今日解く問題はありません 🎉</p>
-          <p className="text-gray-500 mt-2 text-sm">素晴らしい！ゆっくり休んでください。</p>
+        <div className="today-empty-card">
+          <p>今日解く問題はありません 🎉</p>
+          <p>素晴らしい！ゆっくり休んでください。</p>
         </div>
       ) : (
-         // 問題リスト (カード形式)
-        <div className="space-y-5 sm:space-y-6"> {/* カード間隔調整 */}
+        // 問題リスト
+        <div className="today-list">
           {todayQuestions.map(question => {
             const questionState = getQuestionState(question.id);
             const isAmbiguousPanelOpen = expandedAmbiguousId === question.id;
 
             return (
-              // 問題カード (影、角丸を調整)
-              <div key={question.id} className="bg-white shadow-md rounded-lg border border-gray-100 overflow-hidden transition-shadow duration-300 hover:shadow-lg"> {/* rounded-lgに変更 */}
-                <div className="p-5 sm:p-6"> {/* カード内パディング */}
+              // 問題カード
+              <div key={question.id} className="today-card">
+                <div className="today-card__content">
                   {/* 問題情報 */}
-                  <div className="text-xs font-medium text-indigo-500 mb-1 uppercase tracking-wider">{question.subjectName}</div> {/* 色を少し薄く */}
-                  <div className="font-semibold text-base sm:text-lg text-gray-800 mb-2">{question.chapterName}</div>
-                  <div className="inline-block bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-semibold mb-5 sm:mb-6"> {/* チップのスタイル変更 */}
+                  <div className="today-card__subject">{question.subjectName}</div>
+                  <div className="today-card__chapter">{question.chapterName}</div>
+                  <div className="today-card__qid-badge">
                     問題 {question.id}
                   </div>
 
-                  {/* --- 正誤ボタンエリア (適度なサイズ) --- */}
+                  {/* --- 正誤ボタンエリア --- */}
                   {!questionState.showComprehension && (
                     <div>
-                      <div className="text-xs sm:text-sm font-medium text-gray-500 mb-2">解答結果</div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3"> {/* gap調整 */}
-                        {/* 正解ボタン (少し柔らかい緑) */}
+                      <div className="today-section-label">解答結果</div>
+                      <div className="today-button-grid">
                         <button
                           onClick={() => handleAnswerClick(question.id, true)}
-                          className="w-full py-2.5 px-4 bg-white border-2 border-green-400 text-green-600 rounded-md hover:bg-green-50 transition-all flex items-center justify-center font-semibold text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-300" // rounded-mdに変更
+                          className="today-button today-button--correct"
                         >
-                          <Check className="w-4 h-4 sm:w-5 sm:h-5 mr-2" strokeWidth={2.5} /> 正解
+                          <Check /> 正解
                         </button>
-                        {/* 不正解ボタン (少し柔らかい赤) */}
                         <button
                           onClick={() => handleAnswerClick(question.id, false)}
-                          className="w-full py-2.5 px-4 bg-white border-2 border-red-400 text-red-600 rounded-md hover:bg-red-50 transition-all flex items-center justify-center font-semibold text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-300" // rounded-mdに変更
+                          className="today-button today-button--incorrect"
                         >
-                          <X className="w-4 h-4 sm:w-5 sm:h-5 mr-2" strokeWidth={2.5} /> 不正解
+                          <X /> 不正解
                         </button>
                       </div>
                     </div>
                   )}
 
-                  {/* --- 理解度ボタンエリア (適度なサイズ + 柔らかい色) --- */}
+                  {/* --- 理解度ボタンエリア --- */}
                   {questionState.showComprehension && (
                     <div>
-                      <div className="text-xs sm:text-sm font-medium text-gray-500 mb-2">理解度を選択</div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3"> {/* gap調整 */}
-                        {/* 理解済みボタン (少し柔らかい緑) */}
+                      <div className="today-section-label">理解度を選択</div>
+                      <div className="today-button-grid">
                         <button
                           onClick={() => handleUnderstandClick(question.id)}
-                          className="w-full py-2.5 px-4 bg-white border-2 border-green-400 text-green-600 rounded-md hover:bg-green-50 transition-all flex items-center justify-center font-semibold text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-300" // rounded-mdに変更
+                          className="today-button today-button--understood"
                         >
-                          <Check className="w-4 h-4 sm:w-5 sm:h-5 mr-2" strokeWidth={2.5} /> 理解済み
+                          <Check /> 理解済み
                         </button>
-                        {/* 曖昧ボタン (少し柔らかいオレンジ) */}
                         <button
                           onClick={() => handleAmbiguousClick(question.id)}
-                          className={`w-full py-2.5 px-4 bg-white border-2 border-amber-400 text-amber-600 rounded-md hover:bg-amber-50 transition-all flex items-center justify-between font-semibold text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-300`} // rounded-md, 色調整
+                          // パネルが開いているかでクラスを切り替える例 (CSS側で .open を定義しても良い)
+                          className={`today-button today-button--ambiguous ${isAmbiguousPanelOpen ? 'open' : ''}`}
                         >
-                          <div className="flex items-center">
-                            <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 mr-2" strokeWidth={2.5}/>
+                          <div style={{display: 'flex', alignItems: 'center'}}> {/* Flexbox for icon+text */}
+                            <AlertTriangle/>
                             <span>曖昧</span>
                           </div>
-                          <ChevronsUpDown className={`w-4 h-4 text-gray-400 ml-2 flex-shrink-0 transform transition-transform duration-200 ${isAmbiguousPanelOpen ? 'rotate-180' : ''}`} />
+                           {/* アイコンのクラス名をCSSで定義したクラスに変更 */}
+                          <ChevronsUpDown className="today-button__dropdown-icon" />
                         </button>
                       </div>
                     </div>
                   )}
-                </div> {/* End of main card padding */}
+                </div> {/* End of card content */}
 
-                {/* --- 曖昧理由選択パネル (柔らかい色) --- */}
+                {/* --- 曖昧理由選択パネル --- */}
                 {isAmbiguousPanelOpen && (
-                  <div className="px-5 sm:px-6 pb-5">
-                     {/* パネル本体 */}
-                     <div className="mt-2 rounded-md border border-amber-200 bg-white overflow-hidden shadow-sm"> {/* rounded-md, 色調整 */}
-                       {/* パネルヘッダー (少し柔らかいオレンジ背景) */}
-                       <div className="bg-amber-50 p-2 sm:p-2.5 border-b border-amber-200">
-                         <div className="text-xs sm:text-sm font-semibold text-amber-700">曖昧だった理由を選択してください:</div> {/* 色調整 */}
+                  <div className="reason-panel-container">
+                     <div className="reason-panel">
+                       <div className="reason-panel__header">
+                         <div className="reason-panel__title">曖昧だった理由を選択してください:</div>
                        </div>
-                       {/* 理由選択肢 */}
-                       <div className="divide-y divide-gray-100">
+                       <div className="reason-panel__options">
                          {ambiguousReasons.map((reason, index) => (
                            <button
                              key={index}
                              onClick={() => selectAmbiguousReason(question.id, reason)}
-                             className="w-full py-3 sm:py-3 px-3 sm:px-4 text-left hover:bg-amber-50 focus:bg-amber-100 focus:outline-none transition-colors text-gray-700 flex items-center justify-between text-xs sm:text-sm"
+                             className="reason-option"
                            >
-                             <div className="flex items-center flex-1 mr-2">
-                               {/* ドットアイコン (少し柔らかいオレンジ) */}
-                               <span className="inline-block w-1.5 h-1.5 bg-orange-400 rounded-full mr-2 sm:mr-3 flex-shrink-0 ring-1 ring-orange-200"></span> {/* 色調整 */}
-                               <span className="font-medium">{reason}</span>
+                             <div className="reason-option__content">
+                               <span className="reason-option__dot"></span>
+                               <span className="reason-option__text">{reason}</span>
                              </div>
-                              {/* 日付バッジ (少し柔らかい青) */}
-                             <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full whitespace-nowrap shadow-sm">8日後</span> {/* 色調整 */}
+                             <span className="reason-option__badge">8日後</span>
                            </button>
                          ))}
                        </div>
