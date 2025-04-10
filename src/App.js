@@ -586,35 +586,35 @@ const TodayView = () => {
                       理解度を選択してください
                     </div>
                     <div className="flex gap-3">
+                     <button 
+ 　　　　　　　　　　　　　 onClick={() => handleUnderstandClick(question.id)}
+ 　　　　　　　　　　　　　 className="flex-1 py-4 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center"
+  　　　　　　　　　　　　　style={{ opacity: 1 }}
+　　　　　　　　　　　　>
+ 　　　　　　　　　　　　 <CheckCircle className="w-5 h-5 mr-2 text-white" />
+ 　　　　　　　　　　　　 <span className="text-lg font-bold" style={{
+   　　　　　　　　　　　 color: 'white', 
+  　　　　　　　　　　　  opacity: 1,
+   　　　　　　　　　　　 textShadow: '0 1px 2px rgba(0,0,0,0.5)'
+　　　　　　　　　　　　  }}>理解済み（完全に定着）</span>
+　　　　　　　　　　　</button>
                       <button 
-                        onClick={() => handleUnderstandClick(question.id)}
-                        className="flex-1 py-4 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center"
-                        style={{ opacity: 1 }}
-                      >
-                        <CheckCircle className="w-5 h-5 mr-2 text-black" />
-                        <span className="text-lg font-bold" style={{
-                          color: 'black', 
-                          opacity: 1,
-                          textShadow: '0 1px 3px rgba(255,255,255,0.5)'
-                        }}>理解済み（完全に定着）</span>
-                      </button>
-                      <button 
-                        onClick={() => handleAmbiguousClick(question.id)}
-                        className={`flex-1 py-4 ${
-                          expandedAmbiguousId === question.id 
-                            ? 'bg-gradient-to-br from-amber-500 to-yellow-600' 
-                            : 'bg-gradient-to-br from-amber-400 to-yellow-500'
-                        } rounded-xl font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center`}
-                        style={{ opacity: 1 }}
-                      >
-                        <AlertTriangle className="w-5 h-5 mr-2 text-black" />
-                        <span className="text-lg font-bold" style={{
-                          color: 'black', 
-                          opacity: 1,
-                          textShadow: '0 1px 3px rgba(255,255,255,0.5)'
-                        }}>曖昧（記憶の定着に疑問）</span>
-                        {expandedAmbiguousId === question.id ? ' 🔼' : ' 🔽'}
-                      </button>
+  　　　　　　　　　　　　　onClick={() => handleAmbiguousClick(question.id)}
+ 　　　　　　　　　　　　　 className={`flex-1 py-4 ${
+   　　　　　　　　　　　　　　expandedAmbiguousId === question.id 
+    　　　　　　　　　　　　　  ? 'bg-gradient-to-br from-amber-500 to-yellow-600' 
+     　　　　　　　　　　　　　 : 'bg-gradient-to-br from-amber-400 to-yellow-500'
+　　　　　　　　　　　　　  } rounded-xl font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center`}
+　　　　　　　　　　　　　  style={{ opacity: 1 }}
+　　　　　　　　　　　　　>
+　　　　　　　　　　　　　  <AlertTriangle className="w-5 h-5 mr-2 text-white" />
+　　　　　　　　　　　　　  <span className="text-lg font-bold" style={{
+   　　　　　　　　　　　　 color: 'white', 
+    　　　　　　　　　　　　opacity: 1,
+  　　　　　　　　　　　　  textShadow: '0 1px 2px rgba(0,0,0,0.5)'
+　　　　　　　　　　　　　 }}>曖昧（記憶の定着に疑問）</span>
+　　　　　　　　　　　　　 {expandedAmbiguousId === question.id ? ' 🔼' : ' 🔽'}
+　　　　　　　　　　　　　</button>
                     </div>
                   </div>
                 )}
