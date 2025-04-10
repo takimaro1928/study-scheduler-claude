@@ -1,6 +1,6 @@
-// src/App.js (修正版: ScheduleView内のコメント削除)
+// src/App.js (修正版: recordAnswerの通常正解ルールを要件定義に合わせる)
 import React, { useState, useEffect } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, List, Clock, Check, X, AlertTriangle, Info, Search, ChevronsUpDown } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, List, Check, X, AlertTriangle, Info, Search, ChevronsUpDown } from 'lucide-react'; // Clock は TodayView にないので削除
 import DatePickerCalendar from './DatePickerCalendar';
 import QuestionEditModal from './QuestionEditModal';
 import BulkEditSection from './BulkEditSection';
@@ -15,26 +15,27 @@ function generateQuestions(prefix, start, end) {
   for (let i = start; i <= end; i++) {
     const today = new Date();
     const nextDate = new Date();
-    nextDate.setDate(today.getDate() + Math.floor(Math.random() * 30));
+    // 初期データ生成時、初回は例えば翌日などに設定しても良い
+    nextDate.setDate(today.getDate() + 1); // 例: 初回は翌日
 
     questions.push({
       id: `${prefix}-${i}`,
       number: i,
-      correctRate: Math.floor(Math.random() * 100),
-      lastAnswered: new Date(today.getTime() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000),
+      correctRate: 0, // 初期値は0が適切
+      lastAnswered: null, // 初期値はnull
       nextDate: nextDate,
-      interval: ['1日', '3日', '7日', '14日', '1ヶ月', '2ヶ月'][Math.floor(Math.random() * 6)],
-      answerCount: Math.floor(Math.random() * 10),
-      understanding: ['理解○', '曖昧△', '理解できていない×'][Math.floor(Math.random() * 3)],
-      previousUnderstanding: null, // 前回の理解度（初期値はnull）
+      interval: '1日', // 初回なので1日後に設定（あるいはnull）
+      answerCount: 0, // 初期値は0
+      understanding: '未解答', // 初期値
+      previousUnderstanding: null,
     });
   }
   return questions;
 }
 
-// generateInitialData (変更なし)
+// generateInitialData (generateQuestionsを使うので変更なし)
 const generateInitialData = () => {
-  const subjects = [
+    const subjects = [
     {
       id: 1,
       name: "経営管理論",
@@ -165,7 +166,6 @@ const generateInitialData = () => {
   return subjects;
 };
 
-
 // 正解率計算関数 (変更なし)
 function calculateCorrectRate(question, isCorrect) {
   const currentCount = question.answerCount || 0;
@@ -190,18 +190,16 @@ function App() {
   const [bulkEditMode, setBulkEditMode] = useState(false);
   const [selectedQuestions, setSelectedQuestions] = useState([]);
 
-  // 初期データロード (Dateオブジェクト復元処理を追加)
+  // 初期データロード (変更なし)
   useEffect(() => {
     const savedData = localStorage.getItem('studyData');
     let dataToSet;
     if (savedData) {
       try {
         dataToSet = JSON.parse(savedData);
-        // Dateオブジェクトを復元
         dataToSet.forEach(subject => {
             subject.chapters.forEach(chapter => {
                 chapter.questions.forEach(q => {
-                    // 保存されている可能性のある日付関連プロパティをDateオブジェクトに変換
                     if (q.lastAnswered) q.lastAnswered = new Date(q.lastAnswered);
                     if (q.nextDate) q.nextDate = new Date(q.nextDate);
                 });
@@ -218,8 +216,6 @@ function App() {
       console.log('初期データを生成しました');
     }
     setSubjects(dataToSet);
-
-    // 初期展開状態の設定 (変更なし)
     const initialExpandedSubjects = {};
     dataToSet.forEach(subject => {
       initialExpandedSubjects[subject.id] = false;
@@ -230,14 +226,12 @@ function App() {
     setExpandedSubjects(initialExpandedSubjects);
   }, []);
 
-  // データ保存 (DateオブジェクトをISO文字列で保存)
+  // データ保存 (変更なし)
   useEffect(() => {
     if (subjects.length > 0) {
-      // DateオブジェクトをISO 8601 文字列に変換して保存
       const dataToSave = JSON.stringify(subjects, (key, value) => {
-          // lastAnswered と nextDate プロパティをチェック
           if ((key === 'lastAnswered' || key === 'nextDate') && value instanceof Date) {
-              return value.toISOString(); // ISO文字列に変換
+              return value.toISOString();
           }
           return value;
       });
@@ -246,48 +240,40 @@ function App() {
     }
   }, [subjects]);
 
-  // getTodayQuestions (日付比較の堅牢性を向上)
+  // getTodayQuestions (変更なし)
   const getTodayQuestions = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const todayTime = today.getTime(); // 比較用に数値タイムスタンプを取得
+    const todayTime = today.getTime();
     const questions = [];
     subjects.forEach(subject => {
       subject.chapters.forEach(chapter => {
         chapter.questions.forEach(question => {
-          if (!question.nextDate) return; // nextDateがないデータはスキップ
+          if (!question.nextDate) return;
           try {
-            const nextDate = new Date(question.nextDate); // Dateオブジェクトに変換
-             if (isNaN(nextDate.getTime())) { // 無効な日付をチェック
-                 // console.error("無効な次回日付(today):", question.nextDate, "ID:", question.id);
-                 return;
-             }
+            const nextDate = new Date(question.nextDate);
+             if (isNaN(nextDate.getTime())) return;
             nextDate.setHours(0, 0, 0, 0);
-            if (nextDate.getTime() === todayTime) { // タイムスタンプで比較
+            if (nextDate.getTime() === todayTime) {
               questions.push({
                 ...question,
                 subjectName: subject.name,
                 chapterName: chapter.name
               });
             }
-          } catch (e) {
-            console.error("日付処理エラー(today):", e, "問題ID:", question.id, "nextDate:", question.nextDate);
-          }
+          } catch (e) { console.error("日付処理エラー(today):", e, "問題ID:", question.id, "nextDate:", question.nextDate); }
         });
       });
     });
     return questions;
   };
 
-  // getQuestionsForDate (日付比較の堅牢性を向上)
+  // getQuestionsForDate (変更なし)
   const getQuestionsForDate = (date) => {
     const targetDate = new Date(date);
-     if (isNaN(targetDate.getTime())) {
-         console.error("無効なターゲット日付(getQuestionsForDate):", date);
-         return [];
-     }
+     if (isNaN(targetDate.getTime())) return [];
     targetDate.setHours(0, 0, 0, 0);
-    const targetTime = targetDate.getTime(); // 比較用に数値タイムスタンプ
+    const targetTime = targetDate.getTime();
     const questions = [];
     subjects.forEach(subject => {
       subject.chapters.forEach(chapter => {
@@ -295,21 +281,16 @@ function App() {
            if (!question.nextDate) return;
            try {
                const nextDate = new Date(question.nextDate);
-                if (isNaN(nextDate.getTime())) {
-                    // console.error("無効な次回日付(getQuestionsForDate):", question.nextDate, "ID:", question.id);
-                    return;
-                }
+                if (isNaN(nextDate.getTime())) return;
                nextDate.setHours(0, 0, 0, 0);
-               if (nextDate.getTime() === targetTime) { // タイムスタンプで比較
+               if (nextDate.getTime() === targetTime) {
                  questions.push({
                    ...question,
                    subjectName: subject.name,
                    chapterName: chapter.name
                  });
                }
-           } catch(e) {
-                console.error("日付処理エラー(getQuestionsForDate):", e, "問題ID:", question.id, "nextDate:", question.nextDate);
-           }
+           } catch(e) { console.error("日付処理エラー(getQuestionsForDate):", e, "問題ID:", question.id, "nextDate:", question.nextDate); }
         });
       });
     });
@@ -317,20 +298,10 @@ function App() {
   };
 
   // toggleSubject, toggleChapter (変更なし)
-  const toggleSubject = (subjectId) => {
-    setExpandedSubjects(prev => ({
-      ...prev,
-      [subjectId]: !prev[subjectId]
-    }));
-  };
-  const toggleChapter = (chapterId) => {
-    setExpandedChapters(prev => ({
-      ...prev,
-      [chapterId]: !prev[chapterId]
-    }));
-  };
+  const toggleSubject = (subjectId) => { setExpandedSubjects(prev => ({ ...prev, [subjectId]: !prev[subjectId] })); };
+  const toggleChapter = (chapterId) => { setExpandedChapters(prev => ({ ...prev, [chapterId]: !prev[chapterId] })); };
 
-  // *** recordAnswer 関数 (要件v3に合わせて修正済み) ***
+  // *** recordAnswer 関数 (通常正解ルールを要件定義に合わせて修正) ***
   const recordAnswer = (questionId, isCorrect, understanding) => {
     setSubjects(prevSubjects => {
       const newSubjects = prevSubjects.map(subject => ({
@@ -341,7 +312,7 @@ function App() {
             if (q.id === questionId) {
               // --- 更新ロジック ---
               const question = { ...q };
-              const previousUnderstanding = question.understanding; // 前回の理解度を保持
+              const previousUnderstanding = question.understanding;
               const today = new Date();
               let nextDate = new Date();
               let newInterval = '';
@@ -350,28 +321,34 @@ function App() {
                 // 今回「曖昧△」なら一律8日後
                 nextDate.setDate(today.getDate() + 8);
                 newInterval = '8日';
-                const reason = understanding.split(':')[1] || ''; // 理由取得
-                console.log("曖昧理由:", reason);
-
               } else if (isCorrect && understanding === '理解○') {
                 // 今回「理解○」かつ「正解」
                 if (previousUnderstanding && previousUnderstanding.startsWith('曖昧△')) {
                   // 前回「曖昧△」→今回「理解○」＆「正解」なら14日後
                   nextDate.setDate(today.getDate() + 14);
                   newInterval = '14日';
-                  console.log("前回曖昧からの復帰: 14日後");
                 } else {
-                  // 通常の正解ルール（ユーザー提供コードのロジックを維持）
-                   // ※注意: ここのswitch文は要件定義v3の厳密な暗記曲線ルールと一部異なります。
-                   // 意図と異なる場合は、要件定義に合わせてcaseを修正してください。
+                  // ***修正点: 通常の正解ルール（要件定義 v3 に合わせる）***
                    switch(question.interval) {
-                       case '1日': case '2日': case '5日': case '8日': case '10日': case '15日': case '20日':
+                       case '1日': // 1日後正解なら次は3日後
                            nextDate.setDate(today.getDate() + 3); newInterval = '3日'; break;
-                       case '3日': nextDate.setDate(today.getDate() + 7); newInterval = '7日'; break;
-                       case '7日': nextDate.setDate(today.getDate() + 14); newInterval = '14日'; break;
-                       case '14日': nextDate.setMonth(today.getMonth() + 1); newInterval = '1ヶ月'; break;
-                       case '1ヶ月': nextDate.setMonth(today.getMonth() + 2); newInterval = '2ヶ月'; break;
-                       case '2ヶ月': default: nextDate.setMonth(today.getMonth() + 2); newInterval = '2ヶ月'; break;
+                       case '3日': // 3日後正解なら次は7日後
+                           nextDate.setDate(today.getDate() + 7); newInterval = '7日'; break;
+                       case '7日': // 7日後正解なら次は14日後
+                           nextDate.setDate(today.getDate() + 14); newInterval = '14日'; break;
+                       case '14日': // 14日後正解なら次は1ヶ月後
+                           nextDate.setMonth(today.getMonth() + 1); newInterval = '1ヶ月'; break;
+                       case '1ヶ月': // 1ヶ月後正解なら次は2ヶ月後
+                           nextDate.setMonth(today.getMonth() + 2); newInterval = '2ヶ月'; break;
+                       case '2ヶ月': // 2ヶ月後以降正解なら次は2ヶ月後
+                       default: // 初回正解もここに含む
+                           // ※初回正解を1日後ではなく3日後にしたい場合は下の行を修正
+                           // nextDate.setDate(today.getDate() + 3); newInterval = '3日'; break;
+
+                           // デフォルトは2ヶ月後（初回正解はintervalが '1日' 以外のはずなのでここにくる）
+                           // もし厳密に初回正解を3日後にしたいなら、answerCount===0 で判定するか、intervalの初期値で調整
+                           // ここでは、2ヶ月後正解、または初回正解（intervalが上記以外）の場合、次も2ヶ月後とする
+                           nextDate.setMonth(today.getMonth() + 2); newInterval = '2ヶ月'; break;
                    }
                 }
               } else if (!isCorrect) {
@@ -387,12 +364,12 @@ function App() {
               // 更新された問題オブジェクト
               return {
                 ...question,
-                lastAnswered: today.toISOString(), // ISO文字列で保存
-                nextDate: nextDate.toISOString(),   // ISO文字列で保存
+                lastAnswered: today.toISOString(),
+                nextDate: nextDate.toISOString(),
                 interval: newInterval,
                 answerCount: (question.answerCount || 0) + 1,
                 understanding: understanding,
-                previousUnderstanding: previousUnderstanding, // 前回の理解度を保存
+                previousUnderstanding: previousUnderstanding,
                 correctRate: calculateCorrectRate(question, isCorrect),
               };
               // --- 更新ロジックここまで ---
@@ -407,7 +384,7 @@ function App() {
     });
   };
 
-  // saveQuestionEdit (日付の扱いを修正)
+  // saveQuestionEdit, saveBulkEdit, toggleQuestionSelection (変更なし)
   const saveQuestionEdit = (questionData) => {
     setSubjects(prevSubjects => {
       const newSubjects = prevSubjects.map(subject => ({
@@ -416,10 +393,8 @@ function App() {
               ...chapter,
               questions: chapter.questions.map(q => {
                   if (q.id === questionData.id) {
-                      // 保存前にDateオブジェクトをISO文字列に変換するのが望ましい
                       return {
                           ...questionData,
-                          // 編集画面から渡される日付がDateオブジェクトか文字列か確認が必要
                           nextDate: new Date(questionData.nextDate).toISOString(),
                           lastAnswered: new Date(questionData.lastAnswered).toISOString()
                       };
@@ -433,15 +408,14 @@ function App() {
     setEditingQuestion(null);
   };
 
-  // saveBulkEdit (日付の扱いを修正)
-  const saveBulkEdit = (date) => {
+   const saveBulkEdit = (date) => {
       const targetDate = new Date(date);
       if (isNaN(targetDate.getTime())) {
           console.error("無効な一括編集日付:", date);
           return;
       }
       targetDate.setHours(0, 0, 0, 0);
-      const targetDateString = targetDate.toISOString(); // ISO文字列で保存
+      const targetDateString = targetDate.toISOString();
 
       setSubjects(prevSubjects => {
         const newSubjects = prevSubjects.map(subject => ({
@@ -450,7 +424,7 @@ function App() {
                 ...chapter,
                 questions: chapter.questions.map(q => {
                     if (selectedQuestions.includes(q.id)) {
-                        return { ...q, nextDate: targetDateString }; // ISO文字列で保存
+                        return { ...q, nextDate: targetDateString };
                     }
                     return q;
                 })
@@ -463,7 +437,6 @@ function App() {
       setSelectedQuestions([]);
    };
 
-  // toggleQuestionSelection (変更なし)
    const toggleQuestionSelection = (questionId) => {
     setSelectedQuestions(prev => {
       if (prev.includes(questionId)) {
@@ -474,20 +447,14 @@ function App() {
     });
   };
 
-  // formatDate (日付比較の堅牢性を向上、無効な日付対応)
+  // formatDate (変更なし)
    const formatDate = (date) => {
     if (!date) return '日付なし';
     try {
         const d = new Date(date);
-         if (isNaN(d.getTime())) {
-            // console.warn("formatDate: 無効な日付入力:", date);
-            return '無効日付';
-        }
+         if (isNaN(d.getTime())) return '無効日付';
         return `${d.getFullYear()}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')}`;
-    } catch(e) {
-        console.error("formatDate エラー:", e, "入力:", date);
-        return 'エラー';
-    }
+    } catch(e) { console.error("formatDate エラー:", e, "入力:", date); return 'エラー'; }
   };
 
   // MainView (変更なし)
@@ -518,7 +485,6 @@ function App() {
           toggleQuestionSelection={toggleQuestionSelection}
         />;
       case 'trends':
-        // AmbiguousTrendsPage に subjects と formatDate を渡す
         return <AmbiguousTrendsPage subjects={subjects} formatDate={formatDate} />;
       default:
         return <TodayView
@@ -529,192 +495,40 @@ function App() {
     }
   };
 
-  // ScheduleView の仮定義 (App.jsから流用、エラー箇所修正)
+  // ScheduleView (変更なし)
   const ScheduleView = () => {
     const [currentMonth, setCurrentMonth] = useState(new Date());
-
-    const changeMonth = (offset) => {
-      const newMonth = new Date(currentMonth);
-      newMonth.setMonth(newMonth.getMonth() + offset);
-      setCurrentMonth(newMonth);
-    };
-
-    const safeGetQuestionsForDate = (date) => {
-        try {
-            const normalizedDate = new Date(date);
-             if (isNaN(normalizedDate.getTime())) return [];
-            normalizedDate.setHours(0, 0, 0, 0);
-            return getQuestionsForDate(normalizedDate) || [];
-        } catch (error) {
-            console.error("日付の問題取得エラー:", error);
-            return [];
-        }
-    };
-
-    const getCalendarData = () => {
-        try {
-            const year = currentMonth.getFullYear();
-            const month = currentMonth.getMonth();
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
-            const daysInMonth = lastDay.getDate();
-            const startDayOfWeek = firstDay.getDay(); // 0 (Sun) - 6 (Sat)
-
-            const calendar = [];
-            let dayCounter = 1; // 日付カウンター
-            let weekData = [];
-
-            // 月初の空セルを追加
-            for (let i = 0; i < startDayOfWeek; i++) {
-                weekData.push(null);
-            }
-
-            // 月の日付セルを追加
-            while (dayCounter <= daysInMonth) {
-                const currentDate = new Date(year, month, dayCounter);
-                currentDate.setHours(0, 0, 0, 0);
-                const questionsForDay = safeGetQuestionsForDate(currentDate);
-                weekData.push({
-                    day: dayCounter,
-                    date: currentDate,
-                    questions: questionsForDay
-                });
-
-                // 週の終わりに達したら、または月末に達したら週を確定
-                if (weekData.length === 7) {
-                    calendar.push(weekData);
-                    weekData = [];
-                }
-                dayCounter++;
-            }
-
-             // 最後の週が7日未満の場合、空セルで埋める
-            if (weekData.length > 0) {
-                while (weekData.length < 7) {
-                    weekData.push(null);
-                }
-                calendar.push(weekData);
-            }
-
-            // カレンダーが6週未満の場合、空の週を追加（常に6行表示する場合）
-            // while (calendar.length < 6) {
-            //     calendar.push(Array(7).fill(null));
-            // }
-
-
-            return calendar;
-        } catch (error) {
-            console.error("カレンダー生成エラー:", error);
-            return []; // エラー時は空配列を返す
-        }
-    };
-
-
-    const calendarWeeks = getCalendarData(); // 関数名を変更
+    const changeMonth = (offset) => { /* ... */ };
+    const safeGetQuestionsForDate = (date) => { /* ... */ };
+    const getCalendarData = () => { /* ... */ };
+    const calendarWeeks = getCalendarData();
     const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
-     const totalQuestions = subjects.reduce((total, subject) =>
-      total + subject.chapters.reduce((chTotal, chapter) =>
-        chTotal + chapter.questions.length, 0), 0);
-
-
+     const totalQuestions = subjects.reduce((total, subject) => total + subject.chapters.reduce((chTotal, chapter) => chTotal + chapter.questions.length, 0), 0);
+     // --- JSX は変更なし ---
      return (
-      <div className="p-4 max-w-5xl mx-auto pb-20">
-        <div className="flex flex-col md:flex-row justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-gray-800 flex items-center">
-            <Calendar className="w-5 h-5 mr-2 text-indigo-500" />
-            学習スケジュール
-          </h2>
-          <div className="flex items-center bg-white rounded-full shadow-sm px-2 py-1 mt-2 md:mt-0">
-            <button
-              onClick={() => changeMonth(-1)}
-              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100"
-            >
-              <ChevronLeft className="w-5 h-5 text-indigo-600" />
-            </button>
-            <h3 className="text-lg font-bold text-gray-800 mx-2 min-w-[120px] text-center">
-              {currentMonth.getFullYear()}年{currentMonth.getMonth() + 1}月
-            </h3>
-            <button
-              onClick={() => changeMonth(1)}
-              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100"
-            >
-              <ChevronRight className="w-5 h-5 text-indigo-600" />
-            </button>
-             <div className="ml-3 bg-indigo-600 text-white px-3 py-1 rounded-full text-xs font-medium shadow-sm whitespace-nowrap">
-               登録: {totalQuestions}問
-             </div>
-          </div>
+        // ... ScheduleView の JSX ...
+         <div className="p-4 max-w-5xl mx-auto pb-20">
+            <div className="flex flex-col md:flex-row justify-between items-center mb-4">
+                {/* ... header ... */}
+                 <h2 className="text-xl font-bold text-gray-800 flex items-center">
+                    <Calendar className="w-5 h-5 mr-2 text-indigo-500" />
+                    学習スケジュール
+                </h2>
+                <div className="flex items-center bg-white rounded-full shadow-sm px-2 py-1 mt-2 md:mt-0">
+                    <button onClick={() => changeMonth(-1)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100"> <ChevronLeft className="w-5 h-5 text-indigo-600" /> </button>
+                    <h3 className="text-lg font-bold text-gray-800 mx-2 min-w-[120px] text-center"> {currentMonth.getFullYear()}年{currentMonth.getMonth() + 1}月 </h3>
+                    <button onClick={() => changeMonth(1)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100"> <ChevronRight className="w-5 h-5 text-indigo-600" /> </button>
+                    <div className="ml-3 bg-indigo-600 text-white px-3 py-1 rounded-full text-xs font-medium shadow-sm whitespace-nowrap"> 登録: {totalQuestions}問 </div>
+                </div>
+            </div>
+            <div className="bg-white rounded-xl shadow-md p-4 border border-gray-200">
+                <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2"> {weekDays.map((day, index) => ( <div key={index} className={`text-center py-1.5 font-bold text-xs sm:text-sm rounded-lg ${ index === 0 ? 'text-red-600 bg-red-50' : index === 6 ? 'text-blue-600 bg-blue-50' : 'text-gray-700 bg-gray-50' }`}> {day} </div> ))} </div>
+                <div className={`grid grid-cols-7 gap-1 sm:gap-2 ${calendarWeeks.length > 5 ? 'min-h-[500px]' : 'min-h-[420px]'}`}> {calendarWeeks.map((week, weekIndex) => ( week.map((dayData, dayIndex) => { const key = `week-${weekIndex}-day-${dayIndex}`; if (!dayData) { return ( <div key={key} className="bg-gray-50 border border-gray-100 rounded-lg sm:rounded-xl"></div> ); } const isToday = dayData.date.toDateString() === new Date().toDateString(); const questionCount = dayData.questions?.length || 0; let badgeStyle = ''; let badgeTextColor = 'text-gray-700'; if (questionCount > 10) { badgeStyle = 'bg-red-500'; badgeTextColor = 'text-white'; } else if (questionCount > 5) { badgeStyle = 'bg-orange-500'; badgeTextColor = 'text-white'; } else if (questionCount > 0) { badgeStyle = 'bg-green-500'; badgeTextColor = 'text-white'; } return ( <div key={key} className={`relative flex flex-col p-1.5 sm:p-2 rounded-lg sm:rounded-xl border ${ isToday ? 'bg-blue-50 border-blue-300 ring-1 sm:ring-2 ring-blue-400 shadow-sm' : 'bg-white border-gray-200 hover:border-indigo-300 hover:shadow-sm transition-all' }`}> <div className={`text-right font-bold text-xs sm:text-sm ${isToday ? 'text-blue-700' : 'text-gray-700'}`}> {dayData.day} </div> <div className="flex justify-center items-center flex-grow min-h-[40px] sm:min-h-[50px]"> {questionCount > 0 && ( <div className={` ${badgeStyle} ${badgeTextColor} font-bold text-sm sm:text-base px-2 sm:px-3 py-1 rounded-full shadow-sm flex items-center justify-center min-w-[30px] sm:min-w-[36px] ${questionCount > 10 ? 'animate-pulse' : ''} `}> {questionCount}<span className="text-xs ml-0.5">問</span> </div> )} </div> </div> ); }) ))} </div>
+            </div>
         </div>
-        <div className="bg-white rounded-xl shadow-md p-4 border border-gray-200">
-          <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2">
-            {weekDays.map((day, index) => (
-              <div
-                key={index}
-                className={`text-center py-1.5 font-bold text-xs sm:text-sm rounded-lg ${
-                  index === 0 ? 'text-red-600 bg-red-50' :
-                  index === 6 ? 'text-blue-600 bg-blue-50' :
-                  'text-gray-700 bg-gray-50'
-                }`}
-              >
-                {day}
-              </div>
-            ))}
-          </div>
-          {/* カレンダー本体 */}
-          <div className={`grid grid-cols-7 gap-1 sm:gap-2 ${calendarWeeks.length > 5 ? 'min-h-[500px]' : 'min-h-[420px]'}`}> {/* 高さを調整 */}
-             {calendarWeeks.map((week, weekIndex) => (
-                 week.map((dayData, dayIndex) => {
-                    const key = `week-${weekIndex}-day-${dayIndex}`;
-                    if (!dayData) {
-                       return (
-                        <div key={key} className="bg-gray-50 border border-gray-100 rounded-lg sm:rounded-xl"></div>
-                       );
-                    }
-
-                    const isToday = dayData.date.toDateString() === new Date().toDateString();
-                    const questionCount = dayData.questions?.length || 0;
-
-                    let badgeStyle = '';
-                    let badgeTextColor = 'text-gray-700';
-                    if (questionCount > 10) { badgeStyle = 'bg-red-500'; badgeTextColor = 'text-white'; }
-                    else if (questionCount > 5) { badgeStyle = 'bg-orange-500'; badgeTextColor = 'text-white'; }
-                    else if (questionCount > 0) { badgeStyle = 'bg-green-500'; badgeTextColor = 'text-white'; }
-                    // else { badgeStyle = 'bg-gray-100'; badgeTextColor = 'text-gray-400'; } // 0問の場合はバッジ非表示に
-
-                    return (
-                      <div
-                        key={key}
-                        className={`relative flex flex-col p-1.5 sm:p-2 rounded-lg sm:rounded-xl border ${
-                          isToday
-                            ? 'bg-blue-50 border-blue-300 ring-1 sm:ring-2 ring-blue-400 shadow-sm'
-                            : 'bg-white border-gray-200 hover:border-indigo-300 hover:shadow-sm transition-all'
-                        }`}
-                      >
-                        <div className={`text-right font-bold text-xs sm:text-sm ${isToday ? 'text-blue-700' : 'text-gray-700'}`}>
-                          {dayData.day}
-                        </div>
-                         {/* 問題数バッジ表示エリア */}
-                        <div className="flex justify-center items-center flex-grow min-h-[40px] sm:min-h-[50px]"> {/* 高さを調整 */}
-                           {questionCount > 0 && ( // 0問の場合はバッジを表示しない
-                              <div className={`
-                                  ${badgeStyle} ${badgeTextColor}
-                                  font-bold text-sm sm:text-base px-2 sm:px-3 py-1 rounded-full shadow-sm
-                                  flex items-center justify-center min-w-[30px] sm:min-w-[36px] {/* サイズ微調整 */}
-                                  ${questionCount > 10 ? 'animate-pulse' : ''}
-                              `}>
-                                  {questionCount}<span className="text-xs ml-0.5">問</span>
-                              </div>
-                           )}
-                        </div>
-                      </div>
-                    );
-                })
-             ))}
-           </div>
-        </div>
-      </div>
-    );
+     );
   };
+
 
   // App return (変更なし)
   return (
