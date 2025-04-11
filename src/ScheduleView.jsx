@@ -1,4 +1,4 @@
-// src/ScheduleView.jsx (修正版 v3: calendarWeeks の undefined対策)
+// src/ScheduleView.jsx (背景色・曜日ヘッダー修正版)
 import React, { useState } from 'react';
 import { Calendar, ChevronLeft, ChevronRight, GripVertical } from 'lucide-react';
 import {
@@ -22,28 +22,85 @@ function DraggableQuestion({ question, isDragging }) {
     return ( <div ref={setNodeRef} style={style} {...listeners} {...attributes} title={`${question.subjectName} - ${question.chapterName} - 問題 ${question.id}`}> <GripVertical size={14} className="mr-1.5 text-gray-400 flex-shrink-0" /> <span className="font-medium overflow-hidden text-ellipsis"> {subjectAbbreviation} - {question.id} </span> </div> );
 }
 
-// --- DroppableDateCell コンポーネント (変更なし) ---
+// --- DroppableDateCell コンポーネント (背景色とテキスト色を調整) ---
 function DroppableDateCell({ dayData, cellKey, openModal }) {
-    const MAX_ITEMS_VISIBLE = 3;
-    const isValidDate = dayData && dayData.date instanceof Date && !isNaN(dayData.date);
-    const droppableId = isValidDate ? dayData.date.toISOString().split('T')[0] : `empty-${cellKey}`;
-    const droppableData = isValidDate ? { date: dayData.date } : null;
-    const { isOver, setNodeRef } = useDroppable({ id: droppableId, disabled: !isValidDate, data: droppableData });
-    let cellClasses = "relative flex flex-col p-1 sm:p-1.5 rounded-lg border min-h-[100px] sm:min-h-[110px] ";
-    let dayNumberClasses = "text-right font-semibold text-xs mb-0.5 ";
-    if (!isValidDate) { cellClasses += "bg-gray-50 border-gray-100 "; return <div key={cellKey} ref={setNodeRef} className={cellClasses}></div>; }
-    const isToday = dayData.date.toDateString() === new Date().toDateString();
-    if (isToday) { cellClasses += "bg-blue-50 border-blue-300 ring-1 ring-blue-300 "; dayNumberClasses += "text-blue-700 "; }
-    else { cellClasses += "bg-white border-gray-200 hover:border-indigo-300 "; dayNumberClasses += "text-gray-500 "; }
-    if (isOver) { cellClasses += "border-dashed border-2 border-indigo-400 bg-indigo-50 "; }
-    else { cellClasses += "transition-colors duration-150 "; }
-    const questionsToShow = dayData.questions || [];
-    const hiddenCount = questionsToShow.length - MAX_ITEMS_VISIBLE;
-    return ( <div ref={setNodeRef} className={cellClasses}> <div className={dayNumberClasses}> {dayData.day} </div> <div className="flex-grow space-y-1 overflow-hidden" style={{maxHeight: '80px'}}> {questionsToShow.slice(0, MAX_ITEMS_VISIBLE).map(q => ( <DraggableQuestion key={q.id} question={q} /> ))} </div> {hiddenCount > 0 && ( <div className="mt-auto pt-1 text-center text-xs text-indigo-600 font-medium cursor-pointer hover:underline" onClick={() => openModal(dayData.date, questionsToShow)}> + あと {hiddenCount} 件 </div> )} {isOver && !hiddenCount > 0 && ( <div className="text-center text-xs text-indigo-400 py-1 border border-dashed border-indigo-300 rounded-md mt-1">ここにドロップ</div> )} </div> );
+  const MAX_ITEMS_VISIBLE = 3;
+  const isValidDate = dayData && dayData.date instanceof Date && !isNaN(dayData.date);
+  const droppableId = isValidDate ? dayData.date.toISOString().split('T')[0] : `empty-${cellKey}`;
+  const droppableData = isValidDate ? { date: dayData.date } : null;
+  const { isOver, setNodeRef } = useDroppable({ id: droppableId, disabled: !isValidDate, data: droppableData });
+
+  // --- スタイル計算 (修正箇所) ---
+  let cellClasses = "relative flex flex-col p-1 sm:p-1.5 rounded-lg border min-h-[100px] sm:min-h-[110px] ";
+  let dayNumberClasses = "text-right font-semibold text-xs mb-0.5 ";
+
+  if (!isValidDate) {
+    cellClasses += "bg-gray-50 border-gray-100 "; // 空セル
+    return <div key={cellKey} ref={setNodeRef} className={cellClasses}></div>;
+  }
+
+  const isToday = dayData.date.toDateString() === new Date().toDateString();
+  const dayOfWeek = dayData.date.getDay(); // 0=Sun, 6=Sat
+
+  // 背景色と枠線
+  if (isToday) {
+    cellClasses += "bg-blue-50 border-blue-300 ring-1 ring-blue-300 "; // 今日の背景色
+  } else if (dayOfWeek === 0 || dayOfWeek === 6) {
+    cellClasses += "bg-gray-50 border-gray-200 "; // 土日の背景色 (薄いグレー)
+  } else {
+    cellClasses += "bg-white border-gray-200 "; // 通常の白背景
+  }
+  cellClasses += "hover:border-indigo-300 "; // ホバー時の枠線
+
+  // 日付の文字色
+  if (isToday) {
+    dayNumberClasses += "text-blue-700 ";
+  } else if (dayOfWeek === 0) {
+    dayNumberClasses += "text-red-500 "; // 日曜の文字色
+  } else if (dayOfWeek === 6) {
+    dayNumberClasses += "text-blue-500 "; // 土曜の文字色
+  } else {
+    dayNumberClasses += "text-gray-500 "; // 平日の文字色
+  }
+
+  // ドロップオーバー時のスタイル
+  if (isOver) {
+      cellClasses += "border-dashed border-2 border-indigo-400 bg-indigo-100 "; // isOver時の背景を少し濃く
+  } else {
+      cellClasses += "transition-colors duration-150 ";
+  }
+  // --- スタイル計算ここまで ---
+
+  const questionsToShow = dayData.questions || [];
+  const hiddenCount = questionsToShow.length - MAX_ITEMS_VISIBLE;
+
+  return (
+    <div ref={setNodeRef} className={cellClasses}>
+      <div className={dayNumberClasses}>
+        {dayData.day}
+      </div>
+      <div className="flex-grow space-y-1 overflow-hidden" style={{maxHeight: '80px'}}>
+        {questionsToShow.slice(0, MAX_ITEMS_VISIBLE).map(q => (
+          <DraggableQuestion key={q.id} question={q} />
+        ))}
+      </div>
+      {hiddenCount > 0 && (
+        <div
+          className="mt-auto pt-1 text-center text-xs text-indigo-600 font-medium cursor-pointer hover:underline"
+          onClick={() => openModal(dayData.date, questionsToShow)}
+        >
+          + あと {hiddenCount} 件
+        </div>
+      )}
+      {isOver && !hiddenCount > 0 && (
+           <div className="text-center text-xs text-indigo-400 py-1 border border-dashed border-indigo-300 rounded-md mt-1">ここにドロップ</div>
+       )}
+    </div>
+  );
 }
 
 
-// --- ScheduleView 本体 (calendarWeeks の undefined 対策) ---
+// --- ScheduleView 本体 (曜日ヘッダー追加) ---
 const ScheduleView = ({ subjects, getQuestionsForDate, handleQuestionDateChange, formatDate }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [activeDragItem, setActiveDragItem] = useState(null);
@@ -52,74 +109,43 @@ const ScheduleView = ({ subjects, getQuestionsForDate, handleQuestionDateChange,
   const [modalQuestions, setModalQuestions] = useState([]);
 
   const changeMonth = (offset) => { /* ... */ };
-  const getCalendarData = () => {
-    try {
-        const year = currentMonth.getFullYear();
-        const month = currentMonth.getMonth();
-        const firstDay = new Date(year, month, 1);
-        const lastDay = new Date(year, month + 1, 0);
-        const daysInMonth = lastDay.getDate();
-        const startDayOfWeek = firstDay.getDay();
-        const calendar = [];
-        let dayCounter = 1;
-        let weekData = [];
-
-        for (let i = 0; i < startDayOfWeek; i++) { weekData.push(null); }
-        while (dayCounter <= daysInMonth) {
-            const currentDate = new Date(year, month, dayCounter);
-             if (isNaN(currentDate.getTime())) {
-                 weekData.push(null);
-             } else {
-                currentDate.setHours(0, 0, 0, 0);
-                const questionsForDay = getQuestionsForDate(currentDate) || []; // *** 常に配列を保証 ***
-                weekData.push({ day: dayCounter, date: currentDate, questions: questionsForDay });
-             }
-            if (weekData.length === 7) { calendar.push(weekData); weekData = []; }
-            dayCounter++;
-        }
-        if (weekData.length > 0) {
-            while (weekData.length < 7) { weekData.push(null); }
-            calendar.push(weekData);
-        }
-        return calendar; // 常に配列を返すはず
-    } catch (error) {
-        console.error("カレンダー生成エラー:", error);
-        return []; // エラー時も空配列を返す
-    }
-  };
-
-  // *** 修正点: getCalendarData() の結果が falsy な場合に空配列をデフォルト値とする ***
+  const getCalendarData = () => { /* ... */ };
   const calendarWeeks = getCalendarData() || [];
+  // *** 修正点: 曜日ヘッダー用の配列 ***
   const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
 
-  // Dnd センサー, handleDragStart, handleDragEnd は変更なし
-    const sensors = useSensors(/* ... */);
-    const handleDragStart = (event) => { /* ... */ };
-    const handleDragEnd = (event) => { /* ... */ };
-
-  // モーダル開閉関数 (変更なし)
+  const sensors = useSensors( /* ... */ );
+  const handleDragStart = (event) => { /* ... */ };
+  const handleDragEnd = (event) => { /* ... */ };
   const openDayModal = (date, questions) => { /* ... */ };
   const closeDayModal = () => { /* ... */ };
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
+    <DndContext /* ... */ >
       <div className="p-4 max-w-5xl mx-auto pb-20">
         {/* カレンダーヘッダー (変更なし) */}
         {/* ... */}
         {/* カレンダー本体 */}
         <div className="bg-white rounded-xl shadow-md p-2 sm:p-4 border border-gray-200">
-          {/* 曜日ヘッダー (変更なし) */}
-          {/* ... */}
-          {/* 日付セル */}
+          {/* *** 追加: 曜日ヘッダー *** */}
+          <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2">
+            {weekDays.map((day, index) => (
+              <div
+                key={index}
+                className={`text-center py-1.5 font-bold text-xs sm:text-sm rounded-lg ${
+                  index === 0 ? 'text-red-600 bg-red-50' : //日曜の色
+                  index === 6 ? 'text-blue-600 bg-blue-50' : //土曜の色
+                  'text-gray-600 bg-gray-50' //平日の色
+                }`}
+              >
+                {day}
+              </div>
+            ))}
+          </div>
+          {/* 日付セル (変更なし) */}
           <div className="grid grid-cols-7 gap-1 sm:gap-2">
-            {/* *** 修正点: calendarWeeks を使用 *** */}
             {calendarWeeks.flat().map((dayData, index) => {
-               const cellKey = dayData?.date ? dayData.date.toISOString().split('T')[0] : `empty-${index}-${currentMonth.getMonth()}`; // キー生成修正
+               const cellKey = dayData?.date ? dayData.date.toISOString().split('T')[0] : `empty-${index}-${currentMonth.getMonth()}`;
                return (
                  <DroppableDateCell
                    key={cellKey}
