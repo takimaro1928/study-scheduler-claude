@@ -270,41 +270,42 @@ function App() {
     });
     return questions;
   };
-   const getQuestionsForDate = (date) => { /* ... (内容は変更なし) ... */
-      const targetDate = new Date(date);
-     if (isNaN(targetDate.getTime())) {
-         console.error("無効なターゲット日付(getQuestionsForDate):", date);
-         return [];
-     }
-    targetDate.setHours(0, 0, 0, 0);
-    const targetTime = targetDate.getTime(); // 比較用に数値タイムスタンプ
-    const questions = [];
-    subjects.forEach(subject => {
-      subject.chapters.forEach(chapter => {
-        chapter.questions.forEach(question => {
-           if (!question.nextDate) return;
-           try {
-               const nextDate = new Date(question.nextDate);
-                if (isNaN(nextDate.getTime())) {
-                    // console.error("無効な次回日付(getQuestionsForDate):", question.nextDate, "ID:", question.id);
-                    return;
-                }
-               nextDate.setHours(0, 0, 0, 0);
-               if (nextDate.getTime() === targetTime) { // タイムスタンプで比較
-                 questions.push({
-                   ...question,
-                   subjectName: subject.name,
-                   chapterName: chapter.name
-                 });
-               }
-           } catch(e) {
-                console.error("日付処理エラー(getQuestionsForDate):", e, "問題ID:", question.id, "nextDate:", question.nextDate);
-           }
-        });
+  const getQuestionsForDate = (date) => {
+   const targetDate = new Date(date);
+    if (isNaN(targetDate.getTime())) {
+        // console.error("無効なターゲット日付(getQuestionsForDate):", date);
+        return [];
+    }
+   targetDate.setHours(0, 0, 0, 0);
+   const targetTime = targetDate.getTime();
+   const questions = [];
+   subjects.forEach(subject => { // subjects を参照
+     subject.chapters.forEach(chapter => {
+       chapter.questions.forEach(question => {
+          if (!question.nextDate) return;
+          try {
+             const nextDate = new Date(question.nextDate);
+               if (isNaN(nextDate.getTime())) {
+                  // console.error("無効な次回日付(getQuestionsForDate):", question.nextDate, "ID:", question.id);
+                  return;
+              }
+             nextDate.setHours(0, 0, 0, 0);
+             if (nextDate.getTime() === targetTime) {
+               questions.push({
+                 ...question,
+                 // *** 追加: 科目名と章名を付与 ***
+                 subjectName: subject.name,
+                 chapterName: chapter.name
+               });
+             }
+         } catch(e) {
+              console.error("日付処理エラー(getQuestionsForDate):", e, "問題ID:", question.id, "nextDate:", question.nextDate);
+         }
       });
     });
-    return questions;
-   };
+  });
+  return questions;
+};
 
   // toggleSubject, toggleChapter は変更なし
    const toggleSubject = (subjectId) => { setExpandedSubjects(prev => ({ ...prev, [subjectId]: !prev[subjectId] })); };
