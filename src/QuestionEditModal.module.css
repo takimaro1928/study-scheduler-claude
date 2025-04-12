@@ -1,36 +1,64 @@
-[13:58:52.521] Cloning github.com/takimaro1928/study-scheduler-claude (Branch: main, Commit: f1d75df)
-[13:58:52.767] Cloning completed: 246.000ms
-[13:58:53.381] Restored build cache from previous deployment (3u6Qzej4NXLSPocudcHcs5TBVxv1)
-[13:58:53.478] Running build in Washington, D.C., USA (East) – iad1
-[13:58:54.084] Running "vercel build"
-[13:58:54.448] Vercel CLI 41.5.0
-[13:58:55.399] Installing dependencies...
-[13:58:57.792] 
-[13:58:57.792] up to date in 2s
-[13:58:57.792] 
-[13:58:57.793] 268 packages are looking for funding
-[13:58:57.793]   run `npm fund` for details
-[13:58:57.794] npm notice
-[13:58:57.794] npm notice New major version of npm available! 10.9.2 -> 11.3.0
-[13:58:57.794] npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.3.0
-[13:58:57.795] npm notice To update run: npm install -g npm@11.3.0
-[13:58:57.795] npm notice
-[13:58:57.833] Running "npm run build"
-[13:58:57.942] 
-[13:58:57.942] > study-scheduler@0.1.0 build
-[13:58:57.942] > react-scripts build
-[13:58:57.942] 
-[13:58:59.064] Creating an optimized production build...
-[13:59:11.295] Failed to compile.
-[13:59:11.295] 
-[13:59:11.295] Syntax error: /vercel/path0/src/QuestionEditModal.module.css Unknown word ring-offset-1 (44:65)
-[13:59:11.295]  [90m 42 | [39m[33m.radioLabel[39m[33m:[39mhover [33m{[39m background-color[33m:[39m [35m#f9fafb[39m[33m;[39m [33m}[39m
-[13:59:11.295]  [90m 43 | [39m[33m.radioInput[39m [33m{[39m color[33m:[39m [35m#4f46e5[39m[33m;[39m [90m/* text-indigo-600 */[39m width[33m:[39m 1rem[33m;[39m height[33m:[39m 1rem[33m;[39m [33m}[39m
-[13:59:11.295] [1m[31m>[39m[22m[90m 44 | [39m[33m.radioInput[39m[33m:[39mfocus [33m{[39m box-shadow[33m:[39m none[33m;[39m outline[33m:[39m none[33m;[39m ring[33m:[39m 2px[33m;[39m ring-offset-1[33m;[39m ring-indigo-400[33m;[39m [33m}[39m
-[13:59:11.295]  [90m    | [39m                                                                [1m[31m^[39m[22m
-[13:59:11.295]  [90m 45 | [39m[33m.radioLabel[39m input[33m:[39mchecked + span [33m{[39m font-weight[33m:[39m 600[33m;[39m color[33m:[39m [35m#1f2937[39m[33m;[39m [33m}[39m
-[13:59:11.296]  [90m 46 | [39m[33m.radioLabel[39m span [33m{[39m color[33m:[39m [35m#374151[39m[33m;[39m font-size[33m:[39m 0.875rem[33m;[39m [33m}[39m
-[13:59:11.296] 
-[13:59:11.296] 
-[13:59:11.346] Error: Command "npm run build" exited with 1
-[13:59:11.665] 
+/* src/QuestionEditModal.module.css */
+
+/* オーバーレイ */
+.overlay { position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; padding: 1rem; z-index: 50; }
+.modal {
+  background-color: white; border-radius: 0.75rem; /* rounded-xl */
+  max-width: 32rem; /* max-w-md */ width: 100%;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); /* shadow-xl */
+  display: flex; flex-direction: column; max-height: 90vh;
+}
+
+.header {
+  background: linear-gradient(to right, #6366f1, #4f46e5); /* グラデーション */
+  padding: 1rem 1.5rem; /* p-4 sm:p-6 */
+  border-top-left-radius: 0.75rem; border-top-right-radius: 0.75rem;
+  color: white; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+}
+.headerTitle { font-size: 1.125rem; font-weight: 700; /* text-lg font-bold */ }
+.closeButton { color: white; background: none; border: none; padding: 0.25rem; border-radius: 9999px; cursor: pointer; opacity: 0.8; transition: opacity 0.2s ease, background-color 0.2s ease; }
+.closeButton:hover { opacity: 1; background-color: rgba(255, 255, 255, 0.1); }
+.closeButton svg { width: 1.25rem; height: 1.25rem; }
+
+.content { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; overflow-y: auto; flex-grow: 1; } /* p-6 space-y-6 */
+
+.formGroup {} /* formGroup自体にスタイルは不要かも */
+.formGroup label { display: block; font-size: 0.875rem; font-weight: 500; color: #4b5563; /* text-sm font-medium text-gray-600 */ margin-bottom: 0.25rem; /* mb-1 */ }
+.readOnlyField { background-color: #f3f4f6; /* bg-gray-100 */ padding: 0.75rem; border-radius: 0.5rem; /* rounded-lg */ color: #374151; /* text-gray-800 */ font-weight: 500; border: 1px solid #e5e7eb; font-size: 0.875rem; }
+.inputField, .selectField {
+  width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; /* border-gray-300 */
+  border-radius: 0.5rem; /* rounded-lg */ font-size: 0.875rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.inputField:focus, .selectField:focus { outline: none; border-color: #818cf8; /* focus:border-indigo-400 */ box-shadow: 0 0 0 3px rgba(199, 210, 254, 0.5); /* focus:ring focus:ring-indigo-200 focus:ring-opacity-50 */ }
+.inputField[type="number"] { padding-right: 2rem; /* %表示用 */ }
+.inputSuffix { position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); color: #6b7280; /* text-gray-500 */ font-size: 0.875rem; }
+.dateInputContainer { display: flex; }
+.dateInput { border-top-right-radius: 0; border-bottom-right-radius: 0; flex-grow: 1; }
+.calendarButton { padding: 0 0.75rem; background-color: #f3f4f6; /* bg-gray-100 */ border: 1px solid #d1d5db; border-left: none; border-top-right-radius: 0.5rem; border-bottom-right-radius: 0.5rem; color: #4b5563; transition: background-color 0.2s ease; cursor: pointer; display: flex; align-items: center; }
+.calendarButton:hover { background-color: #e5e7eb; /* hover:bg-gray-200 */ }
+.calendarButton svg { width: 1.25rem; height: 1.25rem; }
+.dateDisplay { margin-top: 0.25rem; font-size: 0.875rem; color: #6b7280; }
+
+.radioGroup { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+.radioLabel { display: flex; align-items: center; gap: 0.5rem; /* space-x-2 */ padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease; }
+.radioLabel:hover { background-color: #f9fafb; }
+.radioInput { color: #4f46e5; width: 1rem; height: 1rem; margin: 0; appearance: none; border: 1px solid #9ca3af; border-radius: 50%; position: relative; cursor: pointer; outline: none; }
+.radioInput:checked { border-color: #4f46e5; background-color: #4f46e5; }
+.radioInput:checked::after { content: ''; display: block; width: 0.5rem; height: 0.5rem; background-color: white; border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+/* フォーカススタイル修正済み */
+.radioInput:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(199, 210, 254, 0.5);
+  /* border-color: #818cf8; */
+}
+.radioLabel input:checked + span { font-weight: 600; color: #1f2937; }
+.radioLabel span { color: #374151; font-size: 0.875rem; }
+
+.footer { flex-shrink: 0; border-top: 1px solid #e5e7eb; padding: 1rem 1.5rem; display: flex; justify-content: space-between; background-color: #f9fafb; border-bottom-left-radius: 0.75rem; border-bottom-right-radius: 0.75rem; }
+.footerButton { padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 500; font-size: 0.875rem; display: flex; align-items: center; transition: background-color 0.2s ease; cursor: pointer; border: none; }
+.footerButton svg { width: 1rem; height: 1rem; margin-right: 0.25rem; }
+.cancelButton { background-color: #f3f4f6; color: #374151; }
+.cancelButton:hover { background-color: #e5e7eb; }
+.saveButton { background-color: #4f46e5; color: white; }
+.saveButton:hover { background-color: #4338ca; }
