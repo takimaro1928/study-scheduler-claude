@@ -421,30 +421,57 @@ function App() {
     });
   };
 
-
-  // saveQuestionEdit, saveBulkEdit, toggleQuestionSelection は変更なし
-   const saveQuestionEdit = (questionData) => { /* ... (内容は変更なし) ... */
-      setSubjects(prevSubjects => {
+// App.js 内の既存の saveQuestionEdit 関数をこれで置き換え
+  const saveQuestionEdit = (questionData) => {
+    console.log("Saving edited question:", questionData); // データ確認用
+    setSubjects(prevSubjects => {
+      // 不変性を保って更新
       const newSubjects = prevSubjects.map(subject => ({
-          ...subject,
-          chapters: subject.chapters.map(chapter => ({
-              ...chapter,
-              questions: chapter.questions.map(q => {
-                  if (q.id === questionData.id) {
-                      return {
-                          ...questionData,
-                          nextDate: new Date(questionData.nextDate).toISOString(),
-                          lastAnswered: new Date(questionData.lastAnswered).toISOString()
-                      };
+        ...subject,
+        chapters: subject.chapters.map(chapter => ({
+          ...chapter,
+          questions: chapter.questions.map(q => {
+            if (q.id === questionData.id) {
+              // 更新対象のデータをコピー
+              const updatedQuestion = { ...questionData };
+              try {
+                // 日付が有効なDateオブジェクトか文字列ならISO文字列に変換して保存
+                // （注意：QuestionEditModalから渡される日付の形式に依存します）
+                if (updatedQuestion.nextDate) {
+                  const nextD = new Date(updatedQuestion.nextDate);
+                  // getTime() が NaN でないかで有効な日付かチェック
+                  if (!isNaN(nextD.getTime())) {
+                     updatedQuestion.nextDate = nextD.toISOString();
+                  } else {
+                     console.warn("編集モーダルからの次回予定日が無効:", updatedQuestion.nextDate);
+                     updatedQuestion.nextDate = q.nextDate; // 無効なら元の日付を維持
                   }
-                  return q;
-              })
-          }))
+                }
+                if (updatedQuestion.lastAnswered) {
+                  const lastA = new Date(updatedQuestion.lastAnswered);
+                  if (!isNaN(lastA.getTime())) {
+                     updatedQuestion.lastAnswered = lastA.toISOString();
+                  } else {
+                     console.warn("編集モーダルからの最終解答日が無効:", updatedQuestion.lastAnswered);
+                     updatedQuestion.lastAnswered = q.lastAnswered; // 無効なら元の日付を維持
+                  }
+                }
+                // 他のフィールド（interval, understanding など）も同様に更新される想定
+              } catch (e) {
+                 console.error("Error processing dates during edit save:", e);
+                 return q; // エラー時は元のデータを返す
+              }
+              console.log("Updated question object:", updatedQuestion);
+              return updatedQuestion;
+            }
+            return q;
+          })
+        }))
       }));
       return newSubjects;
     });
-    setEditingQuestion(null);
-   };
+    setEditingQuestion(null); // モーダルを閉じる
+  };
    const saveBulkEdit = (date) => { /* ... (内容は変更なし) ... */
         const targetDate = new Date(date);
       if (isNaN(targetDate.getTime())) {
