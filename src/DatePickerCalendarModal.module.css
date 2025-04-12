@@ -1,65 +1,83 @@
 /* src/DatePickerCalendarModal.module.css */
-.overlay { position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: 40; padding: 1rem; animation: fadeInOverlay 0.2s ease-out; }
+/* react-day-picker をモダンでおしゃれにするスタイル */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(31, 41, 55, 0.6); /* bg-gray-800 bg-opacity-60 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 40;
+  padding: 1rem;
+  animation: fadeInOverlay 0.2s ease-out;
+}
 @keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
 
 .modal {
-  background-color: white; border-radius: 0.5rem; /* rounded-lg */
-  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); /* shadow-xl */
-  border: 1px solid #e5e7eb; /* border-gray-200 */ width: auto; max-width: 90vw;
-  position: relative; /* 閉じるボタン用 */
+  background-color: white;
+  border-radius: 0.75rem; /* rounded-xl */
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); /* shadow-2xl */
+  width: auto;
+  max-width: calc(100vw - 2rem); /* 左右に余白確保 */
+  position: relative;
   animation: modalEnter 0.2s ease-out forwards;
-  overflow: hidden; /* react-day-picker のスタイル用 */
+  overflow: hidden; /* react-day-picker のスタイルを適用しやすく */
 }
-@keyframes modalEnter { from { opacity: 0; transform: translateY(-10px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes modalEnter {
+    from { opacity: 0; transform: translateY(-10px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
 
 .closeButton {
-  position: absolute; top: 0.5rem; right: 0.5rem; z-index: 10;
-  color: #9ca3af; background: none; border: none; border-radius: 9999px; padding: 0.25rem; cursor: pointer;
+  position: absolute; top: 0.6rem; right: 0.6rem; z-index: 10;
+  color: #9ca3af; background: none; border: none; border-radius: 9999px; padding: 0.3rem; cursor: pointer;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 .closeButton:hover { background-color: #f3f4f6; color: #1f2937; }
-.closeButton svg { width: 1.125rem; height: 1.125rem; }
+.closeButton svg { width: 1.25rem; height: 1.25rem; }
 
 /* react-day-picker 用のラッパー */
 .calendarContainer {
-  padding: 1rem; /* 内側の余白 */
+  padding: 0.5rem; /* カレンダー自体の周りに少しだけ余白 */
 }
 
-/* --- react-day-picker のカスタムスタイル (例) --- */
+/* --- react-day-picker のカスタムスタイル --- */
 /* :global で react-day-picker が生成するクラスを上書き */
 :global(.rdp) {
-  --rdp-cell-size: 36px; /* セルのサイズ */
+  --rdp-cell-size: 40px; /* セルサイズを少し大きく */
   --rdp-accent-color: #4f46e5; /* 選択色 (indigo-600) */
   --rdp-background-color: #e0e7ff; /* 選択日の背景 (indigo-100) */
-  margin: 0; /* マージンリセット */
+  --rdp-accent-color-dark: #4338ca; /* ダークモード対応（任意） */
+  --rdp-background-color-dark: #3730a3; /* ダークモード対応（任意）*/
+  --rdp-outline: 2px solid var(--rdp-accent-color); /* フォーカスリング */
+  --rdp-outline-selected: 3px solid var(--rdp-accent-color); /* 選択日のフォーカス */
+  margin: 0.5em; /* カレンダー内外の余白 */
 }
-:global(.rdp-months) { /* 月表示エリア */
-    padding-bottom: 0.5rem;
+/* 月表示エリア */
+:global(.rdp-months) { padding-bottom: 0.5rem; }
+/* 年月キャプション (ドロップダウン) */
+:global(.rdp-caption_dropdowns) {
+    display: flex; justify-content: center; gap: 0.5rem; padding-bottom: 0.75rem; margin: 0.5rem 0;
 }
-:global(.rdp-caption) { /* 年月表示 */
-  display: flex; justify-content: center; align-items: center; padding-bottom: 0.5rem; border-bottom: 1px solid #e5e7eb; margin-bottom: 0.5rem;
+:global(.rdp-dropdown) { /* ドロップダウン本体 */
+    padding: 0.3rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.9rem; font-weight: 500; background-color: white; appearance: none; cursor: pointer;
 }
-:global(.rdp-caption_label) { font-size: 1rem; font-weight: 600; color: #1f2937; }
-:global(.rdp-nav_button) { /* 月移動ボタン */
-    border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.25rem; background-color: white;
-}
+:global(.rdp-dropdown:focus) { outline: none; border-color: #818cf8; box-shadow: 0 0 0 3px rgba(199, 210, 254, 0.5); }
+/* 月移動ボタン */
+:global(.rdp-nav) { display: flex; justify-content: space-between; position: absolute; top: 1.1rem; left: 1rem; right: 1rem; } /* ヘッダーに重ねる */
+:global(.rdp-nav_button) { border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.25rem; background-color: white; cursor: pointer; }
 :global(.rdp-nav_button:hover) { background-color: #f3f4f6;}
-:global(.rdp-head_cell) { /* 曜日ヘッダー */
-    font-size: 0.75rem; font-weight: 600; color: #6b7280; padding-bottom: 0.25rem;
-}
-:global(.rdp-day) { /* 日付セル */
-    border-radius: 0.375rem; width: var(--rdp-cell-size); height: var(--rdp-cell-size);
-}
-:global(.rdp-day_selected), :global(.rdp-day_selected:hover) {
-    background-color: var(--rdp-accent-color) !important; /* !important でライブラリスタイルを上書き */
-    color: white !important;
-    font-weight: bold;
-}
-:global(.rdp-day:hover) { background-color: var(--rdp-background-color) !important; }
-:global(.rdp-day_today) { font-weight: bold; color: var(--rdp-accent-color); }
-:global(.rdp-day_outside) { color: #9ca3af; } /* 月外の日 */
+/* 曜日ヘッダー */
+:global(.rdp-head_cell) { font-size: 0.8rem; font-weight: 600; color: #6b7280; padding-bottom: 0.4rem; }
+/* 日付セル */
+:global(.rdp-day) { border-radius: 0.375rem; width: var(--rdp-cell-size); height: var(--rdp-cell-size); font-weight: 500; transition: background-color 0.15s ease, color 0.15s ease; }
+:global(.rdp-day_selected), :global(.rdp-day_selected:hover) { background-color: var(--rdp-accent-color) !important; color: white !important; font-weight: 700; }
+:global(.rdp-day:not(.rdp-day_selected):not(.rdp-day_disabled):hover) { background-color: var(--rdp-background-color) !important; }
+:global(.rdp-day_today) { font-weight: 700; color: var(--rdp-accent-color); background-color: #f0f9ff; } /* 今日は少し目立たせる */
+:global(.rdp-day_outside) { opacity: 0.5; } /* 月外の日 */
+:global(.rdp-day_disabled) { color: #d1d5db; } /* 無効な日 */
 /* --- react-day-picker スタイルここまで --- */
-
 
 /* フッター */
 .footer {
@@ -68,7 +86,7 @@
   border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;
 }
 .footer span { font-size: 0.875rem; color: #4b5563; font-weight: 500; }
-.footer button { padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 500; font-size: 0.875rem; cursor: pointer; border: none; transition: background-color 0.2s ease; }
-.footer button:disabled { background-color: #d1d5db !important; color: #6b7280 !important; cursor: not-allowed; }
+.footer button { padding: 0.625rem 1.25rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.875rem; cursor: pointer; border: none; transition: background-color 0.2s ease, box-shadow 0.15s ease; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
+.footer button:disabled { background-color: #d1d5db !important; color: #6b7280 !important; cursor: not-allowed; box-shadow: none; }
 .confirmButton { background-color: #4f46e5; color: white; }
-.confirmButton:hover:not(:disabled) { background-color: #4338ca; }
+.confirmButton:hover:not(:disabled) { background-color: #4338ca; box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2); }
