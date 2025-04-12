@@ -1,18 +1,16 @@
 /* src/DatePickerCalendarModal.module.css */
-.overlay { position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.4); display: flex; align-items: center; justify-content: center; z-index: 40; padding: 1rem; animation: fadeInOverlay 0.2s ease-out; }
+.overlay { position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: 40; padding: 1rem; animation: fadeInOverlay 0.2s ease-out; }
 @keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
 
 .modal {
   background-color: white; border-radius: 0.5rem; /* rounded-lg */
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1); /* shadow-xl */
-  border: 1px solid #d1d5db; width: auto; min-width: 300px; max-width: 90vw;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); /* shadow-xl */
+  border: 1px solid #e5e7eb; /* border-gray-200 */ width: auto; max-width: 90vw;
   position: relative; /* 閉じるボタン用 */
-  animation: modalEnter 0.2s ease-out forwards; /* モーダル用アニメーション */
+  animation: modalEnter 0.2s ease-out forwards;
+  overflow: hidden; /* react-day-picker のスタイル用 */
 }
-@keyframes modalEnter {
-    from { opacity: 0; transform: translateY(-10px) scale(0.98); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
-}
+@keyframes modalEnter { from { opacity: 0; transform: translateY(-10px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
 .closeButton {
   position: absolute; top: 0.5rem; right: 0.5rem; z-index: 10;
@@ -22,11 +20,46 @@
 .closeButton:hover { background-color: #f3f4f6; color: #1f2937; }
 .closeButton svg { width: 1.125rem; height: 1.125rem; }
 
-/* カレンダーコンポーネント自体のスタイルはこのCSSでは指定しない */
-/* ラッパーにパディングを設定 */
+/* react-day-picker 用のラッパー */
 .calendarContainer {
-  padding: 1rem;
+  padding: 1rem; /* 内側の余白 */
 }
+
+/* --- react-day-picker のカスタムスタイル (例) --- */
+/* :global で react-day-picker が生成するクラスを上書き */
+:global(.rdp) {
+  --rdp-cell-size: 36px; /* セルのサイズ */
+  --rdp-accent-color: #4f46e5; /* 選択色 (indigo-600) */
+  --rdp-background-color: #e0e7ff; /* 選択日の背景 (indigo-100) */
+  margin: 0; /* マージンリセット */
+}
+:global(.rdp-months) { /* 月表示エリア */
+    padding-bottom: 0.5rem;
+}
+:global(.rdp-caption) { /* 年月表示 */
+  display: flex; justify-content: center; align-items: center; padding-bottom: 0.5rem; border-bottom: 1px solid #e5e7eb; margin-bottom: 0.5rem;
+}
+:global(.rdp-caption_label) { font-size: 1rem; font-weight: 600; color: #1f2937; }
+:global(.rdp-nav_button) { /* 月移動ボタン */
+    border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.25rem; background-color: white;
+}
+:global(.rdp-nav_button:hover) { background-color: #f3f4f6;}
+:global(.rdp-head_cell) { /* 曜日ヘッダー */
+    font-size: 0.75rem; font-weight: 600; color: #6b7280; padding-bottom: 0.25rem;
+}
+:global(.rdp-day) { /* 日付セル */
+    border-radius: 0.375rem; width: var(--rdp-cell-size); height: var(--rdp-cell-size);
+}
+:global(.rdp-day_selected), :global(.rdp-day_selected:hover) {
+    background-color: var(--rdp-accent-color) !important; /* !important でライブラリスタイルを上書き */
+    color: white !important;
+    font-weight: bold;
+}
+:global(.rdp-day:hover) { background-color: var(--rdp-background-color) !important; }
+:global(.rdp-day_today) { font-weight: bold; color: var(--rdp-accent-color); }
+:global(.rdp-day_outside) { color: #9ca3af; } /* 月外の日 */
+/* --- react-day-picker スタイルここまで --- */
+
 
 /* フッター */
 .footer {
