@@ -13,7 +13,7 @@
     "@dnd-kit/sortable": "^8.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "react-day-picker": "^8.10.1", 
-  　"date-fns": "^3.6.0"       
+  　"date-fns": "^3.6.0",      
   },
   "scripts": {
     "start": "react-scripts start",
