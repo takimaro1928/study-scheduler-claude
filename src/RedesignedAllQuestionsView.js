@@ -10,34 +10,30 @@ import styles from './RedesignedAllQuestionsView.module.css';
 import datePickerStyles from './DatePickerCalendarModal.module.css'; // ★ モーダル用CSS
 
 // ヘルパー関数等 (変更なし)
-const subjectColorMap = { /* ... */ }; const getSubjectColorClass = (subjectName) => { /* ... */ };
-const getUnderstandingStyle = (understanding) => { /* ... */ }; const getCorrectRateColor = (rate) => { /* ... */ };
+const subjectColorMap = { "経営管理論": "#a5b4fc", "運営管理": "#6ee7b7", "経済学": "#fca5a5", "経営情報システム": "#93c5fd", "経営法務": "#c4b5fd", "中小企業経営・中小企業政策": "#fcd34d", "過去問題集": "#94a3b8", "未分類": "#d1d5db", };
+const getSubjectColorClass = (subjectName) => { /* ... */ };
+const getUnderstandingStyle = (understanding) => { /* ... */ };
+const getCorrectRateColor = (rate) => { /* ... */ };
 
 const RedesignedAllQuestionsView = ({
   subjects, expandedSubjects, expandedChapters, toggleSubject, toggleChapter,
   setEditingQuestion, setBulkEditMode, bulkEditMode, selectedQuestions,
   setSelectedQuestions, saveBulkEdit, formatDate, toggleQuestionSelection,
-  selectedDate, setSelectedDate // ★ 一括編集用 Date オブジェクトを受け取る
+  selectedDate, // ★ BulkEdit用日付 state (App.jsから受け取る)
+  setSelectedDate // ★ BulkEdit用日付 state 更新関数 (App.jsから受け取る)
 }) => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({ understanding: 'all', correctRate: 'all', interval: 'all', });
-  const [showCalendarModal, setShowCalendarModal] = useState(false); // カレンダーモーダル表示制御
+  const [showCalendarModal, setShowCalendarModal] = useState(false); // モーダル表示制御 state
 
   // filteredSubjects (変更なし)
   const filteredSubjects = useMemo(() => { /* ... */ }, [subjects, searchTerm, filters]);
   // toggleSelectAllForSubject (変更なし)
   const toggleSelectAllForSubject = (subject) => { /* ... */ };
   // executeBulkEdit (変更なし)
-  const executeBulkEdit = () => {
-    if (selectedDate && selectedQuestions.length > 0) {
-      saveBulkEdit(selectedDate); // App.jsの関数呼び出し (selectedDate は Date オブジェクトのはず)
-      setShowCalendarModal(false);
-      setBulkEditMode(false);
-      setSelectedQuestions([]);
-    } else { console.warn("日付または問題が選択されていません。"); }
-  };
+  const executeBulkEdit = () => { /* ... */ };
 
   // --- レンダリング ---
   return (
@@ -56,29 +52,39 @@ const RedesignedAllQuestionsView = ({
         </div>
       )}
 
-      {/* ★★★ 一括編集用カレンダーモーダル (react-day-picker + CSS Modules適用) ★★★ */}
+      {/* ★★★ 一括編集用カレンダーモーダル (JSX修正) ★★★ */}
       {bulkEditMode && showCalendarModal && (
          <>
              {/* オーバーレイ */}
              <div className={datePickerStyles.overlay} onClick={() => setShowCalendarModal(false)} />
              {/* モーダル本体 */}
              <div className={datePickerStyles.modal}>
-                {/* 閉じるボタン */}
+                 {/* 閉じるボタン */}
                 <button onClick={() => setShowCalendarModal(false)} className={datePickerStyles.closeButton}> <XIcon size={18} /> </button>
-                {/* react-day-picker コンポーネント */}
+                 {/* react-day-picker コンポーネント */}
                 <div className={datePickerStyles.calendarContainer}>
                     <DayPicker
                         mode="single"            // 単一選択
-                        required                 // 日付選択を必須に (任意)
-                        selected={selectedDate}  // App.js から渡された選択中の Date オブジェクト
-                        onSelect={setSelectedDate} // 日付選択時に App.js の state を更新
+                        required                 // 日付選択必須
+                        selected={selectedDate}  // ★ App.js の state を使う
+                        onSelect={(date) => {    // ★ 日付選択時の処理
+                            if (date) { // date が undefined でないことを確認
+                                setSelectedDate(date); // App.js の state 更新関数を呼ぶ
+                            }
+                        }}
                         locale={ja}              // 日本語化
                         showOutsideDays          // 月外日表示
-                        fixedWeeks               // 週の数を6週に固定
+                        fixedWeeks               // 週の数を固定
                         captionLayout="dropdown-buttons" // 年月ドロップダウン
-                        fromYear={new Date().getFullYear() - 1} // 年選択範囲
-                        toYear={new Date().getFullYear() + 2}   // 年選択範囲
-                        // className や classNames prop でさらに詳細なスタイル指定も可能
+                        fromYear={new Date().getFullYear() - 2} // 範囲を少し広げる
+                        toYear={new Date().getFullYear() + 3}
+                        // ★ react-day-picker の classNames prop を使って CSS Module を適用（より推奨）
+                        //    ただし :global で指定したのでこれでもOK
+                        // classNames={{
+                        //   caption: 'my-custom-caption', // .module.css に .my-custom-caption を定義
+                        //   day: 'my-custom-day',
+                        //   day_selected: 'my-custom-day--selected',
+                        // }}
                     />
                 </div>
                  {/* フッター */}
