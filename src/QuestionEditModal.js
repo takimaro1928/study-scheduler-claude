@@ -1,253 +1,183 @@
-// QuestionEditModal.js
+// src/QuestionEditModal.jsx (CSS Modules + モダンデザイン適用)
 import React, { useState, useRef, useEffect } from 'react';
 import { Calendar, X, Save, ArrowLeft } from 'lucide-react';
+// CSSモジュールをインポート
+import styles from './QuestionEditModal.module.css';
+// カレンダーコンポーネントをインポート（もしDatePickerCalendarを使う場合）
+// import DatePickerCalendar from './DatePickerCalendar';
 
-// 問題編集モーダルコンポーネント
-const QuestionEditModal = ({ question, onSave, onCancel }) => {
-  const [editData, setEditData] = useState({ ...question });
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const calendarRef = useRef(null);
-  
-  // 日付のフォーマット (YYYY-MM-DD)
-  const formatDateInput = (date) => {
-    const d = new Date(date);
-    return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
-  };
-  
-  // 日付のフォーマット (YYYY/MM/DD)
-  const formatDateDisplay = (date) => {
-    const d = new Date(date);
-    return `${d.getFullYear()}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')}`;
-  };
-  
-  // 日付のフォーマット (日本語)
-  const formatDateJP = (date) => {
-    const d = new Date(date);
-    return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
-  };
-  
-  // 次回日付の変更ハンドラー
-  const handleDateChange = (e) => {
-    setEditData({
-      ...editData,
-      nextDate: new Date(e.target.value)
-    });
-  };
-  
-  // 間隔の変更ハンドラー
-  const handleIntervalChange = (e) => {
-    setEditData({
-      ...editData,
-      interval: e.target.value
-    });
-  };
-  
-  // 理解度の変更ハンドラー
-  const handleUnderstandingChange = (e) => {
-    setEditData({
-      ...editData,
-      understanding: e.target.value
-    });
-  };
-  
-  // 正解率の変更ハンドラー
-  const handleCorrectRateChange = (e) => {
-    let value = parseInt(e.target.value);
-    if (isNaN(value)) value = 0;
-    if (value < 0) value = 0;
-    if (value > 100) value = 100;
-    
-    setEditData({
-      ...editData,
-      correctRate: value
-    });
-  };
-  
-  // カレンダーを開く/閉じる
-  const toggleCalendar = () => {
-    setIsCalendarOpen(!isCalendarOpen);
-  };
-  
-  // カレンダーの外側をクリックしたときに閉じる
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (calendarRef.current && !calendarRef.current.contains(event.target)) {
-        setIsCalendarOpen(false);
+const QuestionEditModal = ({ question, onSave, onCancel, formatDate }) => { // formatDate を props で受け取る
+  // 内部 state はそのまま維持
+  const [editData, setEditData] = useState({
+      ...question,
+      // 日付を YYYY-MM-DD 形式の文字列で初期化
+      nextDate: question.nextDate ? new Date(question.nextDate).toISOString().split('T')[0] : '',
+      lastAnswered: question.lastAnswered ? new Date(question.lastAnswered).toISOString().split('T')[0] : '',
+      correctRate: question.correctRate ?? 0, // nullish coalescing
+      answerCount: question.answerCount ?? 0,
+  });
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false); // カレンダーポップアップ用 (もし使うなら)
+  const calendarRef = useRef(null); // カレンダー外クリック用
+
+  // 日付フォーマット関数 (YYYY/MM/DD - 表示用)
+  const formatDateDisplay = (dateString) => {
+      if (!dateString) return '';
+      try {
+        return formatDate(new Date(dateString)); // App.js から渡された関数を使用
+      } catch {
+        return '無効な日付';
       }
-    }
-    
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [calendarRef]);
-  
-  // 保存ボタンのハンドラー
-  const handleSave = () => {
-    onSave(editData);
   };
-  
+
+  // Input の値変更ハンドラ
+  const handleChange = (e) => {
+    const { name, value, type } = e.target;
+    let processedValue = value;
+    if (type === 'number') {
+        processedValue = value === '' ? '' : parseInt(value); // 空を許容しつつ数値に
+        if (!isNaN(processedValue)) {
+            if (processedValue < 0) processedValue = 0;
+            if (name === 'correctRate' && processedValue > 100) processedValue = 100;
+        } else {
+            processedValue = editData[name]; // 無効な数値なら元に戻す
+        }
+    } else if (type === 'radio') {
+        // understanding はそのまま value を使う
+        processedValue = value;
+    } else if (type === 'date'){
+        // 日付入力はそのまま文字列で保持 (保存時に Date->ISO にする)
+        processedValue = value;
+    }
+
+    setEditData(prev => ({ ...prev, [name]: processedValue }));
+  };
+
+
+  // 保存処理
+  const handleSave = () => {
+    // 保存時に nextDate と lastAnswered を Date オブジェクトまたは ISO 文字列に変換して onSave に渡す
+    const dataToSave = {
+        ...editData,
+        // YYYY-MM-DD 文字列から Date オブジェクト経由で ISO 文字列に変換
+        nextDate: editData.nextDate ? new Date(editData.nextDate).toISOString() : null,
+        lastAnswered: editData.lastAnswered ? new Date(editData.lastAnswered).toISOString() : null,
+        // 数値が空文字列の場合 0 にする
+        correctRate: editData.correctRate === '' ? 0 : editData.correctRate,
+        answerCount: editData.answerCount === '' ? 0 : editData.answerCount
+    };
+    onSave(dataToSave);
+  };
+
+  // カレンダーの外側クリック (DatePickerCalendar を使う場合)
+  // useEffect(() => { /* ... カレンダー外クリックのロジック ... */ }, [calendarRef]);
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-      <div className="bg-white rounded-xl max-w-md w-full shadow-xl relative">
+    <div className={styles.overlay} onClick={onCancel}>
+      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         {/* ヘッダー */}
-        <div className="bg-gradient-to-r from-indigo-600 to-indigo-500 p-4 rounded-t-xl text-white flex justify-between items-center">
-          <h3 className="text-lg font-bold">問題編集</h3>
-          <button 
-            onClick={onCancel}
-            className="text-white hover:bg-indigo-700 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+        <div className={styles.header}>
+          <h3 className={styles.headerTitle}>問題編集 : {question.id}</h3>
+          <button onClick={onCancel} className={styles.closeButton}> <X size={20} /> </button>
         </div>
-        
-        {/* 問題情報 */}
-        <div className="p-6 space-y-6">
+
+        {/* コンテンツ (フォーム) */}
+        <div className={styles.content}>
           {/* 問題ID (読み取り専用) */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              問題ID
-            </label>
-            <div className="bg-gray-100 p-3 rounded-lg text-gray-800 font-medium border border-gray-200">
-              {editData.id}
-            </div>
+          <div className={styles.formGroup}>
+            <label>問題ID</label>
+            <div className={styles.readOnlyField}>{editData.id}</div>
           </div>
-          
+
           {/* 解答回数 (読み取り専用) */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              解答回数
-            </label>
-            <div className="bg-gray-100 p-3 rounded-lg text-gray-800 font-medium border border-gray-200">
-              {editData.answerCount}回
-            </div>
+          <div className={styles.formGroup}>
+            <label>解答回数</label>
+            <div className={styles.readOnlyField}>{editData.answerCount}回</div>
           </div>
-          
-          {/* 正解率 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              正解率
-            </label>
-            <div className="relative">
+
+          {/* 正解率 (編集可能) */}
+          <div className={styles.formGroup}>
+            <label htmlFor={`correctRate-${question.id}`}>正解率</label>
+            <div style={{ position: 'relative' }}> {/* %マーク用 */}
               <input
                 type="number"
-                min="0"
-                max="100"
+                id={`correctRate-${question.id}`}
+                name="correctRate"
+                min="0" max="100"
                 value={editData.correctRate}
-                onChange={handleCorrectRateChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                onChange={handleChange}
+                className={styles.inputField}
               />
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                %
-              </div>
+               <span className={styles.inputSuffix}>%</span>
             </div>
           </div>
-          
-          {/* 次回解答日 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              次回解答日
-            </label>
-            <div className="relative">
-              <div className="flex">
-                <input
-                  type="date"
-                  value={formatDateInput(editData.nextDate)}
-                  onChange={handleDateChange}
-                  className="w-full p-3 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                />
-                <button
-                  onClick={toggleCalendar}
-                  className="px-3 bg-gray-100 border border-l-0 border-gray-300 rounded-r-lg text-gray-600 hover:bg-gray-200 transition-colors"
-                >
-                  <Calendar className="w-5 h-5" />
-                </button>
-              </div>
-              
-              {/* 日本語表記の日付 (参考表示) */}
-              <div className="mt-1 text-sm text-gray-500">
-                {formatDateJP(editData.nextDate)}
-              </div>
-            </div>
+
+          {/* 次回解答日 (編集可能) */}
+          <div className={styles.formGroup}>
+            <label htmlFor={`nextDate-${question.id}`}>次回解答日</label>
+            {/* カレンダーポップアップを使う場合はここにロジック追加 */}
+            <input
+              type="date"
+              id={`nextDate-${question.id}`}
+              name="nextDate"
+              value={editData.nextDate ? editData.nextDate.split('T')[0] : ''} // YYYY-MM-DD 形式
+              onChange={handleChange}
+              className={styles.inputField} // inputFieldを流用
+            />
+             <div className={styles.dateDisplay}> {/* 日本語表示 */}
+               {editData.nextDate ? formatDate(new Date(editData.nextDate)) : '未設定'}
+             </div>
           </div>
-          
-          {/* 間隔 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              間隔
-            </label>
+
+          {/* 間隔 (編集可能) */}
+          <div className={styles.formGroup}>
+            <label htmlFor={`interval-${question.id}`}>間隔</label>
             <select
+              id={`interval-${question.id}`}
+              name="interval"
               value={editData.interval}
-              onChange={handleIntervalChange}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              onChange={handleChange}
+              className={styles.selectField}
             >
-              <option value="1日">1日</option>
-              <option value="3日">3日</option>
-              <option value="7日">7日</option>
-              <option value="14日">14日</option>
-              <option value="1ヶ月">1ヶ月</option>
-              <option value="2ヶ月">2ヶ月</option>
+              <option value="1日">1日</option> <option value="3日">3日</option>
+              <option value="7日">7日</option> <option value="14日">14日</option>
+              <option value="1ヶ月">1ヶ月</option> <option value="2ヶ月">2ヶ月</option>
+              <option value="8日">8日 (曖昧)</option> {/* 曖昧用も追加 */}
             </select>
           </div>
-          
-          {/* 理解度 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              理解度
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              <label className="flex items-center space-x-2 p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                <input
-                  type="radio"
-                  name="understanding"
-                  value="理解○"
-                  checked={editData.understanding === "理解○"}
-                  onChange={handleUnderstandingChange}
-                  className="text-indigo-600"
-                />
-                <span className="text-gray-800">理解○</span>
+
+          {/* 理解度 (編集可能) */}
+          <div className={styles.formGroup}>
+            <label>理解度</label>
+            <div className={styles.radioGroup}>
+              <label className={styles.radioLabel}>
+                <input type="radio" name="understanding" value="理解○"
+                       checked={editData.understanding === "理解○"} onChange={handleChange}
+                       className={styles.radioInput} />
+                <span>理解○</span>
               </label>
-              <label className="flex items-center space-x-2 p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                <input
-                  type="radio"
-                  name="understanding"
-                  value="曖昧△"
-                  checked={editData.understanding === "曖昧△" || editData.understanding.startsWith("曖昧△")}
-                  onChange={handleUnderstandingChange}
-                  className="text-indigo-600"
-                />
-                <span className="text-gray-800">曖昧△</span>
+              <label className={styles.radioLabel}>
+                <input type="radio" name="understanding" value="曖昧△"
+                       checked={editData.understanding?.startsWith("曖昧△")} onChange={handleChange}
+                       className={styles.radioInput} />
+                <span>曖昧△</span>
               </label>
-              <label className="flex items-center space-x-2 p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                <input
-                  type="radio"
-                  name="understanding"
-                  value="理解できていない×"
-                  checked={editData.understanding === "理解できていない×"}
-                  onChange={handleUnderstandingChange}
-                  className="text-indigo-600"
-                />
-                <span className="text-gray-800">理解×</span>
+              <label className={styles.radioLabel}>
+                <input type="radio" name="understanding" value="理解できていない×"
+                       checked={editData.understanding === "理解できていない×"} onChange={handleChange}
+                       className={styles.radioInput} />
+                <span>理解×</span>
               </label>
             </div>
           </div>
         </div>
-        
+
         {/* フッター */}
-        <div className="border-t border-gray-200 p-4 flex justify-between">
-          <button 
-            onClick={onCancel}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" />
-            キャンセル
+        <div className={styles.footer}>
+          <button onClick={onCancel} className={`${styles.footerButton} ${styles.cancelButton}`}>
+             <ArrowLeft size={16} style={{marginRight: '4px'}}/>キャンセル
           </button>
-          <button 
-            onClick={handleSave}
-            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center"
-          >
-            <Save className="w-4 h-4 mr-1" />
-            保存
+          <button onClick={handleSave} className={`${styles.footerButton} ${styles.saveButton}`}>
+             <Save size={16} style={{marginRight: '4px'}}/>保存
           </button>
         </div>
       </div>
