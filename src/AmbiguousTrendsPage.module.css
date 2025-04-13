@@ -1,4 +1,4 @@
-/* src/AmbiguousTrendsPage.module.css */
+/* src/AmbiguousTrendsPage.module.css (完全版) */
 
 .container {
   padding: 1.5rem;
@@ -88,19 +88,62 @@
   border: 1px solid #d1d5db; /* border-gray-300 */
   border-radius: 0.375rem; /* rounded-lg */
   font-size: 0.875rem; /* text-sm */
+  background-color: white; /* Ensure background for contrast */
 }
 
+/* --- グラフ表示エリア --- */
+.chartContainer {
+  margin-top: 2rem; /* mt-8 */
+  margin-bottom: 2rem; /* mb-8 */
+  padding: 1.5rem; /* p-6 */
+  background-color: white;
+  border-radius: 0.75rem; /* rounded-xl */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); /* shadow-md */
+  border: 1px solid #e5e7eb; /* border-gray-200 */
+}
+
+.chartTitle {
+  font-size: 1.125rem; /* text-lg */
+  font-weight: 600; /* font-semibold */
+  color: #374151; /* text-gray-700 */
+  margin-bottom: 1.5rem; /* mb-6 */
+  display: flex;
+  align-items: center;
+}
+
+.chartTitle svg {
+  width: 1.125rem; /* w-4.5 (approx) */
+  height: 1.125rem; /* h-4.5 (approx) */
+  margin-right: 0.5rem; /* mr-2 */
+  color: #6366f1; /* text-indigo-500 */
+}
+
+/* Rechartsのレスポンシブ対応のためのラッパー */
+.chartContainer > div { /* ResponsiveContainerが生成するdiv */
+  width: 100%;
+}
+
+/* --- テーブル関連 --- */
 .tableContainer {
   margin-top: 1.5rem; /* mt-6 */
   background-color: white;
   border-radius: 0.5rem; /* rounded-lg */
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); /* shadow */
-  overflow: hidden; /* テーブルの角丸のため */
+  overflow-x: auto; /* テーブルがはみ出す場合スクロール */
   border: 1px solid #e5e7eb; /* border-gray-200 */
 }
 
+.tableTitle { /* テーブルの上に追加したタイトルのスタイル */
+  padding: 1rem 1rem 0.5rem 1rem; /* px-4 pt-4 pb-2 */
+  font-size: 1rem; /* text-base */
+  font-weight: 600; /* font-semibold */
+  color: #374151; /* text-gray-700 */
+}
+
+
 .table {
   min-width: 100%; /* min-w-full */
+  width: 100%; /* Ensure full width */
   border-collapse: collapse; /* 基本 */
 }
 
@@ -127,6 +170,7 @@
   vertical-align: middle;
   margin-left: 0.25rem;
   color: #9ca3af; /* text-gray-400 */
+  opacity: 0.5; /* 少し薄く */
 }
 .sortIconActive {
   display: inline-block;
@@ -150,11 +194,13 @@
   color: #374151; /* text-gray-700 */
   border-bottom: 1px solid #f3f4f6; /* border-b border-gray-100 - 細い線 */
   white-space: nowrap; /* 基本は折り返さない */
+  vertical-align: middle; /* セル内垂直中央揃え */
 }
-/* 特定の列は折り返しを許可してもよいかも */
+
 .table tbody td:nth-child(3), /* 章 */
 .table tbody td:nth-child(4) { /* 理由 */
-  white-space: normal;
+  white-space: normal; /* 必要に応じて折り返す */
+  min-width: 150px; /* ある程度の幅を確保 */
 }
 
 
@@ -165,6 +211,7 @@
   background-color: #f9fafb; /* bg-gray-50 */
   border: 1px dashed #e5e7eb; /* border-dashed border-gray-200 */
   border-radius: 0.5rem; /* rounded-lg */
+  margin: 1rem; /* テーブルがない場合にマージン追加 */
 }
 
 /* アニメーション */
