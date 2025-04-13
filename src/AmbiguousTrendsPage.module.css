@@ -1,4 +1,4 @@
-/* src/AmbiguousTrendsPage.module.css (完全版 - 長期停滞リストスタイル追記) */
+/* src/AmbiguousTrendsPage.module.css */
 
 .container {
   padding: 1.5rem;
@@ -224,9 +224,9 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* コメント列 */
 .table thead th:nth-child(5), /* コメント列ヘッダー */
 .table tbody td:nth-child(5) { /* コメント列セル */
-  /* 必要に応じて幅を調整 */
   min-width: 150px;
   max-width: 300px; /* 長すぎると表示が崩れるため最大幅を設定 */
   white-space: normal; /* 折り返し許可 */
@@ -237,15 +237,18 @@
   padding-bottom: 0.75rem;
 }
 
+/* ★★★ コメントセル内の span スタイル変更 ★★★ */
 .commentCell span {
   display: -webkit-box;
   -webkit-line-clamp: 3; /* 表示行数を3行に制限 */
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  cursor: help; /* 全文表示可能を示す */
+  /* ★ title 属性があればツールチップが出ることを示唆 */
+  cursor: help;
 }
 
+/* 編集ボタン列 */
 .table thead th:last-child, /* 編集ボタンヘッダー */
 .table tbody td:last-child { /* 編集ボタンセル */
   width: 50px; /* 固定幅 */
