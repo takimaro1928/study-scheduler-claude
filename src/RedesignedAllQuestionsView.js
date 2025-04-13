@@ -1,19 +1,16 @@
-// src/RedesignedAllQuestionsView.jsx (ユーザー提供コードベース + カレンダー閉じない修正)
-import React, { useState, useMemo } from 'react'; // useEffect, useRef はこのコンポーネントでは未使用なので削除
+// src/RedesignedAllQuestionsView.jsx (イベント伝播停止を追加 - 完全版)
+import React, { useState, useMemo } from 'react';
 import {
   Search, Filter, Edit, Clock, Calendar as CalendarIcon, CheckCircle, XCircle, AlertTriangle, Info,
-  ChevronRight, ChevronDown, ChevronUp, X as XIcon // Check は不要だったので削除
+  ChevronRight, ChevronDown, ChevronUp, X as XIcon
 } from 'lucide-react';
-// ★ DayPicker を react-day-picker からインポート
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import { ja } from 'date-fns/locale';
-// CSSモジュール
-import styles from './RedesignedAllQuestionsView.module.css'; // このコンポーネント用
-import datePickerStyles from './DatePickerCalendarModal.module.css'; // モーダル用
+import styles from './RedesignedAllQuestionsView.module.css';
+import datePickerStyles from './DatePickerCalendarModal.module.css';
 
-// --- ヘルパー関数 (ユーザー提供コードから) ---
-// 科目色定義
+// --- ヘルパー関数 ---
 const subjectColorMap = {
     "経営管理論": "#a5b4fc", "運営管理": "#6ee7b7", "経済学": "#fca5a5",
     "経営情報システム": "#93c5fd", "経営法務": "#c4b5fd",
@@ -123,15 +120,61 @@ const RedesignedAllQuestionsView = ({
     <div className={styles.container || "container p-4 max-w-6xl mx-auto pb-24"}>
       {/* 上部コントロール */}
       <div className={styles.controlsContainer || "flex flex-col md:flex-row gap-3 md:gap-4 mb-6 items-center"}>
-          <div className={styles.searchBox || "relative flex-grow w-full md:max-w-xs"}><input type="text" placeholder="問題IDで検索..." className={styles.searchInput || "pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full shadow-sm focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm"} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /><div className={styles.searchIcon || "absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"}><Search size={18}/></div>{searchTerm && ( <button onClick={() => setSearchTerm('')} className={styles.clearSearchButton || "absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"}> <XIcon size={18} /> </button> )}</div>
-          <div className={styles.controlButtons || "flex gap-3 w-full md:w-auto"}> <button onClick={() => setShowFilters(!showFilters)} className={styles.controlButton || "px-4 py-2 border border-gray-300 bg-white rounded-lg hover:bg-gray-50 flex items-center shadow-sm text-gray-700 font-medium text-sm w-full justify-center md:w-auto"}> <Filter size={16} className="mr-2" /> フィルター {showFilters ? <ChevronUp size={16} style={{marginLeft: '4px'}} /> : <ChevronDown size={16} style={{marginLeft: '4px'}} />} </button> <button onClick={() => setBulkEditMode(!bulkEditMode)} className={`${styles.controlButton || "controlButton"} ${ bulkEditMode ? (styles.bulkEditButtonActive || "bg-red-100 text-red-700 border-red-200") : (styles.bulkEditButtonInactive || "bg-indigo-50 text-indigo-700 border-indigo-200") }`}> {bulkEditMode ? '選択終了' : '一括編集'} </button> </div>
+          <div className={styles.searchBox || "relative flex-grow w-full md:max-w-xs"}>
+            <input type="text" placeholder="問題IDで検索..." className={styles.searchInput || "pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full shadow-sm focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm"} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+            <div className={styles.searchIcon || "absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"}><Search size={18}/></div>
+            {searchTerm && ( <button onClick={() => setSearchTerm('')} className={styles.clearSearchButton || "absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"}> <XIcon size={18} /> </button> )}
+          </div>
+          <div className={styles.controlButtons || "flex gap-3 w-full md:w-auto"}>
+            <button onClick={() => setShowFilters(!showFilters)} className={styles.controlButton || "px-4 py-2 border border-gray-300 bg-white rounded-lg hover:bg-gray-50 flex items-center shadow-sm text-gray-700 font-medium text-sm w-full justify-center md:w-auto"}>
+              <Filter size={16} className="mr-2" /> フィルター {showFilters ? <ChevronUp size={16} style={{marginLeft: '4px'}} /> : <ChevronDown size={16} style={{marginLeft: '4px'}} />}
+            </button>
+            <button onClick={() => setBulkEditMode(!bulkEditMode)} className={`${styles.controlButton || "controlButton"} ${ bulkEditMode ? (styles.bulkEditButtonActive || "bg-red-100 text-red-700 border-red-200") : (styles.bulkEditButtonInactive || "bg-indigo-50 text-indigo-700 border-indigo-200") }`}>
+              {bulkEditMode ? '選択終了' : '一括編集'}
+            </button>
+          </div>
       </div>
 
       {/* 詳細フィルターパネル */}
-      {showFilters && ( <div className={styles.filterPanel || "bg-white p-4 rounded-lg border border-gray-200 shadow-sm mb-6 animate-fadeIn"}> <div className={styles.filterGrid || "grid grid-cols-1 md:grid-cols-3 gap-4"}> <div> <label className={styles.filterLabel || "block text-xs font-medium text-gray-600 mb-1"}>理解度</label> <select className={styles.filterSelect || "w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring focus:ring-indigo-200 focus:ring-opacity-50"} value={filters.understanding} onChange={(e) => setFilters({...filters, understanding: e.target.value})}> <option value="all">すべて</option> <option value="理解○">理解○</option> <option value="曖昧△">曖昧△</option> <option value="理解できていない×">理解できていない×</option> </select> </div> <div> <label className={styles.filterLabel || "block text-xs font-medium text-gray-600 mb-1"}>正解率</label> <select className={styles.filterSelect || "w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring focus:ring-indigo-200 focus:ring-opacity-50"} value={filters.correctRate} onChange={(e) => setFilters({...filters, correctRate: e.target.value})}> <option value="all">すべて</option> <option value="high">高い (80%↑)</option> <option value="medium">中間 (50-79%)</option> <option value="low">低い (↓50%)</option> </select> </div> <div> <label className={styles.filterLabel || "block text-xs font-medium text-gray-600 mb-1"}>復習間隔</label> <select className={styles.filterSelect || "w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring focus:ring-indigo-200 focus:ring-opacity-50"} value={filters.interval} onChange={(e) => setFilters({...filters, interval: e.target.value})}> <option value="all">すべて</option> <option value="1日">1日</option> <option value="3日">3日</option> <option value="7日">7日</option> <option value="14日">14日</option> <option value="1ヶ月">1ヶ月</option> <option value="2ヶ月">2ヶ月</option> <option value="8日">8日(曖昧)</option> </select> </div> </div> <div className={styles.filterActions || "mt-4 flex justify-end"}> <button onClick={() => setFilters({ understanding: 'all', correctRate: 'all', interval: 'all' })} className={styles.filterResetButton || "px-3 py-1.5 bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 text-xs font-medium"}> リセット </button> </div> </div> )}
+      {showFilters && (
+        <div className={styles.filterPanel || "bg-white p-4 rounded-lg border border-gray-200 shadow-sm mb-6 animate-fadeIn"}>
+          <div className={styles.filterGrid || "grid grid-cols-1 md:grid-cols-3 gap-4"}>
+            <div>
+              <label className={styles.filterLabel || "block text-xs font-medium text-gray-600 mb-1"}>理解度</label>
+              <select className={styles.filterSelect || "w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring focus:ring-indigo-200 focus:ring-opacity-50"} value={filters.understanding} onChange={(e) => setFilters({...filters, understanding: e.target.value})}>
+                <option value="all">すべて</option> <option value="理解○">理解○</option> <option value="曖昧△">曖昧△</option> <option value="理解できていない×">理解できていない×</option>
+              </select>
+            </div>
+            <div>
+              <label className={styles.filterLabel || "block text-xs font-medium text-gray-600 mb-1"}>正解率</label>
+              <select className={styles.filterSelect || "w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring focus:ring-indigo-200 focus:ring-opacity-50"} value={filters.correctRate} onChange={(e) => setFilters({...filters, correctRate: e.target.value})}>
+                <option value="all">すべて</option> <option value="high">高い (80%↑)</option> <option value="medium">中間 (50-79%)</option> <option value="low">低い (↓50%)</option>
+              </select>
+            </div>
+            <div>
+              <label className={styles.filterLabel || "block text-xs font-medium text-gray-600 mb-1"}>復習間隔</label>
+              <select className={styles.filterSelect || "w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring focus:ring-indigo-200 focus:ring-opacity-50"} value={filters.interval} onChange={(e) => setFilters({...filters, interval: e.target.value})}>
+                <option value="all">すべて</option> <option value="1日">1日</option> <option value="3日">3日</option> <option value="7日">7日</option> <option value="14日">14日</option> <option value="1ヶ月">1ヶ月</option> <option value="2ヶ月">2ヶ月</option> <option value="8日">8日(曖昧)</option>
+              </select>
+            </div>
+          </div>
+          <div className={styles.filterActions || "mt-4 flex justify-end"}>
+            <button onClick={() => setFilters({ understanding: 'all', correctRate: 'all', interval: 'all' })} className={styles.filterResetButton || "px-3 py-1.5 bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 text-xs font-medium"}> リセット </button>
+          </div>
+        </div>
+      )}
 
       {/* 一括編集時の操作パネル */}
-      {bulkEditMode && ( <div className={styles.bulkEditPanel || "bg-indigo-50 p-3 sm:p-4 mb-4 rounded-lg border border-indigo-200 shadow-sm animate-fadeIn flex flex-col sm:flex-row justify-between items-center gap-3"}> <p className={styles.bulkEditText || "text-indigo-800 font-medium text-sm"}> {selectedQuestions.length > 0 ? `${selectedQuestions.length} 件の問題を選択中` : "問題を選択してください"} </p> <button onClick={() => setShowCalendarModal(true)} disabled={selectedQuestions.length === 0} className={styles.bulkEditButton || "px-4 py-2 rounded-md font-medium shadow-sm flex items-center text-sm bg-indigo-600 text-white hover:bg-indigo-700"}> <CalendarIcon size={16} /> 日付を一括設定 </button> </div> )}
+      {bulkEditMode && (
+        <div className={styles.bulkEditPanel || "bg-indigo-50 p-3 sm:p-4 mb-4 rounded-lg border border-indigo-200 shadow-sm animate-fadeIn flex flex-col sm:flex-row justify-between items-center gap-3"}>
+          <p className={styles.bulkEditText || "text-indigo-800 font-medium text-sm"}>
+            {selectedQuestions.length > 0 ? `${selectedQuestions.length} 件の問題を選択中` : "問題を選択してください"}
+          </p>
+          <button onClick={() => setShowCalendarModal(true)} disabled={selectedQuestions.length === 0} className={styles.bulkEditButton || "px-4 py-2 rounded-md font-medium shadow-sm flex items-center text-sm bg-indigo-600 text-white hover:bg-indigo-700"}>
+            <CalendarIcon size={16} /> 日付を一括設定
+          </button>
+        </div>
+      )}
 
       {/* 問題リスト (アコーディオン + カード) */}
       {filteredSubjects.length === 0 ? (
@@ -163,7 +206,7 @@ const RedesignedAllQuestionsView = ({
                            <h4 className={styles.chapterTitle}>{chapter.name}</h4>
                            <div className={styles.chapterCountBadge}> {chapter.questions?.length || 0}問 </div>
                         </div>
-                        {/* ★★★ 章の中の問題をカード形式に変更 ★★★ */}
+                        {/* 章の中の問題をカード形式 */}
                         {expandedChapters?.[chapter.id] && (
                           <div className={styles.questionCardList}>
                             {chapter.questions.map(question => {
@@ -206,25 +249,27 @@ const RedesignedAllQuestionsView = ({
         </div> // 問題リスト全体 end
       )}
 
-      {/* ★★★ 一括編集用カレンダーモーダル (onSelect修正) ★★★ */}
+      {/* ★★★ 一括編集用カレンダーモーダル ★★★ */}
       {bulkEditMode && showCalendarModal && (
          <>
+             {/* オーバーレイ: 外側クリックで閉じる */}
              <div className={datePickerStyles.overlay} onClick={() => setShowCalendarModal(false)} />
+             {/* モーダル本体: クリックイベントの伝播を停止 */}
+             {/* ↓↓↓ ここが修正点です ↓↓↓ */}
              <div className={datePickerStyles.modal} onClick={(e) => e.stopPropagation()}>
+                {/* ↑↑↑ ここが修正点です ↑↑↑ */}
                 <button onClick={() => setShowCalendarModal(false)} className={datePickerStyles.closeButton}> <XIcon size={18} /> </button>
                 <div className={datePickerStyles.calendarContainer}>
                     <DayPicker
                         mode="single"
                         required
                         selected={selectedDate}
-                        // ★★★ onSelect: モーダルを閉じないように修正 ★★★
-                        onSelect={(date) => {
+                        onSelect={(date) => { // 日付選択時にモーダルは閉じない
                             if (date) {
-                                setSelectedDate(date); // App.js の state 更新
+                                setSelectedDate(date);
                             } else {
-                                setSelectedDate(null); // 選択解除
+                                setSelectedDate(null);
                             }
-                            // setShowCalendarModal(false); // ← この行を削除またはコメントアウト
                         }}
                         locale={ja}
                         showOutsideDays fixedWeeks
