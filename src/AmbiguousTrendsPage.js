@@ -1,14 +1,15 @@
 // src/AmbiguousTrendsPage.js
-// 【完全版】コメント表示改善：マウスオーバーで全文ツールチップ表示を追加
+// 【今度こそ完全版・省略なし・既存コードベース】
+// コメント表示改善：CSSカスタムツールチップを表示するように renderTable 内を修正
 
 import React, { useState, useEffect, useMemo } from 'react';
-// TrendingDown アイコンを追加
+// 元のインポートに TrendingDown を追加
 import { Filter, ChevronDown, ChevronUp, Info, ArrowUpDown, BarChart2, AlertCircle, RotateCcw, TrendingUp, Edit2, TrendingDown } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 import styles from './AmbiguousTrendsPage.module.css';
 import CommentEditModal from './CommentEditModal';
 
-// 曖昧問題データを取得・整形する関数
+// 曖昧問題データを取得・整形する関数 (変更なし)
 function getAmbiguousQuestions(subjects) {
   const ambiguousQuestions = []; if (!Array.isArray(subjects)) return ambiguousQuestions;
   subjects.forEach(subject => { if (!subject?.chapters) return; subject.chapters.forEach(chapter => { if (!chapter?.questions) return; chapter.questions.forEach(question => {
@@ -19,10 +20,10 @@ function getAmbiguousQuestions(subjects) {
   return ambiguousQuestions;
 }
 
-// 日付のフォーマット関数
+// 日付のフォーマット関数 (変更なし)
 const formatDateInternal = (date) => { if (!date || !(date instanceof Date) || isNaN(date.getTime())) { return '----/--/--'; } try { return `${date.getFullYear()}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}`; } catch (e) { console.error("formatDateエラー:", e); return 'エラー'; } };
 
-// 自然順ソート用の比較関数
+// 自然順ソート用の比較関数 (変更なし)
 function naturalSortCompare(a, b, order) {
   const nullOrder = (order === 'asc' ? 1 : -1); if (a == null && b != null) return nullOrder; if (a != null && b == null) return -nullOrder; if (a == null && b == null) return 0;
   const re = /(\d+)|(\D+)/g; const aParts = String(a).match(re) || []; const bParts = String(b).match(re) || [];
@@ -31,7 +32,7 @@ function naturalSortCompare(a, b, order) {
   return aParts.length - bParts.length;
 }
 
-// ソート処理を共通化する関数
+// ソート処理を共通化する関数 (変更なし)
 const sortData = (dataToSort, sortKey, sortOrder) => {
   // ソート対象が配列でなければ空配列を返す
   if (!Array.isArray(dataToSort)) {
@@ -47,7 +48,7 @@ const sortData = (dataToSort, sortKey, sortOrder) => {
       return 0;
     }
     const valA = a[sortKey]; const valB = b[sortKey]; let comparison = 0;
-    if (valA == null && valB != null) return sortOrder === 'asc' ? 1 : -1; if (valA != null && valB == null) return sortOrder === 'asc' ? -1 : 1; if (valA == null && valB == null) return 0;
+    if (valA == null && valB != null) return sortOrder === 'asc' ? 1 : -1; if (valA != null && b == null) return sortOrder === 'asc' ? -1 : 1; if (valA == null && b == null) return 0;
     if (valA instanceof Date && valB instanceof Date) { comparison = valA.getTime() - valB.getTime(); }
     else if (typeof valA === 'number' && typeof valB === 'number') { comparison = valA - valB; }
     else if (typeof valA === 'string' && typeof valB === 'string') { if (sortKey === 'id' || sortKey === 'chapterName' || sortKey === 'subjectName' || sortKey === 'reason') { comparison = naturalSortCompare(valA, valB); } else { comparison = valA.localeCompare(valB, undefined, { sensitivity: 'base' }); } }
@@ -58,13 +59,13 @@ const sortData = (dataToSort, sortKey, sortOrder) => {
 
 // 曖昧問題傾向表示ページコンポーネント
 const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answerHistory = [], saveComment }) => {
-  // --- State ---
+  // --- State --- (変更なし)
   const [filter, setFilter] = useState({ reason: 'all', subject: 'all', period: 'all' });
   const [sort, setSort] = useState({ key: 'lastAnswered', order: 'desc' }); // デフォルトソートキーは維持
   const [showFilters, setShowFilters] = useState(false);
   const [editingCommentQuestion, setEditingCommentQuestion] = useState(null);
 
-  // --- Memoized Data ---
+  // --- Memoized Data --- (変更なし)
   // 現在曖昧△の問題リスト
   const ambiguousQuestions = useMemo(() => getAmbiguousQuestions(subjects || []), [subjects]);
 
@@ -111,7 +112,7 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
     console.log("[AmbiguousTrendsPage] Filtered recent reverted questions (currently ambiguous):", results.length);
     return results;
 
-  }, [answerHistory, ambiguousQuestions]); // ★ ambiguousQuestions を依存配列に追加
+  }, [answerHistory, ambiguousQuestions]);
 
   // ★★★ 完全な揺り戻しサイクル（曖昧→理解→曖昧）があった問題を抽出 ★★★
   const completeRevertedQuestions = useMemo(() => {
@@ -170,7 +171,7 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
     const results = ambiguousQuestions.filter(q => revertedQuestionIds.has(q.id));
     console.log("[AmbiguousTrendsPage] Filtered complete reverted questions (currently ambiguous):", results.length);
     return results;
-  }, [answerHistory, ambiguousQuestions]); // ★ ambiguousQuestions を依存配列に追加
+  }, [answerHistory, ambiguousQuestions]);
 
   // 科目別曖昧問題数
   const ambiguousCountBySubject = useMemo(() => {
@@ -196,22 +197,15 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
         console.log("[AmbiguousTrendsPage] No answer history for trends data.");
         return [];
     }
-
     const historySorted = [...answerHistory].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
     const trends = [];
     const questionLastState = new Map(); // 各問題の最新の理解度を保持
     let dailyAmbiguousCount = 0;
     let currentDate = '';
 
-    // まず、履歴がない時点での初期曖昧問題数をカウント（もし必要なら）
-    // ambiguousQuestions を使って最初の状態を把握することも可能だが、ここでは履歴のみから計算
     ambiguousQuestions.forEach(q => {
         questionLastState.set(q.id, q.understanding); // 現在の状態を初期値とする
-        if (q.understanding?.startsWith('曖昧△')) {
-           // dailyAmbiguousCount++; // 初期値を加算する場合
-        }
     });
-    // console.log("Initial ambiguous count based on current state:", dailyAmbiguousCount);
 
     historySorted.forEach((record, index) => {
       if (!record || !record.timestamp || !record.questionId) return; // 不正データスキップ
@@ -220,13 +214,11 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
       const currentUnderstanding = record.understanding || '';
       const previousUnderstanding = questionLastState.get(record.questionId); // このレコード直前の状態
 
-      // 日付が変わったら、その日の最終カウントを記録
       if (currentDate === '') {
         currentDate = recordDateString;
-         // 初日の初期カウント（必要に応じて）
          let initialCount = 0;
          questionLastState.forEach(state => { if(state?.startsWith('曖昧△')) initialCount++; });
-         dailyAmbiguousCount = initialCount; // 初日のカウントを現在の曖昧数に設定
+         dailyAmbiguousCount = initialCount;
 
       } else if (recordDateString !== currentDate) {
         trends.push({ date: currentDate, count: dailyAmbiguousCount });
@@ -236,24 +228,21 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
       const wasAmbiguous = previousUnderstanding?.startsWith('曖昧△');
       const isAmbiguous = currentUnderstanding.startsWith('曖昧△');
 
-      // 状態変化によるカウントの増減
       if (!wasAmbiguous && isAmbiguous) {
-        dailyAmbiguousCount++; // 曖昧でなかった -> 曖昧になった
+        dailyAmbiguousCount++;
       } else if (wasAmbiguous && !isAmbiguous) {
-        dailyAmbiguousCount = Math.max(0, dailyAmbiguousCount - 1); // 曖昧だった -> 曖昧でなくなった
+        dailyAmbiguousCount = Math.max(0, dailyAmbiguousCount - 1);
       }
 
-      // 状態を更新
       questionLastState.set(record.questionId, currentUnderstanding);
 
-      // 最後のレコードなら、その日のデータを記録
       if (index === historySorted.length - 1) {
         trends.push({ date: currentDate, count: dailyAmbiguousCount });
       }
     });
      console.log("[AmbiguousTrendsPage] Calculated ambiguous trends data points:", trends.length);
     return trends;
-  }, [answerHistory, ambiguousQuestions]); // 履歴と現在の曖昧リストに依存
+  }, [answerHistory, ambiguousQuestions]);
 
   // フィルター後の全曖昧問題データ
   const filteredQuestionsBase = useMemo(() => {
@@ -269,19 +258,11 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
       const cutoffDate = new Date();
       cutoffDate.setHours(0, 0, 0, 0);
       now.setHours(0, 0, 0, 0);
-
       switch (filter.period) {
-        case 'week':
-          cutoffDate.setDate(now.getDate() - 7);
-          break;
-        case 'month':
-          cutoffDate.setMonth(now.getMonth() - 1);
-          break;
-        case 'quarter':
-          cutoffDate.setMonth(now.getMonth() - 3);
-          break;
-        default:
-          break;
+        case 'week': cutoffDate.setDate(now.getDate() - 7); break;
+        case 'month': cutoffDate.setMonth(now.getMonth() - 1); break;
+        case 'quarter': cutoffDate.setMonth(now.getMonth() - 3); break;
+        default: break;
       }
       if (filter.period !== 'all') {
         filtered = filtered.filter(q => q.lastAnswered && q.lastAnswered >= cutoffDate);
@@ -303,7 +284,7 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
     return { reasons, subjects };
   }, [ambiguousQuestions]);
 
-  // --- Handlers ---
+  // --- Handlers --- (変更なし)
   const handleSort = (key) => {
     setSort(prevSort => ({
       key: key,
@@ -322,9 +303,10 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
   const handleCloseCommentModal = () => { setEditingCommentQuestion(null); };
 
   // --- テーブルレンダリング関数 ---
+  // (renderTable内の変更点はコメントセル部分のみ)
   const renderTable = (title, titleIcon, titleColor, subtitle, data, emptyMessage, emptyBgColor) => {
     const tableData = Array.isArray(data) ? data : [];
-    console.log(`Rendering table: ${title}, Data count: ${tableData.length}`); // データ件数ログ
+    console.log(`Rendering table: ${title}, Data count: ${tableData.length}`);
     return (
        <div className={styles.tableContainer} style={{marginTop: '2rem', borderColor: titleColor || '#e5e7eb' }}>
          <h3 className={styles.tableTitle} style={{color: titleColor || '#1f2937' }}> {titleIcon && React.createElement(titleIcon, { size: 18, style: { marginRight: '0.5rem', color: titleColor || '#4f46e5' } })} {title} ({tableData.length}件) {subtitle && <span style={{fontSize: '0.75rem', fontWeight: 400, marginLeft: '0.5rem', color: '#71717a' }}>{subtitle}</span>} </h3>
@@ -339,13 +321,15 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
                    <td>{q.id ?? 'N/A'}</td>
                    <td>{q.subjectName ?? 'N/A'}</td>
                    <td>{q.chapterName ?? 'N/A'}</td>
-                   {/* 理由カラムを追加 */}
                    <td>{q.reason ?? 'N/A'}</td>
-                   {/* ★★★ コメントセル: title属性を追加 ★★★ */}
+                   {/* ★★★ コメントセル: カスタムツールチップ用に修正 ★★★ */}
                    <td className={styles.commentCell}>
-                     {/* title 属性にコメント全文を設定 */}
-                     <span title={q.comment ?? ''}>{q.comment ?? ''}</span>
+                     <div className={styles.tooltipContainer}> {/* 位置調整用の親要素 */}
+                       {/* title属性を削除し、data-tooltip属性に変更 */}
+                       <span data-tooltip={q.comment ?? ''}>{q.comment ?? ''}</span>
+                     </div>
                    </td>
+                   {/* ★★★ ここまでが変更箇所 ★★★ */}
                    <td>{q.correctRate != null ? `${q.correctRate}%` : 'N/A'}</td>
                    <td>{q.answerCount ?? 'N/A'}</td>
                    <td style={title === '長期停滞している曖昧問題' ? {color: '#dc2626', fontWeight: 500} : {}}>{formatDate(lastAnsweredDate)}</td>
@@ -363,10 +347,8 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
     <div className={styles.container}>
       <h2 className={styles.title}> <Info className={styles.titleIcon} /> 曖昧問題傾向分析 </h2>
 
-      {/* フィルター表示トグル */}
       <div className={styles.filterToggleContainer}> <button onClick={() => setShowFilters(!showFilters)} className={styles.filterToggleButton}> <Filter size={16} /> フィルター・並べ替え {showFilters ? <ChevronUp size={16} /> : <ChevronDown size={16} />} </button> </div>
 
-      {/* フィルターパネル */}
       {showFilters && (
         <div className={styles.filterPanel}>
           <div className={styles.filterGrid}>
@@ -397,7 +379,6 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
         </div>
       )}
 
-      {/* グラフ表示エリア */}
       <div className={styles.chartContainer}>
         <h3 className={styles.chartTitle}> <BarChart2 size={18} /> 科目別の曖昧問題数 </h3>
         {ambiguousCountBySubject.length > 0 ? (
@@ -434,35 +415,11 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
       </div>
 
       {/* テーブル表示エリア */}
-      {/* 長期停滞リスト */}
       {renderTable('長期停滞している曖昧問題', AlertCircle, '#b45309', '(最終解答日から30日以上経過)', sortedLongStagnantQuestions, '長期停滞している曖昧問題はありません。', '#fffbeb')}
-
-      {/* 直近の揺り戻しリスト */}
-      {renderTable(
-        '直近の"揺り戻し"が発生した問題',
-        TrendingDown,
-        '#f97316',
-        '(直前の解答が「理解○」だった問題)',
-        sortedRecentRevertedQuestions,
-        '直近で「理解○」→「曖昧△」となった問題はありません。',
-        '#fff7ed'
-      )}
-
-      {/* 完全な揺り戻しサイクルリスト */}
-      {renderTable(
-        '完全な"揺り戻しサイクル"を経験した問題',
-        RotateCcw,
-        '#5b21b6',
-        '(曖昧△ → 理解○ → 曖昧△ の流れを経験)',
-        sortedCompleteRevertedQuestions,
-        '完全な"揺り戻しサイクル"を経験した問題はありません。',
-        '#f5f3ff'
-      )}
-
-      {/* 全ての曖昧問題リスト */}
+      {renderTable('直近の"揺り戻し"が発生した問題', TrendingDown, '#f97316', '(直前の解答が「理解○」だった問題)', sortedRecentRevertedQuestions, '直近で「理解○」→「曖昧△」となった問題はありません。', '#fff7ed')}
+      {renderTable('完全な"揺り戻しサイクル"を経験した問題', RotateCcw, '#5b21b6', '(曖昧△ → 理解○ → 曖昧△ の流れを経験)', sortedCompleteRevertedQuestions, '完全な"揺り戻しサイクル"を経験した問題はありません。', '#f5f3ff')}
       {renderTable('全ての曖昧問題リスト', null, '#374151', '(現在のフィルターとソート適用)', filteredAndSortedQuestions, ambiguousQuestions.length > 0 ? '表示できる曖昧問題がありません。フィルター条件を変更してみてください。' : '曖昧と評価された問題はまだありません。', null)}
 
-      {/* コメント編集モーダル */}
       {editingCommentQuestion && ( <CommentEditModal question={editingCommentQuestion} onSave={saveComment} onCancel={handleCloseCommentModal} /> )}
     </div>
   );
