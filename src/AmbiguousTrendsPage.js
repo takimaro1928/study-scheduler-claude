@@ -34,19 +34,10 @@ function naturalSortCompare(a, b, order) {
 
 // ソート処理を共通化する関数 (変更なし)
 const sortData = (dataToSort, sortKey, sortOrder) => {
-  // ソート対象が配列でなければ空配列を返す
-  if (!Array.isArray(dataToSort)) {
-      console.warn("sortData received non-array:", dataToSort);
-      return [];
-  }
-  // 各要素がオブジェクトであることを確認 (より安全に)
+  if (!Array.isArray(dataToSort)) { console.warn("sortData received non-array:", dataToSort); return []; }
   const validData = dataToSort.filter(item => typeof item === 'object' && item !== null);
-
   return validData.slice().sort((a, b) => {
-    // a と b がオブジェクトでない場合は比較しない (念のため)
-    if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
-      return 0;
-    }
+    if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) { return 0; }
     const valA = a[sortKey]; const valB = b[sortKey]; let comparison = 0;
     if (valA == null && valB != null) return sortOrder === 'asc' ? 1 : -1; if (valA != null && b == null) return sortOrder === 'asc' ? -1 : 1; if (valA == null && b == null) return 0;
     if (valA instanceof Date && valB instanceof Date) { comparison = valA.getTime() - valB.getTime(); }
@@ -61,119 +52,86 @@ const sortData = (dataToSort, sortKey, sortOrder) => {
 const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answerHistory = [], saveComment }) => {
   // --- State --- (変更なし)
   const [filter, setFilter] = useState({ reason: 'all', subject: 'all', period: 'all' });
-  const [sort, setSort] = useState({ key: 'lastAnswered', order: 'desc' }); // デフォルトソートキーは維持
+  const [sort, setSort] = useState({ key: 'lastAnswered', order: 'desc' });
   const [showFilters, setShowFilters] = useState(false);
   const [editingCommentQuestion, setEditingCommentQuestion] = useState(null);
 
   // --- Memoized Data --- (変更なし)
-  // 現在曖昧△の問題リスト
   const ambiguousQuestions = useMemo(() => getAmbiguousQuestions(subjects || []), [subjects]);
 
-  // ★★★ 直近の揺り戻し（理解○ → 曖昧△）があった問題を抽出 ★★★
   const recentRevertedQuestions = useMemo(() => {
     console.log("[AmbiguousTrendsPage] Calculating recent reverted questions...");
     if (!answerHistory || answerHistory.length === 0) {
         console.log("[AmbiguousTrendsPage] No answer history for recent reverted.");
         return [];
     }
-
-    // 1. 問題IDごとに履歴をグループ化 & 日付変換 & ソート
     const historyByQuestion = answerHistory.reduce((acc, record) => {
-      if (!record || !record.questionId || !record.timestamp) return acc; // 不正なレコードはスキップ
+      if (!record || !record.questionId || !record.timestamp) return acc;
       if (!acc[record.questionId]) { acc[record.questionId] = []; }
       const timestamp = new Date(record.timestamp);
-      if (!isNaN(timestamp.getTime())) { // 無効な日付は除外
+      if (!isNaN(timestamp.getTime())) {
         acc[record.questionId].push({ timestamp, understanding: record.understanding || '' });
       }
       return acc;
     }, {});
-
-    // 各グループ内で日付ソート
     Object.values(historyByQuestion).forEach(history => history.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime()));
-
     const revertedQuestionIds = new Set();
-
-    // 2. 各問題の履歴をチェックして「理解○ → 曖昧△」パターンを探す
     Object.keys(historyByQuestion).forEach(questionId => {
       const history = historyByQuestion[questionId];
       if (history.length >= 2) {
         const lastRecord = history[history.length - 1];
         const secondLastRecord = history[history.length - 2];
-        // 最新の解答が「曖昧△」で、その一つ前が「理解○」の場合
         if (lastRecord.understanding?.startsWith('曖昧△') && secondLastRecord.understanding === '理解○') {
           revertedQuestionIds.add(questionId);
         }
       }
     });
-
     console.log("[AmbiguousTrendsPage] Found recent reverted question IDs:", revertedQuestionIds);
-    // 3. 該当する問題の詳細情報を取得 (現在の ambiguousQuestions リストから絞り込む = 現在も曖昧なもののみ)
     const results = ambiguousQuestions.filter(q => revertedQuestionIds.has(q.id));
     console.log("[AmbiguousTrendsPage] Filtered recent reverted questions (currently ambiguous):", results.length);
     return results;
-
   }, [answerHistory, ambiguousQuestions]);
 
-  // ★★★ 完全な揺り戻しサイクル（曖昧→理解→曖昧）があった問題を抽出 ★★★
   const completeRevertedQuestions = useMemo(() => {
     console.log("[AmbiguousTrendsPage] Calculating complete reverted questions...");
     if (!answerHistory || answerHistory.length === 0) {
         console.log("[AmbiguousTrendsPage] No answer history for complete reverted.");
         return [];
     }
-
-    const historyByQuestion = answerHistory.reduce((acc, record) => {
-        if (!record || !record.questionId || !record.timestamp) return acc;
-        if (!acc[record.questionId]) { acc[record.questionId] = []; }
-        const timestamp = new Date(record.timestamp);
-        if (!isNaN(timestamp.getTime())) {
-            acc[record.questionId].push({ timestamp, understanding: record.understanding || '' });
-        }
-        return acc;
-    }, {});
-    Object.values(historyByQuestion).forEach(history => history.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime()));
-
-    const revertedQuestionIds = new Set();
-    Object.keys(historyByQuestion).forEach(questionId => {
-        const history = historyByQuestion[questionId];
-        let state = 'initial'; // initial -> ambiguous -> understood -> reverted
-        for (const record of history) {
-            const isAmbiguous = record.understanding?.startsWith('曖昧△');
-            const isUnderstood = record.understanding === '理解○';
-            switch (state) {
-                case 'initial':
-                    if (isAmbiguous) state = 'ambiguous';
-                    else if (isUnderstood) state = 'understood_first'; // 最初から理解の場合
-                    break;
-                case 'understood_first': // 最初から理解で、その後曖昧になった場合
-                    if (isAmbiguous) state = 'ambiguous';
-                     // 理解→理解はそのまま
-                    break;
-                case 'ambiguous':
-                    if (isUnderstood) state = 'understood'; // 曖昧→理解
-                    // 曖昧→曖昧は state 維持
-                    break;
-                case 'understood':
-                    if (isAmbiguous) { // 理解→曖昧 (揺り戻し発生！)
-                        state = 'reverted';
-                        revertedQuestionIds.add(questionId);
-                    }
-                    // 理解→理解は state 維持
-                    break;
-                case 'reverted': break; // この問題は揺り戻し確定
-                default: break;
-            }
-            if (state === 'reverted') break;
-        }
-    });
-    console.log("[AmbiguousTrendsPage] Found complete reverted question IDs:", revertedQuestionIds);
-    // 3. 該当する問題の詳細情報を取得 (現在の ambiguousQuestions リストから絞り込む = 現在も曖昧なもののみ)
-    const results = ambiguousQuestions.filter(q => revertedQuestionIds.has(q.id));
-    console.log("[AmbiguousTrendsPage] Filtered complete reverted questions (currently ambiguous):", results.length);
-    return results;
+     const historyByQuestion = answerHistory.reduce((acc, record) => {
+       if (!record || !record.questionId || !record.timestamp) return acc;
+       if (!acc[record.questionId]) { acc[record.questionId] = []; }
+       const timestamp = new Date(record.timestamp);
+       if (!isNaN(timestamp.getTime())) {
+           acc[record.questionId].push({ timestamp, understanding: record.understanding || '' });
+       }
+       return acc;
+     }, {});
+     Object.values(historyByQuestion).forEach(history => history.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime()));
+     const revertedQuestionIds = new Set();
+     Object.keys(historyByQuestion).forEach(questionId => {
+         const history = historyByQuestion[questionId];
+         let state = 'initial';
+         for (const record of history) {
+             const isAmbiguous = record.understanding?.startsWith('曖昧△');
+             const isUnderstood = record.understanding === '理解○';
+             switch (state) {
+                 case 'initial': if (isAmbiguous) state = 'ambiguous'; else if (isUnderstood) state = 'understood_first'; break;
+                 case 'understood_first': if (isAmbiguous) state = 'ambiguous'; break;
+                 case 'ambiguous': if (isUnderstood) state = 'understood'; break;
+                 case 'understood': if (isAmbiguous) { state = 'reverted'; revertedQuestionIds.add(questionId); } break;
+                 case 'reverted': break;
+                 default: break;
+             }
+             if (state === 'reverted') break;
+         }
+     });
+     console.log("[AmbiguousTrendsPage] Found complete reverted question IDs:", revertedQuestionIds);
+     const results = ambiguousQuestions.filter(q => revertedQuestionIds.has(q.id));
+     console.log("[AmbiguousTrendsPage] Filtered complete reverted questions (currently ambiguous):", results.length);
+     return results;
   }, [answerHistory, ambiguousQuestions]);
 
-  // 科目別曖昧問題数
   const ambiguousCountBySubject = useMemo(() => {
     const counts = {};
     ambiguousQuestions.forEach(q => {
@@ -182,7 +140,6 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
     return Object.entries(counts).map(([name, count]) => ({ subjectName: name, count })).sort((a, b) => b.count - a.count);
   }, [ambiguousQuestions]);
 
-  // 長期停滞問題 (30日以上経過)
   const longStagnantQuestions = useMemo(() => {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -190,7 +147,6 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
     return ambiguousQuestions.filter(q => q.lastAnswered && q.lastAnswered < thirtyDaysAgo);
   }, [ambiguousQuestions]);
 
-  // 曖昧問題数の日次推移データ
   const ambiguousTrendsData = useMemo(() => {
     console.log("[AmbiguousTrendsPage] Calculating ambiguous trends data...");
     if (!answerHistory || answerHistory.length === 0) {
@@ -199,43 +155,35 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
     }
     const historySorted = [...answerHistory].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
     const trends = [];
-    const questionLastState = new Map(); // 各問題の最新の理解度を保持
+    const questionLastState = new Map();
     let dailyAmbiguousCount = 0;
     let currentDate = '';
-
     ambiguousQuestions.forEach(q => {
-        questionLastState.set(q.id, q.understanding); // 現在の状態を初期値とする
+        questionLastState.set(q.id, q.understanding);
     });
-
     historySorted.forEach((record, index) => {
-      if (!record || !record.timestamp || !record.questionId) return; // 不正データスキップ
+      if (!record || !record.timestamp || !record.questionId) return;
       const recordDate = new Date(record.timestamp);
       const recordDateString = formatDateInternal(recordDate);
       const currentUnderstanding = record.understanding || '';
-      const previousUnderstanding = questionLastState.get(record.questionId); // このレコード直前の状態
-
+      const previousUnderstanding = questionLastState.get(record.questionId);
       if (currentDate === '') {
         currentDate = recordDateString;
          let initialCount = 0;
          questionLastState.forEach(state => { if(state?.startsWith('曖昧△')) initialCount++; });
          dailyAmbiguousCount = initialCount;
-
       } else if (recordDateString !== currentDate) {
         trends.push({ date: currentDate, count: dailyAmbiguousCount });
         currentDate = recordDateString;
       }
-
       const wasAmbiguous = previousUnderstanding?.startsWith('曖昧△');
       const isAmbiguous = currentUnderstanding.startsWith('曖昧△');
-
       if (!wasAmbiguous && isAmbiguous) {
         dailyAmbiguousCount++;
       } else if (wasAmbiguous && !isAmbiguous) {
         dailyAmbiguousCount = Math.max(0, dailyAmbiguousCount - 1);
       }
-
       questionLastState.set(record.questionId, currentUnderstanding);
-
       if (index === historySorted.length - 1) {
         trends.push({ date: currentDate, count: dailyAmbiguousCount });
       }
@@ -244,7 +192,6 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
     return trends;
   }, [answerHistory, ambiguousQuestions]);
 
-  // フィルター後の全曖昧問題データ
   const filteredQuestionsBase = useMemo(() => {
     let filtered = [...ambiguousQuestions];
     if (filter.reason !== 'all') {
@@ -271,13 +218,11 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
     return filtered;
   }, [ambiguousQuestions, filter]);
 
-  // 各リストのソート済みデータ
   const filteredAndSortedQuestions = useMemo(() => sortData(filteredQuestionsBase, sort.key, sort.order), [filteredQuestionsBase, sort]);
   const sortedLongStagnantQuestions = useMemo(() => sortData(longStagnantQuestions, sort.key, sort.order), [longStagnantQuestions, sort]);
   const sortedRecentRevertedQuestions = useMemo(() => sortData(recentRevertedQuestions, sort.key, sort.order), [recentRevertedQuestions, sort]);
   const sortedCompleteRevertedQuestions = useMemo(() => sortData(completeRevertedQuestions, sort.key, sort.order), [completeRevertedQuestions, sort]);
 
-  // フィルター用オプション
   const filterOptions = useMemo(() => {
     const reasons = [...new Set(ambiguousQuestions.map(q => q.reason))].sort();
     const subjects = [...new Set(ambiguousQuestions.map(q => q.subjectName))].sort();
