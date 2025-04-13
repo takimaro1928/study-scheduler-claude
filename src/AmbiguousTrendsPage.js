@@ -1,9 +1,9 @@
-// src/AmbiguousTrendsPage.js (デバッグ用 console.log 追加 - 本当に本当に最終確認版！！！)
+// src/AmbiguousTrendsPage.js (ソート比較ロジック修正・コメントUI実装 - 本当に完全版!!)
 import React, { useState, useEffect, useMemo } from 'react';
-import { Filter, ChevronDown, ChevronUp, Info, ArrowUpDown, BarChart2, AlertCircle, RotateCcw, TrendingUp, Edit2 } from 'lucide-react'; // Edit2 アイコン追加
+import { Filter, ChevronDown, ChevronUp, Info, ArrowUpDown, BarChart2, AlertCircle, RotateCcw, TrendingUp, Edit2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 import styles from './AmbiguousTrendsPage.module.css';
-import CommentEditModal from './CommentEditModal'; // ★ 作成したモーダルをインポート
+import CommentEditModal from './CommentEditModal';
 
 // 曖昧問題データを取得・整形する関数
 function getAmbiguousQuestions(subjects) {
@@ -26,7 +26,7 @@ function getAmbiguousQuestions(subjects) {
             lastAnswered: !isNaN(lastAnsweredDate?.getTime()) ? lastAnsweredDate : null,
             nextDate: !isNaN(nextDateDate?.getTime()) ? nextDateDate : null,
             answerCount: question.answerCount ?? 0, previousUnderstanding: question.previousUnderstanding,
-            comment: question.comment || '', // コメントも取得
+            comment: question.comment || '',
           });
         }
       });
@@ -48,7 +48,7 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
   const [filter, setFilter] = useState({ reason: 'all', subject: 'all', period: 'all' });
   const [sort, setSort] = useState({ key: 'lastAnswered', order: 'desc' });
   const [showFilters, setShowFilters] = useState(false);
-  const [editingCommentQuestion, setEditingCommentQuestion] = useState(null); // ★ コメント編集モーダル用のstate
+  const [editingCommentQuestion, setEditingCommentQuestion] = useState(null);
 
   // --- Memoized Data ---
   const ambiguousQuestions = useMemo(() => getAmbiguousQuestions(subjects || []), [subjects]);
@@ -80,24 +80,20 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
 
   // フィルターとソートを適用した全曖昧問題リスト
   const filteredAndSortedQuestions = useMemo(() => {
-    console.log('[AmbiguousTrendsPage] Calculating filteredAndSortedQuestions. Current sort:', sort); // ★ 追加
     let filtered = [...ambiguousQuestions];
     if (filter.reason !== 'all') { filtered = filtered.filter(q => q.reason === filter.reason); }
     if (filter.subject !== 'all') { filtered = filtered.filter(q => q.subjectName === filter.subject); }
     if (filter.period !== 'all') { const n = new Date(); const c = new Date(); c.setHours(0,0,0,0); n.setHours(0,0,0,0); switch(filter.period){case 'week':c.setDate(n.getDate()-7);break;case 'month':c.setMonth(n.getMonth()-1);break;case 'quarter':c.setMonth(n.getMonth()-3);break;default:break;} if(filter.period!=='all'){filtered=filtered.filter(q=>q.lastAnswered&&q.lastAnswered>=c);} }
 
-    console.log(`[AmbiguousTrendsPage] Sorting ${filtered.length} questions by ${sort.key} (${sort.order})`); // ★ 追加
-    // ★ slice() を追加してソート
     const sorted = filtered.slice().sort((a, b) => {
       const valA = a[sort.key]; const valB = b[sort.key]; let comparison = 0;
       if (valA == null && valB != null) return sort.order === 'asc' ? 1 : -1; if (valA != null && valB == null) return sort.order === 'asc' ? -1 : 1; if (valA == null && valB == null) return 0;
       if (valA instanceof Date && valB instanceof Date) { comparison = valA.getTime() - valB.getTime(); }
       else if (typeof valA === 'number' && typeof valB === 'number') { comparison = valA - valB; }
-      else if (typeof valA === 'string' && typeof valB === 'string') { comparison = valA.localeCompare(valB); }
+      else if (typeof valA === 'string' && typeof valB === 'string') { comparison = valA.localeCompare(valB, undefined, { numeric: true, sensitivity: 'base' }); }
       else { if (valA < valB) comparison = -1; if (valA > valB) comparison = 1; }
       return sort.order === 'asc' ? comparison : comparison * -1;
     });
-    console.log('[AmbiguousTrendsPage] filteredAndSortedQuestions result (IDs):', sorted.map(q => q.id)); // ★ 追加
     return sorted;
   }, [ambiguousQuestions, filter, sort]);
 
@@ -110,12 +106,7 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
 
   // ソートハンドラ
   const handleSort = (key) => {
-    console.log('[AmbiguousTrendsPage] handleSort called with key:', key); // ★ 追加
-    setSort(prevSort => {
-      const newOrder = prevSort.key === key && prevSort.order === 'desc' ? 'asc' : 'desc';
-      console.log('[AmbiguousTrendsPage] Setting new sort state:', { key: key, order: newOrder }); // ★ 追加
-      return { key: key, order: newOrder };
-    });
+    setSort(prevSort => ({ key: key, order: prevSort.key === key && prevSort.order === 'desc' ? 'asc' : 'desc' }));
   };
   // ソートアイコン表示
   const getSortIcon = (key) => {
@@ -125,13 +116,12 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
 
   // 長期停滞リスト用のソート済みデータ
   const sortedLongStagnantQuestions = useMemo(() => {
-      // ★ slice() を追加してソート
       const sorted = longStagnantQuestions.slice().sort((a, b) => {
         const valA = a[sort.key]; const valB = b[sort.key]; let comparison = 0;
         if (valA == null && valB != null) return sort.order === 'asc' ? 1 : -1; if (valA != null && valB == null) return sort.order === 'asc' ? -1 : 1; if (valA == null && valB == null) return 0;
         if (valA instanceof Date && valB instanceof Date) { comparison = valA.getTime() - valB.getTime(); }
         else if (typeof valA === 'number' && typeof valB === 'number') { comparison = valA - valB; }
-        else if (typeof valA === 'string' && typeof valB === 'string') { comparison = valA.localeCompare(valB); }
+        else if (typeof valA === 'string' && typeof valB === 'string') { comparison = valA.localeCompare(valB, undefined, { numeric: true, sensitivity: 'base' }); }
         else { if (valA < valB) comparison = -1; if (valA > valB) comparison = 1; }
         return sort.order === 'asc' ? comparison : comparison * -1;
       });
@@ -140,13 +130,12 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
 
   // 揺り戻しリスト用のソート済みデータ
   const sortedRevertedQuestions = useMemo(() => {
-      // ★ slice() を追加してソート
       let sorted = revertedQuestions.slice().sort((a, b) => {
         const valA = a[sort.key]; const valB = b[sort.key]; let comparison = 0;
         if (valA == null && valB != null) return sort.order === 'asc' ? 1 : -1; if (valA != null && valB == null) return sort.order === 'asc' ? -1 : 1; if (valA == null && valB == null) return 0;
         if (valA instanceof Date && valB instanceof Date) { comparison = valA.getTime() - valB.getTime(); }
         else if (typeof valA === 'number' && typeof valB === 'number') { comparison = valA - valB; }
-        else if (typeof valA === 'string' && typeof valB === 'string') { comparison = valA.localeCompare(valB); }
+        else if (typeof valA === 'string' && typeof valB === 'string') { comparison = valA.localeCompare(valB, undefined, { numeric: true, sensitivity: 'base' }); }
         else { if (valA < valB) comparison = -1; if (valA > valB) comparison = 1; }
         return sort.order === 'asc' ? comparison : comparison * -1;
       });
@@ -159,7 +148,7 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
 
   // テーブルレンダリング関数
   const renderTable = (title, titleIcon, titleColor, subtitle, data, emptyMessage, emptyBgColor) => {
-    console.log('[AmbiguousTrendsPage] renderTable called for:', title, 'with data count:', data.length); // ★ 追加
+    // console.log('[AmbiguousTrendsPage] renderTable called for:', title, 'with data count:', data.length); // デバッグログは一旦削除
     return (
        <div className={styles.tableContainer} style={{marginTop: '2rem', borderColor: titleColor || '#e5e7eb' }}>
          <h3 className={styles.tableTitle} style={{color: titleColor || '#1f2937' }}>
@@ -208,7 +197,7 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
   };
 
   // --- Component Render ---
-  console.log('[AmbiguousTrendsPage] Rendering...'); // ★ 追加
+  // console.log('[AmbiguousTrendsPage] Rendering...'); // デバッグログは一旦削除
   return (
     <div className={styles.container}>
       <h2 className={styles.title}> <Info className={styles.titleIcon} /> 曖昧問題傾向分析 </h2>
