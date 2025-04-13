@@ -1,6 +1,10 @@
-// src/AmbiguousTrendsPage.js (ステップ1: リスト表示、フィルター、ソート実装)
+// src/AmbiguousTrendsPage.js (ステップ2: 科目別グラフ追加 - 完全版)
 import React, { useState, useEffect, useMemo } from 'react';
-import { Filter, ChevronDown, ChevronUp, Info, ArrowUpDown } from 'lucide-react';
+import { Filter, ChevronDown, ChevronUp, Info, ArrowUpDown, BarChart2 } from 'lucide-react'; // BarChart2 アイコン追加
+// ★ Recharts から必要なコンポーネントをインポート
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
+} from 'recharts';
 import styles from './AmbiguousTrendsPage.module.css'; // CSSモジュールをインポート
 
 // 曖昧問題データを取得・整形する関数
@@ -71,6 +75,21 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal }) => {
 
   // 曖昧な問題データをメモ化して取得
   const ambiguousQuestions = useMemo(() => getAmbiguousQuestions(subjects || []), [subjects]);
+
+  // ★★★ 科目別の曖昧問題数を集計するロジック ★★★
+  const ambiguousCountBySubject = useMemo(() => {
+    const counts = {};
+    ambiguousQuestions.forEach(q => {
+      counts[q.subjectName] = (counts[q.subjectName] || 0) + 1;
+    });
+    // Recharts で使いやすい形式に変換 [{ subjectName: '科目A', count: 5 }, ...]
+    // 件数が多い順にソートして表示
+    return Object.entries(counts)
+      .map(([name, count]) => ({ subjectName: name, count }))
+      .sort((a, b) => b.count - a.count); // 件数の降順でソート
+  }, [ambiguousQuestions]);
+  // ★★★ ここまで ★★★
+
 
   // フィルターとソートを適用した問題リストをメモ化
   const filteredAndSortedQuestions = useMemo(() => {
@@ -220,8 +239,55 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal }) => {
         </div>
       )}
 
+      {/* 科目別グラフ表示エリア */}
+      <div className={styles.chartContainer}>
+        <h3 className={styles.chartTitle}>
+          <BarChart2 size={18} /> 科目別の曖昧問題数
+        </h3>
+        {ambiguousCountBySubject.length > 0 ? (
+          // ResponsiveContainer でグラフのサイズを親要素に合わせる
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart
+              data={ambiguousCountBySubject}
+              margin={{ top: 5, right: 20, left: -10, bottom: 50 }} // bottom マージンを増やしてラベル表示領域確保
+              barGap={5} // 棒の間隔
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis
+                dataKey="subjectName"
+                tick={{ fontSize: 11, fill: '#4b5563' }} // X軸ラベルのスタイル
+                angle={-45} // ラベルを斜めにする角度を調整
+                textAnchor="end" // 斜めにしたときのアンカー
+                height={60} // ラベル表示に必要な高さを確保 (長さに応じて調整)
+                interval={0} // 全てのラベルを表示
+              />
+              <YAxis
+                tick={{ fontSize: 11, fill: '#4b5563' }} // Y軸ラベルのスタイル
+                allowDecimals={false} // 整数のみ表示
+              />
+              <Tooltip
+                cursor={{ fill: 'rgba(238, 242, 255, 0.6)' }} // ホバー時の背景色
+                contentStyle={{
+                  backgroundColor: 'white',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                 }} // ツールチップのスタイル
+              />
+              {/* <Legend wrapperStyle={{ fontSize: '0.875rem' }} /> */}
+              <Bar dataKey="count" name="曖昧問題数" fill="#818cf8" radius={[4, 4, 0, 0]} barSize={20} /> {/* fillで色指定, radiusで角丸, barSizeで棒の太さ調整 */}
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className={styles.noDataMessage}>グラフを表示するデータがありません。</div>
+        )}
+      </div>
+
+
       {/* 問題リストテーブル */}
       <div className={styles.tableContainer}>
+        <h3 className={styles.tableTitle}>曖昧問題リスト ({filteredAndSortedQuestions.length}件)</h3>
         {filteredAndSortedQuestions.length > 0 ? (
           <table className={styles.table}>
             <thead>
