@@ -255,11 +255,10 @@ const RedesignedAllQuestionsView = ({
              {/* オーバーレイ: 外側クリックで閉じる */}
              <div className={datePickerStyles.overlay} onClick={() => setShowCalendarModal(false)} />
              {/* モーダル本体: クリックイベントの伝播を停止 */}
-             {/* ↓↓↓ ここが修正点です ↓↓↓ */}
              <div className={datePickerStyles.modal} onClick={(e) => e.stopPropagation()}>
-                {/* ↑↑↑ ここが修正点です ↑↑↑ */}
                 <button onClick={() => setShowCalendarModal(false)} className={datePickerStyles.closeButton}> <XIcon size={18} /> </button>
-                <div className={datePickerStyles.calendarContainer}>
+                {/* カレンダーコンテナにもイベント伝播を停止する処理を追加 */}
+                <div className={datePickerStyles.calendarContainer} onClick={(e) => e.stopPropagation()}>
                     <DayPicker
                         mode="single"
                         required
@@ -278,12 +277,13 @@ const RedesignedAllQuestionsView = ({
                         toYear={new Date().getFullYear() + 3}
                     />
                 </div>
-                 <div className={datePickerStyles.footer}>
+                {/* フッターにもイベント伝播を停止する処理を追加 */}
+                <div className={datePickerStyles.footer} onClick={(e) => e.stopPropagation()}>
                     <span>{selectedQuestions.length}件選択中</span>
                     <button onClick={executeBulkEdit} disabled={!selectedDate || selectedQuestions.length === 0} className={datePickerStyles.confirmButton}>
                         選択した問題をこの日に設定
                     </button>
-                 </div>
+                </div>
              </div>
          </>
        )}
