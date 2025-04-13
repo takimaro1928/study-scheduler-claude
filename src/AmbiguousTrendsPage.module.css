@@ -228,24 +228,61 @@
 .table thead th:nth-child(5), /* コメント列ヘッダー */
 .table tbody td:nth-child(5) { /* コメント列セル */
   min-width: 150px;
-  max-width: 300px; /* 長すぎると表示が崩れるため最大幅を設定 */
-  white-space: normal; /* 折り返し許可 */
-  overflow-wrap: break-word; /* 単語の途中でも折り返す */
-  line-height: 1.4; /* 行間少し広げる */
-  vertical-align: top; /* 上揃えにする */
-  padding-top: 0.75rem; /* 上下パディング調整 */
+  max-width: 300px;
+  vertical-align: top;
+  padding-top: 0.75rem;
   padding-bottom: 0.75rem;
 }
 
-/* ★★★ コメントセル内の span スタイル変更 ★★★ */
 .commentCell span {
   display: -webkit-box;
-  -webkit-line-clamp: 3; /* 表示行数を3行に制限 */
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  /* ★ title 属性があればツールチップが出ることを示唆 */
-  cursor: help;
+  line-height: 1.4;
+}
+
+/* CSSカスタムツールチップ用のスタイル */
+.tooltipContainer {
+  position: relative; /* ツールチップの位置を決める基準点 */
+  display: inline-block; /* spanに合わせてインラインブロック化 */
+}
+
+.tooltipContainer span:hover::after { /* ホバー時に疑似要素を表示 */
+  visibility: visible;
+  opacity: 1;
+  transition-delay: 0.3s; /* 少し遅れて表示 */
+}
+
+.tooltipContainer span::after {
+  content: attr(data-tooltip); /* data-tooltip属性の内容を表示 */
+  position: absolute;
+  bottom: 105%; /* spanの上に表示 */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10; /* 他の要素より手前に */
+
+  /* 見た目の調整 */
+  background-color: #374151; /* 濃いグレー */
+  color: white;
+  padding: 0.5rem 0.75rem; /* パディング */
+  border-radius: 0.375rem; /* 角丸 */
+  font-size: 0.8rem; /* 文字サイズ少し小さめ */
+  line-height: 1.4;
+  white-space: pre-wrap; /* 改行を反映させる */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+
+  /* 幅の調整 */
+  min-width: 150px; /* 最小幅 */
+  max-width: 350px; /* 最大幅 */
+  width: max-content; /* 内容に合わせる */
+
+  /* 初期状態は非表示 */
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+  pointer-events: none; /* ツールチップ自体はクリックできないように */
 }
 
 /* 編集ボタン列 */
