@@ -1,43 +1,122 @@
-/* src/DatePickerCalendarModal.module.css (デザイン改善版 - :global コメントアウト & 位置強制) */
+/* src/DatePickerCalendarModal.module.css (完全版) */
+
+/* オーバーレイ */
 .overlay {
-  position: fixed; inset: 0; background-color: rgba(31, 41, 55, 0.7); /* 少し濃く */
-  display: flex; align-items: center; justify-content: center; z-index: 40; padding: 1rem;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(31, 41, 55, 0.7); /* 少し濃く */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 1rem;
   animation: fadeInOverlay 0.2s ease-out;
 }
 @keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
 
+/* モーダル本体 */
 .modal {
-  background-color: white; border-radius: 0.75rem; /* rounded-xl */
+  background-color: white;
+  border-radius: 0.75rem; /* rounded-xl */
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); /* shadow-2xl */
-  width: auto; max-width: calc(100vw - 2rem);
-  /* --- 位置強制 --- */
-  position: fixed; /* fixed に変更 */
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 50; /* overlay より手前に */
-  /* --- 位置強制ここまで --- */
-  /* position: relative; */ /* ← 元の指定はコメントアウト */
+  width: auto;
+  max-width: calc(100vw - 2rem);
+  position: relative;
   animation: modalEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1); /* 少し弾む感じのアニメーション */
   overflow: hidden;
 }
 @keyframes modalEnter {
-  from { opacity: 0; transform: scale(0.9) translate(-50%, -50%); } /* transform にも追加 */
-  to { opacity: 1; transform: scale(1) translate(-50%, -50%); } /* transform にも追加 */
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
 }
 
+/* 閉じるボタン */
 .closeButton {
-  position: absolute; top: 0.5rem; right: 0.5rem; z-index: 10;
-  color: #6b7280; /* text-gray-500 */ background: none; border: none; border-radius: 9999px; padding: 0.375rem; /* 少し大きく */ cursor: pointer;
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 10;
+  color: #6b7280; /* text-gray-500 */
+  background: none;
+  border: none;
+  border-radius: 9999px;
+  padding: 0.375rem; /* 少し大きく */
+  cursor: pointer;
   transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
 }
-.closeButton:hover { background-color: #f3f4f6; color: #1f2937; transform: scale(1.1); }
-.closeButton svg { width: 1.125rem; height: 1.125rem; }
+.closeButton:hover {
+  background-color: #f3f4f6;
+  color: #1f2937;
+  transform: scale(1.1);
+}
+.closeButton svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
 
-.calendarContainer { padding: 0.75rem; } /* 内側余白調整 */
+/* カレンダーコンテナ */
+.calendarContainer {
+  padding: 0.75rem;
+  position: relative;
+  pointer-events: auto !important;
+}
 
-/* --- react-day-picker のカスタムスタイル (一時的にすべてコメントアウト) --- */
-/*
+/* フッター */
+.footer {
+  border-top: 1px solid #e5e7eb;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f9fafb;
+  border-bottom-left-radius: 0.75rem;
+  border-bottom-right-radius: 0.75rem;
+  pointer-events: auto !important;
+}
+.footer span {
+  font-size: 0.875rem;
+  color: #4b5563;
+  font-weight: 500;
+}
+.confirmButton {
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.5rem;
+  background-color: #4f46e5;
+  color: white;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s ease, box-shadow 0.15s ease;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+.confirmButton:hover:not(:disabled) {
+  background-color: #4338ca;
+  box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
+}
+.confirmButton:disabled {
+  background-color: #d1d5db !important;
+  color: #6b7280 !important;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* カスタムカレンダースタイル */
+.customDayPicker {
+  pointer-events: auto !important;
+}
+
+/* カレンダーのデイボタンのイベントプロパゲーション防止 */
+.rdp-day_selected, .rdp-day, .rdp-button, .rdp-cell {
+  pointer-events: auto !important;
+}
+
+/* ヘッダーのドロップダウン修正 */
+.rdp-dropdown, .rdp-caption_label, .rdp-nav_button {
+  pointer-events: auto !important;
+}
+
+/* react-day-pickerのグローバルスタイル上書き */
 :global(.rdp) {
   --rdp-cell-size: 38px;
   --rdp-accent-color: #4f46e5;
@@ -49,33 +128,50 @@
   margin: 0.5em;
   font-size: 0.9rem;
 }
-:global(.rdp-months) { padding-bottom: 0.5rem; }
-:global(.rdp-caption) { padding-bottom: 0.75rem; margin-bottom: 0.75rem; }
-:global(.rdp-caption_label) { font-size: 1rem; font-weight: 600; color: #1f2937; }
-:global(.rdp-caption_dropdowns) { display: flex; gap: 0.5rem; padding-bottom: 0.75rem; margin: 0.5rem 0; }
-:global(.rdp-dropdown) { padding: 0.3rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.9rem; font-weight: 500; background-color: white; cursor: pointer; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
-:global(.rdp-dropdown:focus) { outline: none; border-color: #818cf8; box-shadow: 0 0 0 3px rgba(199, 210, 254, 0.5); }
-:global(.rdp-nav) { }
-:global(.rdp-nav_button) { border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.3rem; background-color: white; cursor: pointer; transition: background-color 0.2s ease; }
-:global(.rdp-nav_button:hover) { background-color: #f3f4f6;}
-:global(.rdp-head_cell) { font-size: 0.75rem; font-weight: 600; color: #6b7280; padding-bottom: 0.5rem; }
-:global(.rdp-day) { border-radius: 0.375rem; width: var(--rdp-cell-size); height: var(--rdp-cell-size); font-weight: 500; transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease; border: 1px solid transparent; }
-:global(.rdp-day_selected), :global(.rdp-day_selected:hover), :global(.rdp-day_selected:focus) { background-color: var(--rdp-accent-color) !important; color: white !important; font-weight: 700; box-shadow: none; outline: none; }
-:global(.rdp-day:not(.rdp-day_selected):not(.rdp-day_disabled):hover) { background-color: var(--rdp-background-color) !important; }
-:global(.rdp-day:not(.rdp-day_selected):not(.rdp-day_disabled):focus) {
-  outline: none;
-  box-shadow: 0 0 0 2px var(--rdp-accent-color);
-}
-:global(.rdp-day_today:not(.rdp-day_selected)) { font-weight: 700; color: var(--rdp-accent-color); background-color: #f0f5ff; border: 1px solid var(--rdp-accent-color); }
-:global(.rdp-day_outside) { color: #9ca3af; }
-:global(.rdp-day_disabled) { color: #d1d5db; background-color: #f9fafb; }
-*/
-/* --- react-day-picker スタイルコメントアウトここまで --- */
 
-/* フッター */
-.footer { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; border-top: 1px solid #e5e7eb; background-color: #f9fafb; border-bottom-left-radius: 0.75rem; border-bottom-right-radius: 0.75rem; }
-.footer span { font-size: 0.875rem; color: #4b5563; font-weight: 500; }
-.footer button { padding: 0.625rem 1.25rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.875rem; cursor: pointer; border: none; transition: background-color 0.2s ease, box-shadow 0.15s ease; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
-.footer button:disabled { background-color: #d1d5db !important; color: #6b7280 !important; cursor: not-allowed; box-shadow: none; }
-.confirmButton { background-color: #4f46e5; color: white; }
-.confirmButton:hover:not(:disabled) { background-color: #4338ca; box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2); }
+:global(.rdp-months) {
+  padding-bottom: 0.5rem;
+  pointer-events: auto !important;
+}
+
+:global(.rdp-caption) {
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.75rem;
+  pointer-events: auto !important;
+}
+
+:global(.rdp-month) {
+  pointer-events: auto !important;
+}
+
+:global(.rdp-table) {
+  pointer-events: auto !important;
+}
+
+:global(.rdp-cell) {
+  pointer-events: auto !important;
+}
+
+:global(.rdp-button) {
+  pointer-events: auto !important;
+}
+
+:global(.rdp-day) {
+  pointer-events: auto !important;
+}
+
+:global(.rdp-day_selected),
+:global(.rdp-day_selected:hover),
+:global(.rdp-day_selected:focus) {
+  pointer-events: auto !important;
+  background-color: var(--rdp-accent-color) !important;
+  color: white !important;
+}
+
+:global(.rdp-head_cell) {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  padding-bottom: 0.5rem;
+  pointer-events: none;
+}
