@@ -1,4 +1,4 @@
-/* src/AmbiguousTrendsPage.module.css (完全版) */
+/* src/AmbiguousTrendsPage.module.css (完全版 - 長期停滞リストスタイル追記) */
 
 .container {
   padding: 1.5rem;
@@ -125,7 +125,7 @@
 
 /* --- テーブル関連 --- */
 .tableContainer {
-  margin-top: 1.5rem; /* mt-6 */
+  margin-top: 1.5rem; /* mt-6 (デフォルトのマージン) */
   background-color: white;
   border-radius: 0.5rem; /* rounded-lg */
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); /* shadow */
@@ -138,6 +138,9 @@
   font-size: 1rem; /* text-base */
   font-weight: 600; /* font-semibold */
   color: #374151; /* text-gray-700 */
+  display: flex; /* アイコンを隣に置くため */
+  align-items: center; /* アイコンとテキストを垂直中央揃え */
+  border-bottom: 1px solid #e5e7eb; /* タイトル下に区切り線 */
 }
 
 
@@ -197,6 +200,7 @@
   vertical-align: middle; /* セル内垂直中央揃え */
 }
 
+/* 特定の列は折り返しを許可してもよいかも */
 .table tbody td:nth-child(3), /* 章 */
 .table tbody td:nth-child(4) { /* 理由 */
   white-space: normal; /* 必要に応じて折り返す */
