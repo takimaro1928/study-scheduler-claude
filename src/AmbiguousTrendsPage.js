@@ -1,7 +1,7 @@
-// src/AmbiguousTrendsPage.js (ステップ2: 科目別グラフ追加 - 完全版)
+// src/AmbiguousTrendsPage.js (ステップ3: 長期停滞リスト追加 - 本当に完全版)
 import React, { useState, useEffect, useMemo } from 'react';
-import { Filter, ChevronDown, ChevronUp, Info, ArrowUpDown, BarChart2 } from 'lucide-react'; // BarChart2 アイコン追加
-// ★ Recharts から必要なコンポーネントをインポート
+import { Filter, ChevronDown, ChevronUp, Info, ArrowUpDown, BarChart2, AlertCircle } from 'lucide-react'; // AlertCircle アイコン追加
+// Recharts から必要なコンポーネントをインポート
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
@@ -76,7 +76,7 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal }) => {
   // 曖昧な問題データをメモ化して取得
   const ambiguousQuestions = useMemo(() => getAmbiguousQuestions(subjects || []), [subjects]);
 
-  // ★★★ 科目別の曖昧問題数を集計するロジック ★★★
+  // 科目別の曖昧問題数を集計
   const ambiguousCountBySubject = useMemo(() => {
     const counts = {};
     ambiguousQuestions.forEach(q => {
@@ -88,8 +88,18 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal }) => {
       .map(([name, count]) => ({ subjectName: name, count }))
       .sort((a, b) => b.count - a.count); // 件数の降順でソート
   }, [ambiguousQuestions]);
-  // ★★★ ここまで ★★★
 
+
+  // 長期停滞リスト用のデータをフィルタリングして作成
+  const longStagnantQuestions = useMemo(() => {
+    const THIRTY_DAYS_AGO = new Date();
+    THIRTY_DAYS_AGO.setDate(THIRTY_DAYS_AGO.getDate() - 30); // 30日前の日付を計算
+    THIRTY_DAYS_AGO.setHours(0, 0, 0, 0); // 日付の比較のため時間をリセット
+
+    return ambiguousQuestions.filter(q =>
+      q.lastAnswered && q.lastAnswered < THIRTY_DAYS_AGO
+    );
+  }, [ambiguousQuestions]);
 
   // フィルターとソートを適用した問題リストをメモ化
   const filteredAndSortedQuestions = useMemo(() => {
@@ -169,6 +179,23 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal }) => {
     return sort.order === 'desc' ? <ChevronDown size={14} className={styles.sortIconActive} /> : <ChevronUp size={14} className={styles.sortIconActive} />;
   };
 
+  // 長期停滞リスト用のソート済みデータを準備
+  const sortedLongStagnantQuestions = useMemo(() => {
+      // filteredAndSortedQuestions と同じソートを適用
+      let sorted = [...longStagnantQuestions];
+      sorted.sort((a, b) => {
+        const valA = a[sort.key];
+        const valB = b[sort.key];
+        let comparison = 0;
+        if (valA instanceof Date && valB instanceof Date) { comparison = valA.getTime() - valB.getTime(); }
+        else if (typeof valA === 'number' && typeof valB === 'number') { comparison = valA - valB; }
+        else if (typeof valA === 'string' && typeof valB === 'string') { comparison = valA.localeCompare(valB); }
+        else { if (valA < valB) comparison = -1; if (valA > valB) comparison = 1; }
+        return sort.order === 'asc' ? comparison : comparison * -1;
+      });
+      return sorted;
+  }, [longStagnantQuestions, sort]);
+
 
   return (
     <div className={styles.container}>
@@ -186,7 +213,6 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal }) => {
           {showFilters ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </button>
       </div>
-
       {showFilters && (
         <div className={styles.filterPanel}>
           <div className={styles.filterGrid}>
@@ -239,44 +265,43 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal }) => {
         </div>
       )}
 
+
       {/* 科目別グラフ表示エリア */}
       <div className={styles.chartContainer}>
         <h3 className={styles.chartTitle}>
           <BarChart2 size={18} /> 科目別の曖昧問題数
         </h3>
         {ambiguousCountBySubject.length > 0 ? (
-          // ResponsiveContainer でグラフのサイズを親要素に合わせる
           <ResponsiveContainer width="100%" height={300}>
             <BarChart
               data={ambiguousCountBySubject}
-              margin={{ top: 5, right: 20, left: -10, bottom: 50 }} // bottom マージンを増やしてラベル表示領域確保
-              barGap={5} // 棒の間隔
+              margin={{ top: 5, right: 20, left: -10, bottom: 50 }}
+              barGap={5}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis
                 dataKey="subjectName"
-                tick={{ fontSize: 11, fill: '#4b5563' }} // X軸ラベルのスタイル
-                angle={-45} // ラベルを斜めにする角度を調整
-                textAnchor="end" // 斜めにしたときのアンカー
-                height={60} // ラベル表示に必要な高さを確保 (長さに応じて調整)
-                interval={0} // 全てのラベルを表示
+                tick={{ fontSize: 11, fill: '#4b5563' }}
+                angle={-45}
+                textAnchor="end"
+                height={60}
+                interval={0}
               />
               <YAxis
-                tick={{ fontSize: 11, fill: '#4b5563' }} // Y軸ラベルのスタイル
-                allowDecimals={false} // 整数のみ表示
+                tick={{ fontSize: 11, fill: '#4b5563' }}
+                allowDecimals={false}
               />
               <Tooltip
-                cursor={{ fill: 'rgba(238, 242, 255, 0.6)' }} // ホバー時の背景色
+                cursor={{ fill: 'rgba(238, 242, 255, 0.6)' }}
                 contentStyle={{
                   backgroundColor: 'white',
                   border: '1px solid #e5e7eb',
                   borderRadius: '0.375rem',
                   fontSize: '0.875rem',
                   boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                 }} // ツールチップのスタイル
+                 }}
               />
-              {/* <Legend wrapperStyle={{ fontSize: '0.875rem' }} /> */}
-              <Bar dataKey="count" name="曖昧問題数" fill="#818cf8" radius={[4, 4, 0, 0]} barSize={20} /> {/* fillで色指定, radiusで角丸, barSizeで棒の太さ調整 */}
+              <Bar dataKey="count" name="曖昧問題数" fill="#818cf8" radius={[4, 4, 0, 0]} barSize={20} />
             </BarChart>
           </ResponsiveContainer>
         ) : (
@@ -285,14 +310,57 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal }) => {
       </div>
 
 
-      {/* 問題リストテーブル */}
-      <div className={styles.tableContainer}>
-        <h3 className={styles.tableTitle}>曖昧問題リスト ({filteredAndSortedQuestions.length}件)</h3>
+      {/* 長期停滞リスト表示エリア */}
+      <div className={styles.tableContainer} style={{marginTop: '2rem', borderColor: '#fca5a5' }}>
+         <h3 className={styles.tableTitle} style={{color: '#b45309' }}>
+           <AlertCircle size={18} style={{marginRight: '0.5rem', color: '#f97316' }}/>
+           長期停滞している曖昧問題 ({sortedLongStagnantQuestions.length}件)
+           <span style={{fontSize: '0.75rem', fontWeight: 400, marginLeft: '0.5rem', color: '#71717a' }}>
+             (最終解答日から30日以上経過)
+           </span>
+         </h3>
+         {sortedLongStagnantQuestions.length > 0 ? (
+           <table className={styles.table}>
+             <thead>
+               <tr>
+                 <th onClick={() => handleSort('id')}>問題ID {getSortIcon('id')}</th>
+                 <th onClick={() => handleSort('subjectName')}>科目 {getSortIcon('subjectName')}</th>
+                 <th onClick={() => handleSort('chapterName')}>章 {getSortIcon('chapterName')}</th>
+                 <th onClick={() => handleSort('reason')}>理由 {getSortIcon('reason')}</th>
+                 <th onClick={() => handleSort('correctRate')}>正答率 {getSortIcon('correctRate')}</th>
+                 <th onClick={() => handleSort('answerCount')}>解答回数 {getSortIcon('answerCount')}</th>
+                 <th onClick={() => handleSort('lastAnswered')}>最終解答日 {getSortIcon('lastAnswered')}</th>
+               </tr>
+             </thead>
+             <tbody>
+               {sortedLongStagnantQuestions.map(q => (
+                 <tr key={q.id}>
+                   <td>{q.id}</td>
+                   <td>{q.subjectName}</td>
+                   <td>{q.chapterName}</td>
+                   <td>{q.reason}</td>
+                   <td>{q.correctRate}%</td>
+                   <td>{q.answerCount}</td>
+                   <td style={{color: '#dc2626', fontWeight: 500}}>{formatDate(q.lastAnswered)}</td>
+                 </tr>
+               ))}
+             </tbody>
+           </table>
+         ) : (
+           <div className={styles.noDataMessage} style={{backgroundColor: '#fffbeb' }}>
+             長期停滞している曖昧問題はありません。
+           </div>
+         )}
+       </div>
+
+
+      {/* 全ての曖昧問題リストテーブル */}
+      <div className={styles.tableContainer} style={{marginTop: '2rem'}}>
+        <h3 className={styles.tableTitle}>全ての曖昧問題リスト ({filteredAndSortedQuestions.length}件)</h3>
         {filteredAndSortedQuestions.length > 0 ? (
           <table className={styles.table}>
             <thead>
               <tr>
-                {/* 各ヘッダーにソート機能を追加 */}
                 <th onClick={() => handleSort('id')}>問題ID {getSortIcon('id')}</th>
                 <th onClick={() => handleSort('subjectName')}>科目 {getSortIcon('subjectName')}</th>
                 <th onClick={() => handleSort('chapterName')}>章 {getSortIcon('chapterName')}</th>
@@ -317,14 +385,12 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal }) => {
             </tbody>
           </table>
         ) : (
-          // 問題がない場合の表示
           <div className={styles.noDataMessage}>
             表示できる曖昧問題がありません。
             {ambiguousQuestions.length > 0 && 'フィルター条件を変更してみてください。'}
           </div>
         )}
       </div>
-      {/* ページネーション等は後で追加 */}
 
     </div>
   );
