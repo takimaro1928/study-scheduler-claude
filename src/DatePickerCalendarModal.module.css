@@ -1,4 +1,4 @@
-/* src/DatePickerCalendarModal.module.css (デザイン改善版) */
+/* src/DatePickerCalendarModal.module.css (デザイン改善版 - :global コメントアウト & 位置強制) */
 .overlay {
   position: fixed; inset: 0; background-color: rgba(31, 41, 55, 0.7); /* 少し濃く */
   display: flex; align-items: center; justify-content: center; z-index: 40; padding: 1rem;
@@ -10,13 +10,20 @@
   background-color: white; border-radius: 0.75rem; /* rounded-xl */
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); /* shadow-2xl */
   width: auto; max-width: calc(100vw - 2rem);
-  position: relative;
+  /* --- 位置強制 --- */
+  position: fixed; /* fixed に変更 */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 50; /* overlay より手前に */
+  /* --- 位置強制ここまで --- */
+  /* position: relative; */ /* ← 元の指定はコメントアウト */
   animation: modalEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1); /* 少し弾む感じのアニメーション */
   overflow: hidden;
 }
 @keyframes modalEnter {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
+  from { opacity: 0; transform: scale(0.9) translate(-50%, -50%); } /* transform にも追加 */
+  to { opacity: 1; transform: scale(1) translate(-50%, -50%); } /* transform にも追加 */
 }
 
 .closeButton {
@@ -29,39 +36,41 @@
 
 .calendarContainer { padding: 0.75rem; } /* 内側余白調整 */
 
-/* --- react-day-picker のカスタムスタイル (さらにモダンに) --- */
+/* --- react-day-picker のカスタムスタイル (一時的にすべてコメントアウト) --- */
+/*
 :global(.rdp) {
-  --rdp-cell-size: 38px; /* 変更なし */
-  --rdp-accent-color: #4f46e5; /* 変更なし */
-  --rdp-background-color: #e0e7ff; /* 変更なし */
+  --rdp-cell-size: 38px;
+  --rdp-accent-color: #4f46e5;
+  --rdp-background-color: #e0e7ff;
   --rdp-accent-color-dark: #4338ca;
   --rdp-background-color-dark: #3730a3;
   --rdp-outline: 2px solid transparent;
   --rdp-outline-selected: none;
   margin: 0.5em;
-  font-size: 0.9rem; /* 全体のフォントサイズを少し調整 */
+  font-size: 0.9rem;
 }
 :global(.rdp-months) { padding-bottom: 0.5rem; }
-:global(.rdp-caption) { padding-bottom: 0.75rem; margin-bottom: 0.75rem; } /* 下線とマージンを調整 */
+:global(.rdp-caption) { padding-bottom: 0.75rem; margin-bottom: 0.75rem; }
 :global(.rdp-caption_label) { font-size: 1rem; font-weight: 600; color: #1f2937; }
 :global(.rdp-caption_dropdowns) { display: flex; gap: 0.5rem; padding-bottom: 0.75rem; margin: 0.5rem 0; }
 :global(.rdp-dropdown) { padding: 0.3rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.9rem; font-weight: 500; background-color: white; cursor: pointer; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
 :global(.rdp-dropdown:focus) { outline: none; border-color: #818cf8; box-shadow: 0 0 0 3px rgba(199, 210, 254, 0.5); }
-:global(.rdp-nav) { /* 前後の月へ移動するボタンのコンテナ */ }
+:global(.rdp-nav) { }
 :global(.rdp-nav_button) { border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.3rem; background-color: white; cursor: pointer; transition: background-color 0.2s ease; }
 :global(.rdp-nav_button:hover) { background-color: #f3f4f6;}
-:global(.rdp-head_cell) { font-size: 0.75rem; font-weight: 600; color: #6b7280; padding-bottom: 0.5rem; } /* 曜日 */
-:global(.rdp-day) { border-radius: 0.375rem; width: var(--rdp-cell-size); height: var(--rdp-cell-size); font-weight: 500; transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease; border: 1px solid transparent; /* フォーカス用に枠線スペース確保 */}
+:global(.rdp-head_cell) { font-size: 0.75rem; font-weight: 600; color: #6b7280; padding-bottom: 0.5rem; }
+:global(.rdp-day) { border-radius: 0.375rem; width: var(--rdp-cell-size); height: var(--rdp-cell-size); font-weight: 500; transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease; border: 1px solid transparent; }
 :global(.rdp-day_selected), :global(.rdp-day_selected:hover), :global(.rdp-day_selected:focus) { background-color: var(--rdp-accent-color) !important; color: white !important; font-weight: 700; box-shadow: none; outline: none; }
 :global(.rdp-day:not(.rdp-day_selected):not(.rdp-day_disabled):hover) { background-color: var(--rdp-background-color) !important; }
-:global(.rdp-day:not(.rdp-day_selected):not(.rdp-day_disabled):focus) { /* フォーカススタイルを追加 */
+:global(.rdp-day:not(.rdp-day_selected):not(.rdp-day_disabled):focus) {
   outline: none;
   box-shadow: 0 0 0 2px var(--rdp-accent-color);
 }
-:global(.rdp-day_today:not(.rdp-day_selected)) { font-weight: 700; color: var(--rdp-accent-color); background-color: #f0f5ff; border: 1px solid var(--rdp-accent-color); } /* 今日のスタイル変更 */
+:global(.rdp-day_today:not(.rdp-day_selected)) { font-weight: 700; color: var(--rdp-accent-color); background-color: #f0f5ff; border: 1px solid var(--rdp-accent-color); }
 :global(.rdp-day_outside) { color: #9ca3af; }
 :global(.rdp-day_disabled) { color: #d1d5db; background-color: #f9fafb; }
-/* --- react-day-picker スタイルここまで --- */
+*/
+/* --- react-day-picker スタイルコメントアウトここまで --- */
 
 /* フッター */
 .footer { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; border-top: 1px solid #e5e7eb; background-color: #f9fafb; border-bottom-left-radius: 0.75rem; border-bottom-right-radius: 0.75rem; }
