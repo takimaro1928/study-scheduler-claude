@@ -1,12 +1,13 @@
-// src/AmbiguousTrendsPage.js (ステップ5: 日次時系列グラフ追加 - 本当に完全版！)
+// src/AmbiguousTrendsPage.js (ステップ6: コメント機能UI追加 - 本当に完全版！！！)
 import React, { useState, useEffect, useMemo } from 'react';
-import { Filter, ChevronDown, ChevronUp, Info, ArrowUpDown, BarChart2, AlertCircle, RotateCcw, TrendingUp } from 'lucide-react'; // アイコン追加
+import { Filter, ChevronDown, ChevronUp, Info, ArrowUpDown, BarChart2, AlertCircle, RotateCcw, TrendingUp, Edit2 } from 'lucide-react'; // Edit2 アイコン追加
 // Recharts から必要なコンポーネントをインポート
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   LineChart, Line, AreaChart, Area // LineChart, Line などを追加
 } from 'recharts';
 import styles from './AmbiguousTrendsPage.module.css'; // CSSモジュールをインポート
+import CommentEditModal from './CommentEditModal'; // 作成したモーダルをインポート
 
 // 曖昧問題データを取得・整形する関数
 function getAmbiguousQuestions(subjects) {
@@ -33,6 +34,7 @@ function getAmbiguousQuestions(subjects) {
             lastAnswered: !isNaN(lastAnsweredDate?.getTime()) ? lastAnsweredDate : null,
             nextDate: !isNaN(nextDateDate?.getTime()) ? nextDateDate : null,
             answerCount: question.answerCount ?? 0, previousUnderstanding: question.previousUnderstanding,
+            comment: question.comment || '', // コメントも取得
           });
         }
       });
@@ -49,11 +51,12 @@ const formatDateInternal = (date) => {
 };
 
 // 曖昧問題傾向表示ページコンポーネント
-const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answerHistory = [] }) => {
+const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answerHistory = [], saveComment }) => {
   // 状態管理
   const [filter, setFilter] = useState({ reason: 'all', subject: 'all', period: 'all' });
   const [sort, setSort] = useState({ key: 'lastAnswered', order: 'desc' });
   const [showFilters, setShowFilters] = useState(false);
+  const [editingCommentQuestion, setEditingCommentQuestion] = useState(null); // コメント編集モーダル用のstate
 
   // 曖昧な問題データ (現在の状態)
   const ambiguousQuestions = useMemo(() => getAmbiguousQuestions(subjects || []), [subjects]);
@@ -88,55 +91,52 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
     let currentDateStr = '';
     let ambiguousCount = 0;
 
-    // 全問題のIDリストを取得（履歴に登場しない問題も考慮する場合）
-    const allQuestionIds = new Set();
-    subjects.forEach(s => s.chapters.forEach(c => c.questions.forEach(q => allQuestionIds.add(q.id))));
+    // まず履歴に基づいて各問題の最終状態を把握
+    sortedHistory.forEach(record => {
+        questionStatus.set(record.questionId, record.understanding);
+    });
+    // 履歴の最初の日時点での曖昧件数を計算
+    ambiguousCount = Array.from(questionStatus.values()).filter(u => u && typeof u === 'string' && u.startsWith('曖昧△')).length;
 
-
-    // 履歴の最初の日の前日までの曖昧問題数を計算（初期状態を反映）
-    // ※ この部分は複雑になるため、今回は「履歴の最初の日」から開始する簡易版とします。
-    //    より正確にするには、履歴がない問題の初期状態(subjectsから取得)も考慮する必要があります。
+    // 履歴を再度ループして日ごとの推移を計算
+    questionStatus.clear(); // マップをクリアして再利用
+    let runningAmbiguousCount = 0; // その日までの累積カウント
 
     sortedHistory.forEach((record, index) => {
         const recordDate = new Date(record.timestamp);
-        const recordDateStr = formatDateInternal(recordDate); // YYYY/MM/DD 形式
+        const recordDateStr = formatDateInternal(recordDate);
 
-        // 日付が変わったか、最後のレコードの場合、その日の結果を記録
-        if (currentDateStr === '') { // 最初のレコード
+        if (currentDateStr === '') {
             currentDateStr = recordDateStr;
+            // 初日の開始時点での曖昧件数を計算（やや複雑なので簡易的に0スタートとするか、別途計算）
+            // 今回は記録がある日からプロットするため、初日の処理はstatus更新のみ
         } else if (recordDateStr !== currentDateStr) {
-             // 前日までの日付がない場合、間の日付のデータを補完する（オプション）
-             // 例: 前日が 04/01 で今日が 04/03 なら 04/02 のデータ(前日と同じ値)を追加
-             // 今回は省略し、記録がある日のみプロットする
-
-             trends.push({ date: currentDateStr, count: ambiguousCount });
-             currentDateStr = recordDateStr;
-             // ambiguousCount は前日の状態を引き継ぐ
+            trends.push({ date: currentDateStr, count: runningAmbiguousCount });
+            // 日付が飛んでいる場合、間の日付を補完する処理も可能（今回は省略）
+            currentDateStr = recordDateStr;
         }
 
-        // 現在の問題の理解度を更新
         const previousUnderstanding = questionStatus.get(record.questionId);
         const currentUnderstanding = record.understanding;
         questionStatus.set(record.questionId, currentUnderstanding);
 
-        // 曖昧問題数のカウントを更新
         const wasAmbiguous = previousUnderstanding && typeof previousUnderstanding === 'string' && previousUnderstanding.startsWith('曖昧△');
         const isAmbiguous = currentUnderstanding && typeof currentUnderstanding === 'string' && currentUnderstanding.startsWith('曖昧△');
 
         if (!wasAmbiguous && isAmbiguous) {
-            ambiguousCount++;
+            runningAmbiguousCount++;
         } else if (wasAmbiguous && !isAmbiguous) {
-            ambiguousCount--;
+             // カウントがマイナスにならないようにチェック
+            runningAmbiguousCount = Math.max(0, runningAmbiguousCount - 1);
         }
 
-         // 最後のレコードの場合、その日のデータを必ず追加
         if (index === sortedHistory.length - 1) {
-            trends.push({ date: currentDateStr, count: ambiguousCount });
+            trends.push({ date: currentDateStr, count: runningAmbiguousCount });
         }
     });
 
     return trends;
-  }, [answerHistory, subjects]); // subjectsも依存（初期状態を見る場合）
+  }, [answerHistory, subjects]);
 
 
   // フィルターとソートを適用した全曖昧問題リスト
@@ -198,6 +198,77 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
       });
       return sorted;
   }, [revertedQuestions, sort]);
+
+  // コメント編集モーダルを開く関数
+  const handleEditCommentClick = (question) => {
+    setEditingCommentQuestion(question);
+  };
+
+  // コメント編集モーダルを閉じる関数
+  const handleCloseCommentModal = () => {
+    setEditingCommentQuestion(null);
+  };
+
+  // テーブルレンダリング関数 (共通化)
+  const renderTable = (title, titleIcon, titleColor, subtitle, data, emptyMessage, emptyBgColor) => {
+    return (
+      <div className={styles.tableContainer} style={{marginTop: '2rem', borderColor: titleColor || '#e5e7eb' }}>
+         <h3 className={styles.tableTitle} style={{color: titleColor || '#1f2937' }}>
+           {titleIcon && React.createElement(titleIcon, { size: 18, style: { marginRight: '0.5rem', color: titleColor || '#4f46e5' } })}
+           {title} ({data.length}件)
+           {subtitle && <span style={{fontSize: '0.75rem', fontWeight: 400, marginLeft: '0.5rem', color: '#71717a' }}>{subtitle}</span>}
+         </h3>
+         {data.length > 0 ? (
+           <table className={styles.table}>
+             <thead>
+               <tr>
+                 <th onClick={() => handleSort('id')}>問題ID {getSortIcon('id')}</th>
+                 <th onClick={() => handleSort('subjectName')}>科目 {getSortIcon('subjectName')}</th>
+                 <th onClick={() => handleSort('chapterName')}>章 {getSortIcon('chapterName')}</th>
+                 <th onClick={() => handleSort('reason')}>理由 {getSortIcon('reason')}</th>
+                 {/* コメント列ヘッダー追加 */}
+                 <th>コメント</th>
+                 <th onClick={() => handleSort('correctRate')}>正答率 {getSortIcon('correctRate')}</th>
+                 <th onClick={() => handleSort('answerCount')}>解答回数 {getSortIcon('answerCount')}</th>
+                 <th onClick={() => handleSort('lastAnswered')}>最終解答日 {getSortIcon('lastAnswered')}</th>
+                 <th>編集</th> {/* 編集ボタン用ヘッダー */}
+               </tr>
+             </thead>
+             <tbody>
+               {data.map(q => (
+                 <tr key={q.id}>
+                   <td>{q.id}</td>
+                   <td>{q.subjectName}</td>
+                   <td>{q.chapterName}</td>
+                   <td>{q.reason}</td>
+                   {/* コメント表示セル */}
+                   <td className={styles.commentCell}>
+                     <span title={q.comment}>{q.comment}</span> {/* title属性で全文表示 */}
+                   </td>
+                   <td>{q.correctRate}%</td>
+                   <td>{q.answerCount}</td>
+                   {/* 長期停滞リストでは日付を赤字にする */}
+                   <td style={title === '長期停滞している曖昧問題' ? {color: '#dc2626', fontWeight: 500} : {}}>
+                     {formatDate(q.lastAnswered)}
+                   </td>
+                   {/* 編集ボタンセル */}
+                   <td>
+                     <button onClick={() => handleEditCommentClick(q)} className={styles.editCommentButton} title="コメント編集">
+                       <Edit2 size={16}/>
+                     </button>
+                   </td>
+                 </tr>
+               ))}
+             </tbody>
+           </table>
+         ) : (
+           <div className={styles.noDataMessage} style={{backgroundColor: emptyBgColor || '#f9fafb' }}>
+             {emptyMessage}
+           </div>
+         )}
+       </div>
+    );
+  };
 
 
   return (
@@ -261,37 +332,33 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
       </div>
 
       {/* 長期停滞リスト表示エリア */}
-      <div className={styles.tableContainer} style={{marginTop: '2rem', borderColor: '#fca5a5' }}>
-         <h3 className={styles.tableTitle} style={{color: '#b45309' }}> <AlertCircle size={18} style={{marginRight: '0.5rem', color: '#f97316' }}/> 長期停滞している曖昧問題 ({sortedLongStagnantQuestions.length}件) <span style={{fontSize: '0.75rem', fontWeight: 400, marginLeft: '0.5rem', color: '#71717a' }}> (最終解答日から30日以上経過) </span> </h3>
-         {sortedLongStagnantQuestions.length > 0 ? (
-           <table className={styles.table}>
-             <thead> <tr> <th onClick={() => handleSort('id')}>問題ID {getSortIcon('id')}</th> <th onClick={() => handleSort('subjectName')}>科目 {getSortIcon('subjectName')}</th> <th onClick={() => handleSort('chapterName')}>章 {getSortIcon('chapterName')}</th> <th onClick={() => handleSort('reason')}>理由 {getSortIcon('reason')}</th> <th onClick={() => handleSort('correctRate')}>正答率 {getSortIcon('correctRate')}</th> <th onClick={() => handleSort('answerCount')}>解答回数 {getSortIcon('answerCount')}</th> <th onClick={() => handleSort('lastAnswered')}>最終解答日 {getSortIcon('lastAnswered')}</th> </tr> </thead>
-             <tbody> {sortedLongStagnantQuestions.map(q => ( <tr key={q.id}> <td>{q.id}</td> <td>{q.subjectName}</td> <td>{q.chapterName}</td> <td>{q.reason}</td> <td>{q.correctRate}%</td> <td>{q.answerCount}</td> <td style={{color: '#dc2626', fontWeight: 500}}>{formatDate(q.lastAnswered)}</td> </tr> ))} </tbody>
-           </table>
-         ) : ( <div className={styles.noDataMessage} style={{backgroundColor: '#fffbeb' }}> 長期停滞している曖昧問題はありません。 </div> )}
-       </div>
+      {renderTable(
+        '長期停滞している曖昧問題', AlertCircle, '#b45309', '(最終解答日から30日以上経過)',
+        sortedLongStagnantQuestions, '長期停滞している曖昧問題はありません。', '#fffbeb'
+      )}
 
       {/* 揺り戻しリスト表示エリア */}
-      <div className={styles.tableContainer} style={{marginTop: '2rem', borderColor: '#a78bfa' }}>
-         <h3 className={styles.tableTitle} style={{color: '#5b21b6' }}> <RotateCcw size={18} style={{marginRight: '0.5rem', color: '#7c3aed' }}/> "揺り戻し" が発生した曖昧問題 ({sortedRevertedQuestions.length}件) <span style={{fontSize: '0.75rem', fontWeight: 400, marginLeft: '0.5rem', color: '#71717a' }}> (前回「理解○」→ 今回「曖昧△」) </span> </h3>
-         {sortedRevertedQuestions.length > 0 ? (
-           <table className={styles.table}>
-             <thead> <tr> <th onClick={() => handleSort('id')}>問題ID {getSortIcon('id')}</th> <th onClick={() => handleSort('subjectName')}>科目 {getSortIcon('subjectName')}</th> <th onClick={() => handleSort('chapterName')}>章 {getSortIcon('chapterName')}</th> <th onClick={() => handleSort('reason')}>理由 {getSortIcon('reason')}</th> <th onClick={() => handleSort('correctRate')}>正答率 {getSortIcon('correctRate')}</th> <th onClick={() => handleSort('answerCount')}>解答回数 {getSortIcon('answerCount')}</th> <th onClick={() => handleSort('lastAnswered')}>最終解答日 {getSortIcon('lastAnswered')}</th> </tr> </thead>
-             <tbody> {sortedRevertedQuestions.map(q => ( <tr key={q.id}> <td>{q.id}</td> <td>{q.subjectName}</td> <td>{q.chapterName}</td> <td>{q.reason}</td> <td>{q.correctRate}%</td> <td>{q.answerCount}</td> <td>{formatDate(q.lastAnswered)}</td> </tr> ))} </tbody>
-           </table>
-         ) : ( <div className={styles.noDataMessage} style={{backgroundColor: '#f5f3ff' }}> "揺り戻し" が発生した曖昧問題はありません。 </div> )}
-       </div>
+      {renderTable(
+         '"揺り戻し" が発生した曖昧問題', RotateCcw, '#5b21b6', '(前回「理解○」→ 今回「曖昧△」)',
+         sortedRevertedQuestions, '"揺り戻し" が発生した曖昧問題はありません。', '#f5f3ff'
+      )}
 
       {/* 全ての曖昧問題リストテーブル */}
-      <div className={styles.tableContainer} style={{marginTop: '2rem'}}>
-        <h3 className={styles.tableTitle}>全ての曖昧問題リスト ({filteredAndSortedQuestions.length}件)</h3>
-        {filteredAndSortedQuestions.length > 0 ? (
-          <table className={styles.table}>
-            <thead> <tr> <th onClick={() => handleSort('id')}>問題ID {getSortIcon('id')}</th> <th onClick={() => handleSort('subjectName')}>科目 {getSortIcon('subjectName')}</th> <th onClick={() => handleSort('chapterName')}>章 {getSortIcon('chapterName')}</th> <th onClick={() => handleSort('reason')}>理由 {getSortIcon('reason')}</th> <th onClick={() => handleSort('correctRate')}>正答率 {getSortIcon('correctRate')}</th> <th onClick={() => handleSort('answerCount')}>解答回数 {getSortIcon('answerCount')}</th> <th onClick={() => handleSort('lastAnswered')}>最終解答日 {getSortIcon('lastAnswered')}</th> </tr> </thead>
-            <tbody> {filteredAndSortedQuestions.map(q => ( <tr key={q.id}> <td>{q.id}</td> <td>{q.subjectName}</td> <td>{q.chapterName}</td> <td>{q.reason}</td> <td>{q.correctRate}%</td> <td>{q.answerCount}</td> <td>{formatDate(q.lastAnswered)}</td> </tr> ))} </tbody>
-          </table>
-        ) : ( <div className={styles.noDataMessage}> 表示できる曖昧問題がありません。 {ambiguousQuestions.length > 0 && 'フィルター条件を変更してみてください。'} </div> )}
-      </div>
+      {renderTable(
+        '全ての曖昧問題リスト', null, '#374151', null,
+        filteredAndSortedQuestions,
+        ambiguousQuestions.length > 0 ? '表示できる曖昧問題がありません。フィルター条件を変更してみてください。' : '曖昧と評価された問題はまだありません。',
+        null
+      )}
+
+      {/* コメント編集モーダル */}
+      {editingCommentQuestion && (
+        <CommentEditModal
+          question={editingCommentQuestion}
+          onSave={saveComment} // App.js から渡された関数
+          onCancel={handleCloseCommentModal}
+        />
+      )}
 
     </div>
   );
