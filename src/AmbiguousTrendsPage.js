@@ -1,4 +1,4 @@
-// src/AmbiguousTrendsPage.js (自然順ソート導入・コード整理 - 本当に本当に完全版!!)
+// src/AmbiguousTrendsPage.js (ソートロジック分離・自然順ソート改善 - 完全版)
 import React, { useState, useEffect, useMemo } from 'react';
 import { Filter, ChevronDown, ChevronUp, Info, ArrowUpDown, BarChart2, AlertCircle, RotateCcw, TrendingUp, Edit2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
@@ -7,86 +7,49 @@ import CommentEditModal from './CommentEditModal';
 
 // 曖昧問題データを取得・整形する関数
 function getAmbiguousQuestions(subjects) {
-  const ambiguousQuestions = [];
-  if (!Array.isArray(subjects)) return ambiguousQuestions;
-  subjects.forEach(subject => {
-    if (!subject?.chapters) return;
-    subject.chapters.forEach(chapter => {
-      if (!chapter?.questions) return;
-      chapter.questions.forEach(question => {
-        if (typeof question !== 'object' || question === null) return;
-        if (question.understanding?.startsWith('曖昧△')) {
-          let reason = '理由なし'; if (question.understanding.includes(':')) { reason = question.understanding.split(':')[1].trim(); }
-          const lastAnsweredDate = question.lastAnswered ? new Date(question.lastAnswered) : null;
-          const nextDateDate = question.nextDate ? new Date(question.nextDate) : null;
-          ambiguousQuestions.push({
-            id: question.id || '?', subjectId: subject.id, subjectName: subject.name || '?',
-            chapterId: chapter.id, chapterName: chapter.name || '?', reason: reason,
-            correctRate: question.correctRate ?? 0,
-            lastAnswered: !isNaN(lastAnsweredDate?.getTime()) ? lastAnsweredDate : null,
-            nextDate: !isNaN(nextDateDate?.getTime()) ? nextDateDate : null,
-            answerCount: question.answerCount ?? 0, previousUnderstanding: question.previousUnderstanding,
-            comment: question.comment || '',
-          });
-        }
-      });
-    });
-  });
+  const ambiguousQuestions = []; if (!Array.isArray(subjects)) return ambiguousQuestions;
+  subjects.forEach(subject => { if (!subject?.chapters) return; subject.chapters.forEach(chapter => { if (!chapter?.questions) return; chapter.questions.forEach(question => {
+    if (typeof question !== 'object' || question === null) return; if (question.understanding?.startsWith('曖昧△')) {
+      let reason = '理由なし'; if (question.understanding.includes(':')) { reason = question.understanding.split(':')[1].trim(); }
+      const lastAnsweredDate = question.lastAnswered ? new Date(question.lastAnswered) : null; const nextDateDate = question.nextDate ? new Date(question.nextDate) : null;
+      ambiguousQuestions.push({ id: question.id || '?', subjectId: subject.id, subjectName: subject.name || '?', chapterId: chapter.id, chapterName: chapter.name || '?', reason: reason, correctRate: question.correctRate ?? 0, lastAnswered: !isNaN(lastAnsweredDate?.getTime()) ? lastAnsweredDate : null, nextDate: !isNaN(nextDateDate?.getTime()) ? nextDateDate : null, answerCount: question.answerCount ?? 0, previousUnderstanding: question.previousUnderstanding, comment: question.comment || '', }); } }); }); });
   return ambiguousQuestions;
 }
 
 // 日付のフォーマット関数
-const formatDateInternal = (date) => {
-  if (!date || !(date instanceof Date) || isNaN(date.getTime())) { return '----/--/--'; }
-  try { return `${date.getFullYear()}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}`; }
-  catch (e) { console.error("formatDateエラー:", e); return 'エラー'; }
-};
+const formatDateInternal = (date) => { if (!date || !(date instanceof Date) || isNaN(date.getTime())) { return '----/--/--'; } try { return `${date.getFullYear()}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}`; } catch (e) { console.error("formatDateエラー:", e); return 'エラー'; } };
 
-// 自然順ソート用の比較関数
-function naturalSortCompare(a, b) {
-  const handleNulls = (valA, valB, order) => {
-    if (valA == null && valB != null) return order === 'asc' ? 1 : -1;
-    if (valA != null && valB == null) return order === 'asc' ? -1 : 1;
-    if (valA == null && valB == null) return 0;
-    return null;
-  };
-  const nullComparison = handleNulls(a, b, 'asc');
-  if (nullComparison !== null) return nullComparison;
+// 自然順ソート用の比較関数 (改善版)
+function naturalSortCompare(a, b, order) {
+  const nullOrder = (order === 'asc' ? 1 : -1);
+  if (a == null && b != null) return nullOrder;
+  if (a != null && b == null) return -nullOrder;
+  if (a == null && b == null) return 0;
 
-  const re = /(\d+)|(\D+)/g;
+  // 数字の塊と文字列の塊に分解する正規表現
+  const re = /(\d+)|([^0-9]+)/g;
   const aParts = String(a).match(re) || [];
   const bParts = String(b).match(re) || [];
 
-  for (let i = 0; i < Math.min(aParts.length, bParts.length); i++) {
-    const aPart = aParts[i]; const bPart = bParts[i];
-    const aNum = parseInt(aPart, 10); const bNum = parseInt(bPart, 10);
-    if (!isNaN(aNum) && !isNaN(bNum)) { if (aNum !== bNum) return aNum - bNum; }
-    else { const comparison = aPart.localeCompare(bPart, undefined, { sensitivity: 'base' }); if (comparison !== 0) return comparison; }
+  const len = Math.min(aParts.length, bParts.length);
+  for (let i = 0; i < len; i++) {
+    const aPart = aParts[i];
+    const bPart = bParts[i];
+
+    // 両方とも数字の塊なら数値比較
+    if (!isNaN(aPart) && !isNaN(bPart)) {
+      const aNum = parseInt(aPart, 10);
+      const bNum = parseInt(bPart, 10);
+      if (aNum !== bNum) return aNum - bNum;
+    } else {
+      // それ以外は文字列比較 (localeCompare)
+      const comparison = aPart.localeCompare(bPart, undefined, { sensitivity: 'base' });
+      if (comparison !== 0) return comparison;
+    }
   }
+  // パーツ数が異なれば短い方が先
   return aParts.length - bParts.length;
 }
-
-// ソート処理を共通化する関数
-const sortData = (dataToSort, sortKey, sortOrder) => {
-  // slice() でコピーを作成してからソート
-  return dataToSort.slice().sort((a, b) => {
-    const valA = a[sortKey]; const valB = b[sortKey]; let comparison = 0;
-    // null/undefined を最後にする
-    if (valA == null && valB != null) return sortOrder === 'asc' ? 1 : -1;
-    if (valA != null && valB == null) return sortOrder === 'asc' ? -1 : 1;
-    if (valA == null && valB == null) return 0;
-    // 型に基づいた比較
-    if (valA instanceof Date && valB instanceof Date) { comparison = valA.getTime() - valB.getTime(); }
-    else if (typeof valA === 'number' && typeof valB === 'number') { comparison = valA - valB; }
-    else if (typeof valA === 'string' && typeof valB === 'string') {
-       // 問題IDなどの自然順ソートが必要なキーを指定
-       if (sortKey === 'id' || sortKey === 'chapterName' || sortKey === 'subjectName' || sortKey === 'reason') {
-            comparison = naturalSortCompare(valA, valB);
-       } else { comparison = valA.localeCompare(valB, undefined, { sensitivity: 'base' }); }
-    } else { try { if (valA < valB) comparison = -1; if (valA > valB) comparison = 1; } catch (e) { comparison = 0; } }
-    return sortOrder === 'asc' ? comparison : comparison * -1;
-  });
-};
 
 
 // 曖昧問題傾向表示ページコンポーネント
@@ -104,7 +67,7 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
   const revertedQuestions = useMemo(() => ambiguousQuestions.filter(q => q.previousUnderstanding === '理解○'), [ambiguousQuestions]);
   const ambiguousTrendsData = useMemo(() => { if (!answerHistory?.length) return []; const h = [...answerHistory].sort((a,b) => new Date(a.timestamp).getTime()-new Date(b.timestamp).getTime()); const t = []; const s = new Map(); let cd = ''; let ac = 0; h.forEach((r, i) => { const rd = new Date(r.timestamp); const rs = formatDateInternal(rd); if(cd===''){cd=rs;} else if(rs!==cd){t.push({date:cd,count:ac});cd=rs;} const p = s.get(r.questionId); const c = r.understanding; s.set(r.questionId,c); const wa = p?.startsWith('曖昧△'); const ia = c?.startsWith('曖昧△'); if(!wa&&ia){ac++;} else if(wa&&!ia){ac=Math.max(0,ac-1);} if(i===h.length-1){t.push({date:cd,count:ac});}}); return t; }, [answerHistory, subjects]);
 
-  // フィルター後のデータを準備 (ソート前に使用)
+  // フィルター後のデータを準備
   const filteredQuestionsBase = useMemo(() => {
     let filtered = [...ambiguousQuestions];
     if (filter.reason !== 'all') { filtered = filtered.filter(q => q.reason === filter.reason); }
@@ -113,10 +76,52 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
     return filtered;
   }, [ambiguousQuestions, filter]);
 
-  // 各リストのソート済みデータ (sortData 関数を使用)
-  const filteredAndSortedQuestions = useMemo(() => sortData(filteredQuestionsBase, sort.key, sort.order), [filteredQuestionsBase, sort]);
-  const sortedLongStagnantQuestions = useMemo(() => sortData(longStagnantQuestions, sort.key, sort.order), [longStagnantQuestions, sort]);
-  const sortedRevertedQuestions = useMemo(() => sortData(revertedQuestions, sort.key, sort.order), [revertedQuestions, sort]);
+  // ★★★ 各リストのソートを useMemo 内で個別に行うように変更 ★★★
+  const filteredAndSortedQuestions = useMemo(() => {
+    const { key, order } = sort;
+    return filteredQuestionsBase.slice().sort((a, b) => {
+        const valA = a[key]; const valB = b[key]; let comparison = 0;
+        if (valA == null && valB != null) return order === 'asc' ? 1 : -1; if (valA != null && valB == null) return order === 'asc' ? -1 : 1; if (valA == null && valB == null) return 0;
+        if (valA instanceof Date && valB instanceof Date) { comparison = valA.getTime() - valB.getTime(); }
+        else if (typeof valA === 'number' && typeof valB === 'number') { comparison = valA - valB; }
+        else if (typeof valA === 'string' && typeof valB === 'string') {
+            if (key === 'id' || key === 'chapterName') { // 自然順ソートを適用するキー
+                 comparison = naturalSortCompare(valA, valB);
+            } else { comparison = valA.localeCompare(valB, undefined, { sensitivity: 'base' }); }
+        } else { try { if (valA < valB) comparison = -1; if (valA > valB) comparison = 1; } catch (e) { comparison = 0; } }
+        return order === 'asc' ? comparison : comparison * -1;
+      });
+  }, [filteredQuestionsBase, sort]);
+
+  const sortedLongStagnantQuestions = useMemo(() => {
+      const { key, order } = sort;
+      return longStagnantQuestions.slice().sort((a, b) => {
+        const valA = a[key]; const valB = b[key]; let comparison = 0;
+        if (valA == null && valB != null) return order === 'asc' ? 1 : -1; if (valA != null && valB == null) return order === 'asc' ? -1 : 1; if (valA == null && valB == null) return 0;
+        if (valA instanceof Date && valB instanceof Date) { comparison = valA.getTime() - valB.getTime(); }
+        else if (typeof valA === 'number' && typeof valB === 'number') { comparison = valA - valB; }
+        else if (typeof valA === 'string' && typeof valB === 'string') {
+            if (key === 'id' || key === 'chapterName') { comparison = naturalSortCompare(valA, valB); }
+            else { comparison = valA.localeCompare(valB, undefined, { sensitivity: 'base' }); }
+        } else { try { if (valA < valB) comparison = -1; if (valA > valB) comparison = 1; } catch (e) { comparison = 0; } }
+        return order === 'asc' ? comparison : comparison * -1;
+      });
+  }, [longStagnantQuestions, sort]);
+
+  const sortedRevertedQuestions = useMemo(() => {
+      const { key, order } = sort;
+      return revertedQuestions.slice().sort((a, b) => {
+        const valA = a[key]; const valB = b[key]; let comparison = 0;
+        if (valA == null && valB != null) return order === 'asc' ? 1 : -1; if (valA != null && valB == null) return order === 'asc' ? -1 : 1; if (valA == null && valB == null) return 0;
+        if (valA instanceof Date && valB instanceof Date) { comparison = valA.getTime() - valB.getTime(); }
+        else if (typeof valA === 'number' && typeof valB === 'number') { comparison = valA - valB; }
+        else if (typeof valA === 'string' && typeof valB === 'string') {
+            if (key === 'id' || key === 'chapterName') { comparison = naturalSortCompare(valA, valB); }
+            else { comparison = valA.localeCompare(valB, undefined, { sensitivity: 'base' }); }
+        } else { try { if (valA < valB) comparison = -1; if (valA > valB) comparison = 1; } catch (e) { comparison = 0; } }
+        return order === 'asc' ? comparison : comparison * -1;
+      });
+  }, [revertedQuestions, sort]);
 
   // フィルター用オプション
   const filterOptions = useMemo(() => { const r = [...new Set(ambiguousQuestions.map(q => q.reason))].sort(); const s = [...new Set(ambiguousQuestions.map(q => q.subjectName))].sort(); return { reasons:r, subjects:s }; }, [ambiguousQuestions]);
