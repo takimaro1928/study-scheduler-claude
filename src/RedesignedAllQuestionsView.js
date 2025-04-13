@@ -1,5 +1,5 @@
-// src/RedesignedAllQuestionsView.jsx (イベント伝播停止を追加 - 完全版)
-import React, { useState, useMemo } from 'react';
+// src/RedesignedAllQuestionsView.jsx (モーダル閉じる問題の根本的修正版)
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   Search, Filter, Edit, Clock, Calendar as CalendarIcon, CheckCircle, XCircle, AlertTriangle, Info,
   ChevronRight, ChevronDown, ChevronUp, X as XIcon
@@ -61,7 +61,28 @@ const RedesignedAllQuestionsView = ({
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({ understanding: 'all', correctRate: 'all', interval: 'all', });
   const [showCalendarModal, setShowCalendarModal] = useState(false);
-  // ★ インライン編集関連の state は削除済み (ユーザー提供コードに元々なかったか確認)
+  // モーダル参照のためのRef
+  const modalRef = useRef(null);
+
+  // モーダル外クリック検出用のイベントハンドラ
+  useEffect(() => {
+    function handleClickOutside(event) {
+      // モーダルの参照が存在し、クリックがモーダル外で発生した場合のみモーダルを閉じる
+      if (modalRef.current && !modalRef.current.contains(event.target)) {
+        setShowCalendarModal(false);
+      }
+    }
+
+    // モーダルが表示されている時だけイベントリスナーを追加
+    if (showCalendarModal) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    // クリーンアップ関数
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showCalendarModal]); // 依存配列にshowCalendarModalを含める
 
   // フィルターと検索ロジック (ユーザー提供コードの useMemo)
   const filteredSubjects = useMemo(() => {
@@ -249,44 +270,50 @@ const RedesignedAllQuestionsView = ({
         </div> // 問題リスト全体 end
       )}
 
-      {/* ★★★ 一括編集用カレンダーモーダル ★★★ */}
+      {/* ★★★ 一括編集用カレンダーモーダル (新しいアプローチ) ★★★ */}
       {bulkEditMode && showCalendarModal && (
-         <>
-             {/* オーバーレイ: 外側クリックで閉じる */}
-             <div className={datePickerStyles.overlay} onClick={() => setShowCalendarModal(false)} />
-             {/* モーダル本体: クリックイベントの伝播を停止 */}
-             <div className={datePickerStyles.modal} onClick={(e) => e.stopPropagation()}>
-                <button onClick={() => setShowCalendarModal(false)} className={datePickerStyles.closeButton}> <XIcon size={18} /> </button>
-                {/* カレンダーコンテナにもイベント伝播を停止する処理を追加 */}
-                <div className={datePickerStyles.calendarContainer} onClick={(e) => e.stopPropagation()}>
-                    <DayPicker
-                        mode="single"
-                        required
-                        selected={selectedDate}
-                        onSelect={(date) => { // 日付選択時にモーダルは閉じない
-                            if (date) {
-                                setSelectedDate(date);
-                            } else {
-                                setSelectedDate(null);
-                            }
-                        }}
-                        locale={ja}
-                        showOutsideDays fixedWeeks
-                        captionLayout="dropdown-buttons"
-                        fromYear={new Date().getFullYear() - 2}
-                        toYear={new Date().getFullYear() + 3}
-                    />
-                </div>
-                {/* フッターにもイベント伝播を停止する処理を追加 */}
-                <div className={datePickerStyles.footer} onClick={(e) => e.stopPropagation()}>
-                    <span>{selectedQuestions.length}件選択中</span>
-                    <button onClick={executeBulkEdit} disabled={!selectedDate || selectedQuestions.length === 0} className={datePickerStyles.confirmButton}>
-                        選択した問題をこの日に設定
-                    </button>
-                </div>
-             </div>
-         </>
-       )}
+        <div className={datePickerStyles.overlay}>
+          {/* modalRef を使用してモーダル外クリック検出 */}
+          <div ref={modalRef} className={datePickerStyles.modal}>
+            <button 
+              onClick={() => setShowCalendarModal(false)} 
+              className={datePickerStyles.closeButton}
+            >
+              <XIcon size={18} />
+            </button>
+            <div className={datePickerStyles.calendarContainer}>
+              <DayPicker
+                mode="single"
+                required
+                selected={selectedDate}
+                onSelect={(date) => {
+                  if (date) {
+                    setSelectedDate(date);
+                  } else {
+                    setSelectedDate(null);
+                  }
+                }}
+                locale={ja}
+                showOutsideDays 
+                fixedWeeks
+                captionLayout="dropdown-buttons"
+                fromYear={new Date().getFullYear() - 2}
+                toYear={new Date().getFullYear() + 3}
+              />
+            </div>
+            <div className={datePickerStyles.footer}>
+              <span>{selectedQuestions.length}件選択中</span>
+              <button 
+                onClick={executeBulkEdit} 
+                disabled={!selectedDate || selectedQuestions.length === 0} 
+                className={datePickerStyles.confirmButton}
+              >
+                選択した問題をこの日に設定
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div> // 全体コンテナ end
   );
