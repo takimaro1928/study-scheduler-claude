@@ -1,5 +1,9 @@
 /* src/AmbiguousTrendsPage.module.css */
-/* コメント貫通修正版 + カスタムツールチップ */
+/* 元のスタイルにコメント貫通修正 + クリック全文表示スタイル を追加 */
+
+/* =============================================== */
+/* === ここから元々あったスタイル (変更なし) === */
+/* =============================================== */
 
 .container {
   padding: 1.5rem;
@@ -119,128 +123,89 @@
   color: #6366f1; /* text-indigo-500 */
 }
 
-/* Rechartsのレスポンシブ対応のためのラッパー */
-.chartContainer > div { /* ResponsiveContainerが生成するdiv */
-  width: 100%;
-}
+.chartContainer > div { width: 100%; }
 
 /* --- テーブル関連 --- */
 .tableContainer {
-  margin-top: 1.5rem; /* mt-6 (デフォルトのマージン) */
+  margin-top: 1.5rem;
   background-color: white;
-  border-radius: 0.5rem; /* rounded-lg */
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); /* shadow */
-  overflow-x: auto; /* テーブルがはみ出す場合スクロール */
-  border: 1px solid #e5e7eb; /* border-gray-200 */
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  overflow-x: auto;
+  border: 1px solid #e5e7eb;
 }
 
-.tableTitle { /* テーブルの上に追加したタイトルのスタイル */
-  padding: 1rem 1rem 0.5rem 1rem; /* px-4 pt-4 pb-2 */
-  font-size: 1rem; /* text-base */
-  font-weight: 600; /* font-semibold */
-  color: #374151; /* text-gray-700 */
-  display: flex; /* アイコンを隣に置くため */
-  align-items: center; /* アイコンとテキストを垂直中央揃え */
-  border-bottom: 1px solid #e5e7eb; /* タイトル下に区切り線 */
+.tableTitle {
+  padding: 1rem 1rem 0.5rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #e5e7eb;
 }
-
 
 .table {
-  min-width: 100%; /* min-w-full */
-  width: 100%; /* Ensure full width */
-  border-collapse: collapse; /* 基本 */
+  min-width: 100%;
+  width: 100%;
+  border-collapse: collapse;
 }
 
 .table thead th {
-  padding: 0.75rem 1rem; /* px-4 py-3 */
+  padding: 0.75rem 1rem;
   text-align: left;
-  font-size: 0.75rem; /* text-xs */
-  font-weight: 600; /* font-semibold */
-  color: #4b5563; /* text-gray-600 */
-  background-color: #f9fafb; /* bg-gray-50 */
-  text-transform: uppercase; /* uppercase */
-  letter-spacing: 0.05em; /* tracking-wider */
-  border-bottom: 1px solid #e5e7eb; /* border-b border-gray-200 */
-  cursor: pointer; /* ソート可能を示す */
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #4b5563;
+  background-color: #f9fafb;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #e5e7eb;
+  cursor: pointer;
   white-space: nowrap;
 }
 
-.table thead th:hover {
-  background-color: #f3f4f6; /* hover:bg-gray-100 */
-}
+.table thead th:hover { background-color: #f3f4f6; }
+.sortIcon { display: inline-block; vertical-align: middle; margin-left: 0.25rem; color: #9ca3af; opacity: 0.5; }
+.sortIconActive { display: inline-block; vertical-align: middle; margin-left: 0.25rem; color: #1f2937; }
+.table tbody tr:nth-child(even) { background-color: #f9fafb; }
+.table tbody tr:hover { background-color: #f3f4f6; }
 
-.sortIcon {
-  display: inline-block;
-  vertical-align: middle;
-  margin-left: 0.25rem;
-  color: #9ca3af; /* text-gray-400 */
-  opacity: 0.5; /* 少し薄く */
-}
-.sortIconActive {
-  display: inline-block;
-  vertical-align: middle;
-  margin-left: 0.25rem;
-  color: #1f2937; /* text-gray-800 */
-}
-
-
-.table tbody tr:nth-child(even) {
-  background-color: #f9fafb; /* bg-gray-50 for striping */
-}
-
-.table tbody tr:hover {
-  background-color: #f3f4f6; /* hover:bg-gray-100 */
-}
-
-/* テーブルセル共通スタイルの微調整 */
 .table tbody td {
   padding: 0.75rem 1rem;
   font-size: 0.875rem;
   color: #374151;
   border-bottom: 1px solid #f3f4f6;
-  vertical-align: middle;
-  /* white-space: nowrap; を削除 */
+  vertical-align: middle; /* デフォルトは中央揃え */
 }
 
-/* 章、理由セルは折り返し許可 */
 .table tbody td:nth-child(3),
 .table tbody td:nth-child(4) {
   white-space: normal;
   min-width: 150px;
 }
 
-.noDataMessage {
-  padding: 2rem; /* p-8 */
-  text-align: center;
-  color: #6b7280; /* text-gray-500 */
-  background-color: #f9fafb; /* bg-gray-50 */
-  border: 1px dashed #e5e7eb; /* border-dashed border-gray-200 */
-  border-radius: 0.5rem; /* rounded-lg */
-  margin: 1rem; /* テーブルがない場合にマージン追加 */
-}
+.noDataMessage { padding: 2rem; text-align: center; color: #6b7280; background-color: #f9fafb; border: 1px dashed #e5e7eb; border-radius: 0.5rem; margin: 1rem; }
 
-/* アニメーション */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
-/* コメント列のスタイル修正 */
-/* コメント列ヘッダー */
-.table thead th:nth-child(5) {
-  /* 特に変更なし */
-}
+/* ===================================================== */
+/* === ここからが追加・修正されたスタイル === */
+/* ===================================================== */
+
+/* --- コメント列のスタイル修正 --- */
 /* コメント列セル (td) */
-.commentCell { /* td に適用するクラス */
+.commentCell { /* td に適用 */
   min-width: 150px;
   max-width: 300px; /* 最大幅は維持 */
   vertical-align: top; /* 上揃え */
-  overflow: hidden; /* ★ はみ出しを隠す */
+  overflow: visible; /* ★ ボックスがはみ出るように visible に変更 */
   white-space: normal; /* ★ 折り返しを許可 */
+  position: relative; /* 全文表示ボックスの基準点 */
 }
 
-/* コメントテキスト (span) */
-.commentCell span {
+/* 省略表示用テキスト */
+.commentTextAbbr {
   display: -webkit-box;
   -webkit-line-clamp: 3; /* 3行で省略 */
   -webkit-box-orient: vertical;
@@ -249,79 +214,90 @@
   line-height: 1.4;
   word-break: break-all; /* ★ 単語途中でも改行 */
   white-space: normal; /* ★ normal に変更 */
+  cursor: pointer; /* クリック可能を示す */
+  transition: color 0.2s ease;
+}
+.commentTextAbbr:hover {
+  color: #4f46e5; /* ホバー時に色を変える */
 }
 
-/* CSSカスタムツールチップ用のスタイル */
-.tooltipContainer {
-  position: relative; /* ツールチップの位置を決める基準点 */
-  display: inline-block; /* spanに合わせてインラインブロック化 */
-}
+/* --- クリックで表示される全文表示ボックスのスタイル --- */
+.expandedCommentBox {
+  position: absolute; /* 親のtdを基準に配置 */
+  top: 90%; /* 位置を微調整 (セルの下端付近から開始) */
+  left: 0;
+  width: calc(100% + 2rem); /* セルの左右パディング分を考慮して少し広げる */
+  transform: translateX(-1rem); /* 左パディング分ずらす */
+  z-index: 5; /* 他の行より手前に */
 
-.tooltipContainer span:hover::after { /* ホバー時に疑似要素を表示 */
-  visibility: visible;
-  opacity: 1;
-  transition-delay: 0.3s; /* 少し遅れて表示 */
-}
-
-.tooltipContainer span::after {
-  content: attr(data-tooltip); /* data-tooltip属性の内容を表示 */
-  position: absolute;
-  bottom: 105%; /* spanの上に表示 */
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10; /* 他の要素より手前に */
-
-  /* 見た目の調整 */
-  background-color: #374151; /* 濃いグレー */
-  color: white;
-  padding: 0.5rem 0.75rem; /* パディング */
+  background-color: white;
+  border: 1px solid #a5b4fc; /* 枠線 */
   border-radius: 0.375rem; /* 角丸 */
-  font-size: 0.8rem; /* 文字サイズ少し小さめ */
-  line-height: 1.4;
-  white-space: pre-wrap; /* 改行を反映させる */
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  padding: 0.75rem; /* パディング */
+  padding-top: 1.5rem; /* 閉じるボタンのスペース */
+  margin-top: 0.25rem; /* 上に少し余白 */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 影 */
 
-  /* 幅の調整 */
-  min-width: 150px; /* 最小幅 */
-  max-width: 350px; /* 最大幅 */
-  width: max-content; /* 内容に合わせる */
+  font-size: 0.875rem; /* text-sm */
+  line-height: 1.5;
+  color: #1f2937; /* 文字色 */
+  white-space: pre-wrap; /* 改行をそのまま表示 */
+  word-break: break-all; /* 単語途中でも折り返し */
 
-  /* 初期状態は非表示 */
-  visibility: hidden;
-  opacity: 0;
-  transition: opacity 0.2s ease-in-out;
-  pointer-events: none; /* ツールチップ自体はクリックできないように */
+  animation: fadeInComment 0.2s ease-out; /* 表示アニメーション */
 }
 
+@keyframes fadeInComment {
+  from { opacity: 0; transform: translateY(-5px) translateX(-1rem); }
+  to { opacity: 1; transform: translateY(0) translateX(-1rem); }
+}
 
-/* 編集ボタン列 */
-.table thead th:last-child, /* 編集ボタンヘッダー */
-.table tbody td:last-child { /* 編集ボタンセル */
-  width: 50px; /* 固定幅 */
+/* 全文表示ボックス内の閉じるボタン */
+.closeExpandedComment {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  cursor: pointer;
+  color: #9ca3af; /* グレー */
+  border-radius: 9999px;
+  line-height: 1; /* ボタン高さ調整 */
+}
+.closeExpandedComment:hover {
+  color: #4b5563; /* 少し濃く */
+  background-color: #f3f4f6; /* 薄いグレー背景 */
+}
+.closeExpandedComment svg {
+  display: block; /* svgの不要な余白削除 */
+}
+
+/* --- 編集ボタン列 (元のスタイルと同じ) --- */
+.table thead th:last-child,
+.table tbody td:last-child {
+  width: 50px;
   text-align: center;
   padding-left: 0.5rem;
   padding-right: 0.5rem;
   white-space: nowrap;
-  vertical-align: middle; /* ボタンを中央に */
+  vertical-align: middle;
 }
-
 .editCommentButton {
   display: inline-flex;
-  padding: 0.375rem; /* p-1.5 */
-  color: #6b7280; /* text-gray-500 */
+  padding: 0.375rem;
+  color: #6b7280;
   background-color: transparent;
   border: none;
-  border-radius: 9999px; /* rounded-full */
+  border-radius: 9999px;
   cursor: pointer;
   transition: color 0.2s ease, background-color 0.2s ease;
 }
-
 .editCommentButton:hover {
-  color: #4f46e5; /* hover:text-indigo-600 */
-  background-color: #eef2ff; /* hover:bg-indigo-50 */
+  color: #4f46e5;
+  background-color: #eef2ff;
 }
-
 .editCommentButton svg {
-  width: 1rem; /* w-4 */
-  height: 1rem; /* h-4 */
+  width: 1rem;
+  height: 1rem;
 }
