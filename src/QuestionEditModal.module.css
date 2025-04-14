@@ -19,7 +19,7 @@
 .modal {
   background-color: white;
   border-radius: 0.75rem; /* rounded-xl */
-  max-width: 56rem; /* ★ 56rem (896px) に変更 */
+  max-width: 64rem; /* ★ 56rem (896px) に変更 */
   width: 100%;
   box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); /* shadow-xl */
   display: flex;
