@@ -1,15 +1,15 @@
 // src/AmbiguousTrendsPage.js
-// 【今度こそ完全版・省略なし・既存コードベース】
-// コメント表示改善：CSSカスタムツールチップを表示するように renderTable 内を修正
+// 【今度こそ完全版・省略なし Ver.3】
+// コメント表示改善：クリックで全文表示ボックスを表示する機能を追加
 
 import React, { useState, useEffect, useMemo } from 'react';
-// 元のインポートに TrendingDown を追加
-import { Filter, ChevronDown, ChevronUp, Info, ArrowUpDown, BarChart2, AlertCircle, RotateCcw, TrendingUp, Edit2, TrendingDown } from 'lucide-react';
+// XアイコンとTrendingDownを追加
+import { Filter, ChevronDown, ChevronUp, Info, ArrowUpDown, BarChart2, AlertCircle, RotateCcw, TrendingUp, Edit2, TrendingDown, X } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 import styles from './AmbiguousTrendsPage.module.css';
 import CommentEditModal from './CommentEditModal';
 
-// 曖昧問題データを取得・整形する関数 (変更なし)
+// 曖昧問題データを取得・整形する関数
 function getAmbiguousQuestions(subjects) {
   const ambiguousQuestions = []; if (!Array.isArray(subjects)) return ambiguousQuestions;
   subjects.forEach(subject => { if (!subject?.chapters) return; subject.chapters.forEach(chapter => { if (!chapter?.questions) return; chapter.questions.forEach(question => {
@@ -20,10 +20,10 @@ function getAmbiguousQuestions(subjects) {
   return ambiguousQuestions;
 }
 
-// 日付のフォーマット関数 (変更なし)
+// 日付のフォーマット関数
 const formatDateInternal = (date) => { if (!date || !(date instanceof Date) || isNaN(date.getTime())) { return '----/--/--'; } try { return `${date.getFullYear()}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}`; } catch (e) { console.error("formatDateエラー:", e); return 'エラー'; } };
 
-// 自然順ソート用の比較関数 (変更なし)
+// 自然順ソート用の比較関数
 function naturalSortCompare(a, b, order) {
   const nullOrder = (order === 'asc' ? 1 : -1); if (a == null && b != null) return nullOrder; if (a != null && b == null) return -nullOrder; if (a == null && b == null) return 0;
   const re = /(\d+)|(\D+)/g; const aParts = String(a).match(re) || []; const bParts = String(b).match(re) || [];
@@ -32,7 +32,7 @@ function naturalSortCompare(a, b, order) {
   return aParts.length - bParts.length;
 }
 
-// ソート処理を共通化する関数 (変更なし)
+// ソート処理を共通化する関数
 const sortData = (dataToSort, sortKey, sortOrder) => {
   if (!Array.isArray(dataToSort)) { console.warn("sortData received non-array:", dataToSort); return []; }
   const validData = dataToSort.filter(item => typeof item === 'object' && item !== null);
@@ -50,13 +50,14 @@ const sortData = (dataToSort, sortKey, sortOrder) => {
 
 // 曖昧問題傾向表示ページコンポーネント
 const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answerHistory = [], saveComment }) => {
-  // --- State --- (変更なし)
+  // --- State ---
   const [filter, setFilter] = useState({ reason: 'all', subject: 'all', period: 'all' });
   const [sort, setSort] = useState({ key: 'lastAnswered', order: 'desc' });
   const [showFilters, setShowFilters] = useState(false);
   const [editingCommentQuestion, setEditingCommentQuestion] = useState(null);
+  const [expandedCommentId, setExpandedCommentId] = useState(null); // クリック表示用State
 
-  // --- Memoized Data --- (変更なし)
+  // --- Memoized Data ---
   const ambiguousQuestions = useMemo(() => getAmbiguousQuestions(subjects || []), [subjects]);
 
   const recentRevertedQuestions = useMemo(() => {
@@ -229,7 +230,7 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
     return { reasons, subjects };
   }, [ambiguousQuestions]);
 
-  // --- Handlers --- (変更なし)
+  // --- Handlers ---
   const handleSort = (key) => {
     setSort(prevSort => ({
       key: key,
@@ -246,6 +247,10 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
   };
   const handleEditCommentClick = (question) => { setEditingCommentQuestion(question); };
   const handleCloseCommentModal = () => { setEditingCommentQuestion(null); };
+  // コメントクリック時のハンドラ
+  const handleCommentClick = (questionId) => {
+    setExpandedCommentId(prevId => (prevId === questionId ? null : questionId));
+  };
 
   // --- テーブルレンダリング関数 ---
   // (renderTable内の変更点はコメントセル部分のみ)
@@ -261,18 +266,36 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
              <tbody> {tableData.map(q => {
                 if (!q) return null;
                 const lastAnsweredDate = (q.lastAnswered instanceof Date && !isNaN(q.lastAnswered)) ? q.lastAnswered : null;
+                const isExpanded = expandedCommentId === q.id; // このコメントが全文表示中か
                 return (
                  <tr key={q.id}>
                    <td>{q.id ?? 'N/A'}</td>
                    <td>{q.subjectName ?? 'N/A'}</td>
                    <td>{q.chapterName ?? 'N/A'}</td>
                    <td>{q.reason ?? 'N/A'}</td>
-                   {/* ★★★ コメントセル: カスタムツールチップ用に修正 ★★★ */}
+                   {/* ★★★ コメントセル: クリックイベントと条件付き全文表示を追加 ★★★ */}
                    <td className={styles.commentCell}>
-                     <div className={styles.tooltipContainer}> {/* 位置調整用の親要素 */}
-                       {/* title属性を削除し、data-tooltip属性に変更 */}
-                       <span data-tooltip={q.comment ?? ''}>{q.comment ?? ''}</span>
-                     </div>
+                     {/* 省略表示のテキスト（クリック可能にする） */}
+                     <span
+                       className={styles.commentTextAbbr} // 新しいクラス名
+                       onClick={() => handleCommentClick(q.id)}
+                       title={isExpanded ? "" : "クリックして全文表示"} // 展開中はtitle不要
+                     >
+                       {q.comment ?? ''}
+                     </span>
+                     {/* 全文表示ボックス (条件付きレンダリング) */}
+                     {isExpanded && (
+                       <div className={styles.expandedCommentBox}>
+                         <button
+                           className={styles.closeExpandedComment}
+                           onClick={() => setExpandedCommentId(null)} // 閉じるボタン
+                           title="閉じる"
+                         >
+                           <X size={14} />
+                         </button>
+                         {q.comment}
+                       </div>
+                     )}
                    </td>
                    {/* ★★★ ここまでが変更箇所 ★★★ */}
                    <td>{q.correctRate != null ? `${q.correctRate}%` : 'N/A'}</td>
