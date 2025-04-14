@@ -10,7 +10,7 @@ import TopNavigation from './components/TopNavigation';
 import TodayView from './TodayView';
 import ScheduleView from './ScheduleView';
 
-// 問題生成関数 (変更なし)
+// 問題生成関数 (IDゼロパディング、understanding='理解○' 固定)
 function generateQuestions(prefix, start, end) {
     const questions = [];
     for (let i = start; i <= end; i++) {
@@ -24,13 +24,13 @@ function generateQuestions(prefix, start, end) {
             nextDate: nextDate.toISOString(),
             interval: ['1日', '3日', '7日', '14日', '1ヶ月', '2ヶ月'][Math.floor(Math.random() * 6)],
             answerCount: Math.floor(Math.random() * 10),
-            understanding: '理解○',
+            understanding: '理解○', // 固定
             previousUnderstanding: null, comment: '',
         });
     } return questions;
 }
 
-// 初期データ生成関数 (変更なし)
+// 初期データ生成関数 (過去問ID生成ロジック修正済み)
 const generateInitialData = () => {
     const pastExamSubjectPrefixMap = { "企業経営理論": "企経", "運営管理": "運営", "経済学・経済政策": "経済", "経営情報システム": "情報", "経営法務": "法務", "中小企業経営・政策": "中小", };
     const subjects = [
@@ -62,7 +62,7 @@ const generateInitialData = () => {
     return subjects;
 };
 
-// 正解率計算関数 (変更なし)
+// 正解率計算関数
 function calculateCorrectRate(question, isCorrect) {
     const currentCount = question.answerCount || 0;
     const currentRate = question.correctRate || 0;
@@ -80,8 +80,6 @@ function App() {
   const [editingQuestion, setEditingQuestion] = useState(null);
   const [bulkEditMode, setBulkEditMode] = useState(false);
   const [selectedQuestions, setSelectedQuestions] = useState([]);
-  // bulkEditSelectedDate は RedesignedAllQuestionsView に移動検討？一旦残す
-  const [bulkEditSelectedDate, setBulkEditSelectedDate] = useState(new Date());
   const [answerHistory, setAnswerHistory] = useState([]);
 
   // 初期データロード (空で開始するように修正済み)
@@ -110,7 +108,7 @@ function App() {
         console.log('学習データ読み込み完了');
       } catch (e) { console.error('学習データ読み込み失敗:', e); studyDataToSet = []; }
     } else {
-      studyDataToSet = []; // データがなければ空
+      studyDataToSet = [];
       console.log('LocalStorageにデータがないため空の状態で開始します');
     }
     setSubjects(studyDataToSet);
@@ -128,7 +126,7 @@ function App() {
     setExpandedSubjects(initialExpandedSubjects);
   }, []);
 
-  // データ保存 (変更なし)
+  // データ保存
   useEffect(() => {
     try {
         const dataToSave = JSON.stringify(subjects, (key, value) => {
@@ -141,7 +139,7 @@ function App() {
     catch (e) { console.error("解答履歴保存失敗:", e); }
   }, [subjects, answerHistory]);
 
-  // 今日の問題取得 (変更なし)
+  // 今日の問題取得
   const getTodayQuestions = () => {
     const today = new Date(); today.setHours(0, 0, 0, 0); const todayTime = today.getTime(); const questions = [];
     if (!Array.isArray(subjects)) return questions;
@@ -150,7 +148,7 @@ function App() {
     return questions;
   };
 
-  // 特定日付の問題取得 (変更なし)
+  // 特定日付の問題取得
   const getQuestionsForDate = (date) => {
     const targetDate = new Date(date); if (isNaN(targetDate.getTime())) return []; targetDate.setHours(0, 0, 0, 0); const targetTime = targetDate.getTime(); const questions = [];
     if (!Array.isArray(subjects)) return questions;
@@ -159,11 +157,11 @@ function App() {
     return questions;
   };
 
-  // アコーディオン開閉 (変更なし)
+  // アコーディオン開閉
   const toggleSubject = (subjectId) => { setExpandedSubjects(prev => ({ ...prev, [subjectId]: !prev[subjectId] })); };
   const toggleChapter = (chapterId) => { setExpandedChapters(prev => ({ ...prev, [chapterId]: !prev[chapterId] })); };
 
-  // 解答記録 & 履歴追加 (変更なし)
+  // 解答記録 & 履歴追加
   const recordAnswer = (questionId, isCorrect, understanding) => {
     const timestamp = new Date().toISOString();
     let updatedQuestionData = null;
@@ -188,7 +186,7 @@ function App() {
     } else { console.warn("recordAnswer: Failed to find question or update data for", questionId); }
   };
 
-  // コメント保存用の関数 (変更なし)
+  // コメント保存用の関数
   const saveComment = (questionId, commentText) => {
     setSubjects(prevSubjects => {
       if (!Array.isArray(prevSubjects)) return [];
@@ -203,7 +201,7 @@ function App() {
                 } return q; })}; })}; }); });
   };
 
-  // DnD 日付変更 (変更なし)
+  // DnD 日付変更
   const handleQuestionDateChange = (questionId, newDate) => {
     setSubjects(prevSubjects => {
       if (!Array.isArray(prevSubjects)) return []; const targetDate = new Date(newDate); if (isNaN(targetDate.getTime())) { console.error("無効日付:", newDate); return prevSubjects; }
@@ -256,17 +254,21 @@ function App() {
     setEditingQuestion(null);
   };
 
-  // ★★★ 新しい一括編集関数を追加 ★★★
+  // ★★★ 新しい一括編集関数 ★★★
   const saveBulkEditItems = (itemsToUpdate) => {
     console.log("一括編集実行 (App.js):", itemsToUpdate, "対象:", selectedQuestions);
     if (!selectedQuestions || selectedQuestions.length === 0) {
       console.warn("一括編集: 対象の問題が選択されていません。");
+      alert("一括編集する問題を選択してください。"); // ユーザーへの通知
       return;
     }
     if (!itemsToUpdate || Object.keys(itemsToUpdate).length === 0) {
         console.warn("一括編集: 更新する項目が指定されていません。");
+        // ここではアラートは不要かも（ボタンが無効化されているはず）
         return;
     }
+
+    let updatedCount = 0; // 更新された問題数をカウント
 
     setSubjects(prevSubjects => {
       if (!Array.isArray(prevSubjects)) return [];
@@ -279,41 +281,36 @@ function App() {
             return {
               ...chapter,
               questions: chapter.questions.map(q => {
-                // 選択された問題かどうかをチェック
                 if (q && selectedQuestions.includes(q.id)) {
                   let updatedQuestion = { ...q };
-                  // itemsToUpdateオブジェクトの各キー（更新対象のプロパティ）をループ
+                  updatedCount++; // カウントアップ
                   for (const key in itemsToUpdate) {
                     if (Object.hasOwnProperty.call(itemsToUpdate, key)) {
                       let value = itemsToUpdate[key];
                       console.log(`Updating ${q.id}: ${key} = ${value}`);
-
-                      // データ型に合わせて値を処理
                       if (key === 'nextDate' || key === 'lastAnswered') {
-                        // 日付はISO文字列で受け取り、Dateオブジェクトに変換（またはnull）
                         const dateValue = value ? new Date(value) : null;
                         if (dateValue && !isNaN(dateValue.getTime())) {
-                            // nextDateはISO文字列で保存、lastAnsweredはDateオブジェクトで保存
                             updatedQuestion[key] = (key === 'nextDate') ? dateValue.toISOString() : dateValue;
                         } else {
-                            console.warn(`無効な日付を一括設定しようとしました (${key}):`, value);
-                            updatedQuestion[key] = (key === 'nextDate') ? q.nextDate : q.lastAnswered; // 無効なら元の値
+                            console.warn(`無効な日付 (${key}):`, value, "元の値を維持します。");
+                            // updatedQuestion[key] = q[key]; // 元の値を維持 (必要に応じて)
+                            // nullを許容する場合は何もしないか、nullをセット
+                            if (key === 'lastAnswered') updatedQuestion[key] = null;
                         }
                       } else if (key === 'answerCount' || key === 'correctRate') {
-                        // 数値型に変換
                         const numValue = parseInt(value, 10);
                         if (!isNaN(numValue) && numValue >= 0) {
                            if (key === 'correctRate' && numValue > 100) {
-                               updatedQuestion[key] = 100; // 正解率は100まで
+                               updatedQuestion[key] = 100;
                            } else {
                                updatedQuestion[key] = numValue;
                            }
                         } else {
-                             console.warn(`無効な数値を一括設定しようとしました (${key}):`, value);
-                             updatedQuestion[key] = q[key]; // 無効なら元の値
+                             console.warn(`無効な数値 (${key}):`, value, "元の値を維持します。");
+                             // updatedQuestion[key] = q[key]; // 元の値を維持
                         }
-                      } else {
-                        // それ以外の項目（interval, understanding）はそのまま代入
+                      } else { // interval, understanding
                         updatedQuestion[key] = value;
                       }
                     }
@@ -326,6 +323,10 @@ function App() {
           })
         };
       });
+      // 更新後に件数を表示するなど（任意）
+       if (updatedCount > 0) {
+           alert(`${updatedCount}件の問題が更新されました。`);
+       }
       return newSubjects;
     });
 
@@ -336,24 +337,20 @@ function App() {
   };
   // ★★★ ここまで saveBulkEditItems ★★★
 
-
-  // 一括編集保存 (日付専用 - 古い関数、削除しても良いが一旦残す)
+  // 一括編集保存 (日付専用 - 古い関数、新しい関数を呼ぶように変更)
   const saveBulkEdit = (date) => {
-     console.warn("古い saveBulkEdit が呼ばれました。saveBulkEditItems を使用してください。");
+     console.log("古い saveBulkEdit が呼ばれました。saveBulkEditItems を使用します。");
      const targetDate = new Date(date); if (isNaN(targetDate.getTime())) { console.error("無効日付:", date); return; }
      targetDate.setHours(0, 0, 0, 0); const targetDateString = targetDate.toISOString();
-     // 新しい関数を呼び出すように変更しても良い
      saveBulkEditItems({ nextDate: targetDateString });
-     // setSubjects(prevSubjects => { ... }); // 古いロジックはコメントアウト
-     // setBulkEditMode(false); setSelectedQuestions([]);
   };
 
-  // 一括編集 選択切り替え (変更なし)
+  // 一括編集 選択切り替え
   const toggleQuestionSelection = (questionId) => {
     setSelectedQuestions(prev => { if (prev.includes(questionId)) { return prev.filter(id => id !== questionId); } else { return [...prev, questionId]; } });
   };
 
-  // 日付フォーマット (変更なし)
+  // 日付フォーマット
    const formatDate = (date) => {
      if (!date) return '日付なし'; try { const d = (date instanceof Date) ? date : new Date(date); if (isNaN(d.getTime())) return '無効日付'; return `${d.getFullYear()}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')}`; } catch(e) { console.error("formatDateエラー:", e); return 'エラー'; }
    };
@@ -374,13 +371,11 @@ function App() {
                             bulkEditMode={bulkEditMode}
                             selectedQuestions={selectedQuestions}
                             setSelectedQuestions={setSelectedQuestions}
-                            // ★ saveBulkEdit の代わりに新しい関数を渡す ★
+                            // ★ 新しい一括編集関数を渡す ★
                             saveBulkEditItems={saveBulkEditItems}
                             formatDate={formatDate}
                             toggleQuestionSelection={toggleQuestionSelection}
-                            // bulkEditSelectedDate は View 側で管理する方が良いかも？
-                            // selectedDate={bulkEditSelectedDate}
-                            // setSelectedDate={setBulkEditSelectedDate}
+                            // selectedDate, setSelectedDate はView側で管理
                           />;
       case 'trends': return <AmbiguousTrendsPage subjects={subjects} formatDate={formatDate} answerHistory={answerHistory} saveComment={saveComment} />;
       case 'stats': return <div className="p-4">学習統計ページ (未実装)</div>;
@@ -388,7 +383,7 @@ function App() {
     }
   };
 
-  // アプリ全体のレンダリング (変更なし)
+  // アプリ全体のレンダリング
   return (
     <div className="min-h-screen bg-gray-50">
       <TopNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
