@@ -4,7 +4,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   Search, Filter, Edit, Clock, Calendar as CalendarIcon, CheckCircle, XCircle, AlertTriangle, Info,
-  ChevronRight, ChevronDown, ChevronUp, X as XIcon, Hash, Check, RefreshCw // アイコン追加
+  ChevronRight, ChevronDown, ChevronUp, X as XIcon, Hash, Check, RefreshCw 
 } from 'lucide-react';
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
