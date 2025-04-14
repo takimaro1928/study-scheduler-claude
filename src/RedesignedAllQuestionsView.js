@@ -4,7 +4,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   Search, Filter, Edit, Clock, Calendar as CalendarIcon, CheckCircle, XCircle, AlertTriangle, Info,
-  ChevronRight, ChevronDown, ChevronUp, X as XIcon, Hash, Check, RefreshCw 
+  ChevronRight, ChevronDown, ChevronUp, X as XIcon, Hash, Check, RefreshCw // Hash, Check, RefreshCw 追加
 } from 'lucide-react';
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
@@ -12,29 +12,54 @@ import { ja } from 'date-fns/locale';
 import styles from './RedesignedAllQuestionsView.module.css'; // CSS Modulesをインポート
 import datePickerStyles from './DatePickerCalendarModal.module.css'; // 日付ピッカーモーダル用
 
-// --- ヘルパー関数 (変更なし) ---
-const subjectColorMap = { /* ... */ };
-const getSubjectColorCode = (subjectName) => { /* ... */ };
-const getUnderstandingStyle = (understanding) => { /* ... */ };
-const getCorrectRateColorClass = (rate) => { /* ... */ };
-// --- ここまで ヘルパー関数 (内容は以前の完全版と同じはず) ---
-// (念のため、これらの関数の完全なコードが必要な場合は再度お申し付けください)
+// --- ヘルパー関数 ---
+const subjectColorMap = {
+    "経営管理論": "#a5b4fc", "運営管理": "#6ee7b7", "経済学": "#fca5a5",
+    "経営情報システム": "#93c5fd", "経営法務": "#c4b5fd",
+    "中小企業経営・中小企業政策": "#fcd34d", "過去問題集": "#94a3b8", "未分類": "#d1d5db",
+};
+const getSubjectColorCode = (subjectName) => {
+    return subjectColorMap[subjectName || "未分類"] || subjectColorMap["未分類"];
+};
+const getUnderstandingStyle = (understanding) => {
+    const iconSize = "w-3.5 h-3.5"; // アイコンサイズ統一 (CSS Moduleでは不要かも)
+    const understandingKey = understanding?.startsWith('曖昧△') ? '曖昧△' : understanding;
+    let styleKey = 'Gray'; // デフォルト
+    if (understandingKey === '理解○') styleKey = 'Green';
+    else if (understandingKey === '曖昧△') styleKey = 'Yellow';
+    else if (understandingKey === '理解できていない×') styleKey = 'Red';
 
-// --- 新しいヘルパー関数: 曖昧理由リスト ---
+    // CSS Modulesのクラス名を返すように（CSSファイルに定義がある前提）
+    const IconComponent = { 'Green': CheckCircle, 'Yellow': AlertTriangle, 'Red': XCircle, 'Gray': Info }[styleKey];
+    // クラス名を動的に生成
+    const textClass = styles[`understandingText${styleKey}`] || '';
+    const bgClass = styles[`understandingBadge${styleKey}`] || '';
+    const iconClass = styles[`icon${styleKey}`] || ''; // CSSでサイズ指定推奨
+
+    // アイコンコンポーネントを返す
+    return { icon: IconComponent ? <IconComponent className={iconClass} size={14}/> : <Info size={14}/>, textClass, bgClass };
+};
+const getCorrectRateColorClass = (rate) => {
+  if (rate === null || typeof rate === 'undefined' || rate < 0) return styles.rateBarColorGray || "";
+  if (rate >= 80) return styles.rateBarColorGreen || "";
+  if (rate >= 60) return styles.rateBarColorLime || "";
+  if (rate >= 40) return styles.rateBarColorYellow || "";
+  if (rate >= 20) return styles.rateBarColorOrange || "";
+  return styles.rateBarColorRed || "";
+};
 const ambiguousReasons = [
   '偶然正解した', '正解の選択肢は理解していたが、他の選択肢の意味が分かっていなかった', '合っていたが、別の理由を思い浮かべていた',
   '自信はなかったけど、これかなとは思っていた', '問題を覚えてしまっていた', 'その他'
 ];
+// --- ヘルパー関数ここまで ---
 
 
 const RedesignedAllQuestionsView = ({
   subjects, expandedSubjects = {}, expandedChapters = {}, toggleSubject, toggleChapter,
   setEditingQuestion, setBulkEditMode, bulkEditMode, selectedQuestions = [],
   setSelectedQuestions,
-  // saveBulkEdit, // 古い関数は使わない
-  saveBulkEditItems, // ★ App.jsから新しい一括編集関数を受け取る
+  saveBulkEditItems, // ★ 新しい一括編集関数を受け取る
   formatDate, toggleQuestionSelection,
-  // selectedDate, setSelectedDate // 日付選択はコンポーネント内で管理
 }) => {
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -44,18 +69,18 @@ const RedesignedAllQuestionsView = ({
   // ★★★ 一括編集用のStateを追加 ★★★
   const [bulkNextDate, setBulkNextDate] = useState(null);
   const [bulkLastAnswered, setBulkLastAnswered] = useState(null);
-  const [bulkAnswerCount, setBulkAnswerCount] = useState(''); // 文字列で管理し、保存時に数値変換
-  const [bulkInterval, setBulkInterval] = useState('1日'); // デフォルト値
-  const [bulkUnderstanding, setBulkUnderstanding] = useState('理解○'); // デフォルト値
+  const [bulkAnswerCount, setBulkAnswerCount] = useState('');
+  const [bulkInterval, setBulkInterval] = useState('1日');
+  const [bulkUnderstanding, setBulkUnderstanding] = useState('理解○');
   const [isBulkAmbiguousReasonOpen, setIsBulkAmbiguousReasonOpen] = useState(false);
-  const [bulkAmbiguousReason, setBulkAmbiguousReason] = useState(ambiguousReasons[0]); // デフォルト理由
+  const [bulkAmbiguousReason, setBulkAmbiguousReason] = useState(ambiguousReasons[0]);
 
   // ★ 日付ピッカーモーダル管理用のState
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [datePickerTarget, setDatePickerTarget] = useState(null); // 'nextDate' or 'lastAnswered'
   const datePickerRef = useRef(null);
 
-  // フィルターと検索ロジック (変更なし)
+  // フィルターと検索ロジック
   const filteredSubjects = useMemo(() => {
      if (!Array.isArray(subjects)) return [];
     return subjects.map(subject => {
@@ -66,10 +91,10 @@ const RedesignedAllQuestionsView = ({
           if (typeof question !== 'object' || question === null || !question.id) return false;
           if (searchTerm && !question.id.toLowerCase().includes(searchTerm.toLowerCase())) return false;
           if (filters.understanding !== 'all') { const understandingValue = question.understanding || ''; if (!understandingValue.startsWith(filters.understanding)) return false; }
-          const rate = question.correctRate ?? -1;
+          const rate = question.correctRate ?? -1; // null or undefined は -1 として扱う
           if (filters.correctRate === 'high' && rate < 80) return false;
           if (filters.correctRate === 'medium' && (rate < 50 || rate >= 80)) return false;
-          if (filters.correctRate === 'low' && rate >= 50) return false;
+          if (filters.correctRate === 'low' && rate >= 50) return false; // rate が -1 の場合も false
           if (filters.interval !== 'all' && question.interval !== filters.interval) return false;
           return true;
         });
@@ -79,7 +104,7 @@ const RedesignedAllQuestionsView = ({
     }).filter(subject => subject && subject.chapters.length > 0);
   }, [subjects, searchTerm, filters]);
 
-  // 全選択/全解除 (変更なし)
+  // 全選択/全解除
   const toggleSelectAllForSubject = (subject) => {
      if (!subject || !Array.isArray(subject.chapters)) return;
      const allQuestionIdsInSubject = subject.chapters?.flatMap(ch => ch.questions?.map(q => q.id) || []) || [];
@@ -92,7 +117,7 @@ const RedesignedAllQuestionsView = ({
      }
   };
 
-  // --- ★★★ 一括編集実行ハンドラ ★★★ ---
+  // --- 一括編集実行ハンドラ ---
   const handleBulkEdit = (field, value) => {
     if (selectedQuestions.length === 0) {
         alert('一括編集する問題を選択してください。');
@@ -100,42 +125,31 @@ const RedesignedAllQuestionsView = ({
     }
 
     let itemsToUpdate = {};
-    let confirmed = false;
 
     if (field === 'nextDate' || field === 'lastAnswered') {
         if (!value) { alert('日付を選択してください。'); return; }
-        // DateオブジェクトをISO文字列に変換して渡す
         itemsToUpdate[field] = value.toISOString();
-        confirmed = true; // 日付は選択されたら即時反映
     } else if (field === 'answerCount') {
         const count = parseInt(value, 10);
         if (isNaN(count) || count < 0) { alert('解答回数には0以上の半角数字を入力してください。'); return; }
         itemsToUpdate[field] = count;
-        confirmed = true;
     } else if (field === 'interval') {
         itemsToUpdate[field] = value;
-        confirmed = true;
     } else if (field === 'understanding') {
-        // 理解度の場合は、現在の bulkUnderstanding State を使う
-        const understandingValue = bulkUnderstanding === '曖昧△'
-            ? `曖昧△:${bulkAmbiguousReason}` // 理由を付加
-            : bulkUnderstanding; // 理解○
+        // シンプルに「理解○」か「曖昧△」(理由なし) を設定
+        const understandingValue = value === '理解○' ? '理解○' : '曖昧△';
         itemsToUpdate[field] = understandingValue;
-        confirmed = true;
-         // 曖昧理由リストを閉じる
+        // 曖昧理由リストは閉じる
         setIsBulkAmbiguousReasonOpen(false);
     }
 
-    if (confirmed && Object.keys(itemsToUpdate).length > 0) {
+    if (Object.keys(itemsToUpdate).length > 0) {
       console.log("Calling saveBulkEditItems with:", itemsToUpdate);
       saveBulkEditItems(itemsToUpdate); // App.js の関数を呼び出し
       // 成功したら入力値をリセット（任意）
-      // if (field === 'nextDate') setBulkNextDate(null);
-      // if (field === 'lastAnswered') setBulkLastAnswered(null);
-      // if (field === 'answerCount') setBulkAnswerCount('');
+      // 例: if (field === 'answerCount') setBulkAnswerCount('');
     }
   };
-  // --- ここまで一括編集ハンドラ ---
 
   // --- 日付ピッカー関連 ---
   const openDatePicker = (target) => {
@@ -150,12 +164,15 @@ const RedesignedAllQuestionsView = ({
       } else if (datePickerTarget === 'lastAnswered') {
         setBulkLastAnswered(date);
       }
+    } else {
+        // 日付がクリアされた場合（DayPickerで必須モードでない場合）
+        if (datePickerTarget === 'nextDate') setBulkNextDate(null);
+        if (datePickerTarget === 'lastAnswered') setBulkLastAnswered(null);
     }
     setIsDatePickerOpen(false);
     setDatePickerTarget(null);
   };
 
-  // モーダル外クリック検出用のイベントハンドラ
   useEffect(() => {
     function handleClickOutside(event) {
       if (datePickerRef.current && !datePickerRef.current.contains(event.target)) {
@@ -166,23 +183,12 @@ const RedesignedAllQuestionsView = ({
     if (isDatePickerOpen) { document.addEventListener('mousedown', handleClickOutside); }
     return () => { document.removeEventListener('mousedown', handleClickOutside); };
   }, [isDatePickerOpen]);
-  // --- ここまで日付ピッカー関連 ---
 
   // --- 理解度一括設定関連 ---
    const handleBulkUnderstandingChange = (value) => {
        setBulkUnderstanding(value);
-       if (value === '理解○') {
-           setIsBulkAmbiguousReasonOpen(false);
-       } else {
-           // 曖昧ボタンクリックでリスト開閉
-           setIsBulkAmbiguousReasonOpen(prev => !prev);
-       }
-   };
-   const handleBulkReasonSelect = (reason) => {
-       setBulkAmbiguousReason(reason);
+       // 一括設定では理由は選択させず、リストは開かない
        setIsBulkAmbiguousReasonOpen(false);
-       // 理解度ステートも '曖昧△' にする（もし理解○が選択されていた場合のため）
-       setBulkUnderstanding('曖昧△');
    };
   // --- ここまで理解度一括設定関連 ---
 
@@ -190,7 +196,7 @@ const RedesignedAllQuestionsView = ({
   // --- レンダリング ---
   return (
     <div className={styles.container}>
-      {/* 上部コントロール (変更なし) */}
+      {/* 上部コントロール */}
       <div className={styles.controlsContainer}>
           <div className={styles.searchBox}>
             <input type="text" placeholder="問題IDで検索..." className={styles.searchInput} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
@@ -207,10 +213,36 @@ const RedesignedAllQuestionsView = ({
           </div>
       </div>
 
-      {/* 詳細フィルターパネル (変更なし) */}
-      {showFilters && ( /* ... */ )}
+      {/* 詳細フィルターパネル */}
+      {showFilters && (
+        <div className={styles.filterPanel}>
+          <div className={styles.filterGrid}>
+            <div>
+              <label className={styles.filterLabel}>理解度</label>
+              <select className={styles.filterSelect} value={filters.understanding} onChange={(e) => setFilters({...filters, understanding: e.target.value})}>
+                <option value="all">すべて</option> <option value="理解○">理解○</option> <option value="曖昧△">曖昧△</option> <option value="理解できていない×">理解できていない×</option>
+              </select>
+            </div>
+            <div>
+              <label className={styles.filterLabel}>正解率</label>
+              <select className={styles.filterSelect} value={filters.correctRate} onChange={(e) => setFilters({...filters, correctRate: e.target.value})}>
+                <option value="all">すべて</option> <option value="high">高い (80%↑)</option> <option value="medium">中間 (50-79%)</option> <option value="low">低い (↓50%)</option>
+              </select>
+            </div>
+            <div>
+              <label className={styles.filterLabel}>復習間隔</label>
+              <select className={styles.filterSelect} value={filters.interval} onChange={(e) => setFilters({...filters, interval: e.target.value})}>
+                <option value="all">すべて</option> <option value="1日">1日</option> <option value="3日">3日</option> <option value="7日">7日</option> <option value="14日">14日</option> <option value="1ヶ月">1ヶ月</option> <option value="2ヶ月">2ヶ月</option> <option value="8日">8日(曖昧)</option>
+              </select>
+            </div>
+          </div>
+          <div className={styles.filterActions}>
+            <button onClick={() => setFilters({ understanding: 'all', correctRate: 'all', interval: 'all' })} className={styles.filterResetButton}> リセット </button>
+          </div>
+        </div>
+      )}
 
-      {/* ★★★ 一括編集パネル UI 大幅変更 ★★★ */}
+      {/* ★★★ 一括編集パネル UI ★★★ */}
       {bulkEditMode && (
         <div className={styles.bulkEditPanel}>
           <p className={styles.bulkPanelTitle}>一括編集 ({selectedQuestions.length}件選択中)</p>
@@ -235,6 +267,7 @@ const RedesignedAllQuestionsView = ({
                   onClick={() => handleBulkEdit('nextDate', bulkNextDate)}
                   disabled={!bulkNextDate || selectedQuestions.length === 0}
                   className={styles.bulkSetButton}
+                  title="選択した問題を指定の次回解答日に設定します"
                 >
                   設定
                 </button>
@@ -260,7 +293,8 @@ const RedesignedAllQuestionsView = ({
                   onClick={() => handleBulkEdit('lastAnswered', bulkLastAnswered)}
                   disabled={!bulkLastAnswered || selectedQuestions.length === 0}
                   className={styles.bulkSetButton}
-                >
+                   title="選択した問題を指定の最終解答日に設定します"
+               >
                   設定
                 </button>
               </div>
@@ -280,9 +314,10 @@ const RedesignedAllQuestionsView = ({
                  />
                 <button
                   onClick={() => handleBulkEdit('answerCount', bulkAnswerCount)}
-                  disabled={bulkAnswerCount === '' || selectedQuestions.length === 0}
+                  disabled={bulkAnswerCount === '' || parseInt(bulkAnswerCount, 10) < 0 || selectedQuestions.length === 0}
                   className={styles.bulkSetButton}
-                >
+                   title="選択した問題の解答回数を指定の回数に設定します"
+               >
                   設定
                 </button>
               </div>
@@ -309,7 +344,8 @@ const RedesignedAllQuestionsView = ({
                   onClick={() => handleBulkEdit('interval', bulkInterval)}
                   disabled={selectedQuestions.length === 0}
                   className={styles.bulkSetButton}
-                >
+                   title="選択した問題の復習間隔を設定します"
+               >
                   設定
                 </button>
               </div>
@@ -328,47 +364,25 @@ const RedesignedAllQuestionsView = ({
                     >
                         <Check size={14}/> 理解○
                     </button>
-                     <div style={{ position: 'relative' }}> {/* ドロップダウン用 */}
-                         <button
-                           type="button"
-                           onClick={() => handleBulkUnderstandingChange('曖昧△')}
-                           className={`${styles.bulkUndButton} ${bulkUnderstanding === '曖昧△' ? styles.bulkUndButtonActiveAmber : ''}`}
-                         >
-                           <AlertTriangle size={14}/> 曖昧△
-                           <ChevronDown size={14} className={`${styles.bulkChevron} ${isBulkAmbiguousReasonOpen ? styles.bulkChevronOpen : ''}`} />
-                         </button>
-                         {/* 曖昧理由ドロップダウン */}
-                         {isBulkAmbiguousReasonOpen && (
-                             <div className={styles.bulkReasonDropdown}>
-                                 {ambiguousReasons.map(reason => (
-                                     <button
-                                         key={reason}
-                                         type="button"
-                                         onClick={() => handleBulkReasonSelect(reason)}
-                                         className={styles.bulkReasonItem}
-                                     >
-                                         {reason}
-                                     </button>
-                                 ))}
-                             </div>
-                         )}
-                     </div>
+                    {/* 曖昧ボタン（理由は一括設定しない） */}
+                    <button
+                        type="button"
+                        onClick={() => handleBulkUnderstandingChange('曖昧△')}
+                        className={`${styles.bulkUndButton} ${bulkUnderstanding === '曖昧△' ? styles.bulkUndButtonActiveAmber : ''}`}
+                    >
+                        <AlertTriangle size={14}/> 曖昧△
+                    </button>
                  </div>
                  {/* 設定ボタン */}
                  <button
                    onClick={() => handleBulkEdit('understanding', bulkUnderstanding)} // 値はStateから取る
                    disabled={selectedQuestions.length === 0}
                    className={styles.bulkSetButton}
+                   title="選択した問題の理解度を「理解○」または「曖昧△(理由なし)」に設定します"
                  >
                    設定
                  </button>
                </div>
-               {/* 選択中理由表示 (曖昧選択時) */}
-               {bulkUnderstanding === '曖昧△' && (
-                   <div className={styles.bulkSelectedReason}>
-                       理由: {bulkAmbiguousReason}
-                   </div>
-               )}
              </div>
 
           </div> {/* bulkEditGrid */}
@@ -377,7 +391,7 @@ const RedesignedAllQuestionsView = ({
       {/* ★★★ ここまで一括編集パネル ★★★ */}
 
 
-      {/* 問題リスト (アコーディオン + カード) (変更なし) */}
+      {/* 問題リスト (アコーディオン + カード) */}
       {filteredSubjects.length === 0 ? (
         <div className="bg-white p-10 rounded-xl shadow-sm text-center border border-gray-200"> <p className="text-gray-500">表示できる問題がありません</p> </div>
        ) : (
@@ -389,25 +403,21 @@ const RedesignedAllQuestionsView = ({
 
             return (
               <div key={subject.id} className={styles.subjectAccordion}>
-                {/* 科目ヘッダー */}
                 <div className={styles.subjectHeader} style={{ borderLeftColor: subjectColorValue }} onClick={() => toggleSubject(subject.id)}>
-                    {bulkEditMode && ( <input type="checkbox" className={styles.subjectCheckbox} checked={isAllSelectedInSubject} onChange={() => toggleSelectAllForSubject(subject)} onClick={(e) => e.stopPropagation()} /> )}
+                    {bulkEditMode && ( <input type="checkbox" className={styles.subjectCheckbox} checked={isAllSelectedInSubject} onChange={() => toggleSelectAllForSubject(subject)} onClick={(e) => e.stopPropagation()} title={isAllSelectedInSubject? 'この科目の問題をすべて選択解除' : 'この科目の問題をすべて選択'} /> )}
                    <div className={`${styles.subjectChevron} ${expandedSubjects?.[subject.id] ? styles.subjectChevronOpen : ''}`}> <ChevronRight size={18} /> </div>
                    <h3 className={styles.subjectTitle}>{subject.name}</h3>
                    <div className={styles.subjectCountBadge}> {subject.chapters?.reduce((sum, c) => sum + (c.questions?.length || 0), 0) || 0}問 </div>
                 </div>
-                {/* 科目の中身 */}
                 {expandedSubjects?.[subject.id] && (
                   <div className={styles.subjectContent}>
                     {subject.chapters.map(chapter => (
                       <div key={chapter.id} className={styles.chapterAccordion}>
-                        {/* 章ヘッダー */}
                         <div className={styles.chapterHeader} onClick={() => toggleChapter(chapter.id)}>
                            <div className={`${styles.chapterChevron} ${expandedChapters?.[chapter.id] ? styles.chapterChevronOpen : ''}`}> <ChevronRight size={16} /> </div>
                            <h4 className={styles.chapterTitle}>{chapter.name}</h4>
                            <div className={styles.chapterCountBadge}> {chapter.questions?.length || 0}問 </div>
                         </div>
-                        {/* 章の中の問題をカード形式 */}
                         {expandedChapters?.[chapter.id] && (
                           <div className={styles.questionCardList}>
                             {chapter.questions.map(question => {
@@ -415,14 +425,13 @@ const RedesignedAllQuestionsView = ({
                               const cardBorderColorStyle = { borderLeftColor: subjectColorValue };
 
                               return (
-                                // 問題カード
                                 <div key={question.id} className={styles.questionCard} style={cardBorderColorStyle}>
                                   {bulkEditMode && ( <input type="checkbox" className={styles.questionCheckbox} checked={selectedQuestions.includes(question.id)} onChange={() => toggleQuestionSelection(question.id)} /> )}
                                   <div className={styles.questionId} title={question.id}> {question.id} </div>
                                   <div className={styles.statusGrid}>
                                       <div className={styles.statusItem} title="次回予定日"> <Clock size={14} /> <span>{formatDate(question.nextDate)}</span> </div>
                                       <div className={styles.statusItem} title="復習間隔"> <CalendarIcon size={14} /> <span>{question.interval}</span> </div>
-                                      <div className={`${styles.statusItem} ${styles.understandingBadge} ${understandingStyle.bgClass}`} title={`理解度: ${question.understanding}`}>
+                                      <div className={`${styles.statusItem} ${understandingStyle.bgClass}`} title={`理解度: ${question.understanding}`}>
                                           {understandingStyle.icon}
                                           <span className={understandingStyle.textClass}> {question.understanding?.includes(':') ? question.understanding.split(':')[0] : question.understanding} </span>
                                       </div>
@@ -447,10 +456,10 @@ const RedesignedAllQuestionsView = ({
         </div>
       )}
 
-      {/* --- 日付選択モーダル --- */}
+      {/* 日付選択モーダル */}
       {isDatePickerOpen && (
-          <div className={datePickerStyles.overlay}>
-            <div ref={datePickerRef} className={datePickerStyles.modal}>
+          <div className={datePickerStyles.overlay} onClick={()=> setIsDatePickerOpen(false)}> {/* Overlayクリックで閉じる */}
+            <div ref={datePickerRef} className={datePickerStyles.modal} onClick={(e) => e.stopPropagation()}> {/* Modal内クリックは伝播停止 */}
                <button
                    onClick={() => { setIsDatePickerOpen(false); setDatePickerTarget(null); }}
                    className={datePickerStyles.closeButton}
@@ -460,32 +469,24 @@ const RedesignedAllQuestionsView = ({
                <div className={datePickerStyles.calendarContainer}>
                    <DayPicker
                        mode="single"
-                       required
+                       required // 日付選択を必須にする
                        selected={datePickerTarget === 'nextDate' ? bulkNextDate : bulkLastAnswered}
-                       onSelect={handleDateSelect}
+                       onSelect={handleDateSelect} // 選択時に handleDateSelect を呼ぶ
                        locale={ja}
                        showOutsideDays
                        fixedWeeks
                        captionLayout="dropdown-buttons"
-                       fromYear={new Date().getFullYear() - 5} // 選択範囲を調整
-                       toYear={new Date().getFullYear() + 5}
+                       fromYear={new Date().getFullYear() - 5} // 5年前から
+                       toYear={new Date().getFullYear() + 5} // 5年後まで
                    />
                </div>
-               {/* フッターは不要なら削除 */}
+               {/* フッターは一括編集パネル側にあるため不要 */}
             </div>
           </div>
       )}
 
-    </div> // container end
+    </div>
   );
 };
 
 export default RedesignedAllQuestionsView;
-
-// --- 省略したヘルパー関数 (参考) ---
-/*
-const subjectColorMap = { ... };
-const getSubjectColorCode = (subjectName) => { ... };
-const getUnderstandingStyle = (understanding) => { ... };
-const getCorrectRateColorClass = (rate) => { ... };
-*/
