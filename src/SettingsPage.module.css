@@ -66,3 +66,45 @@
 .resetButton svg {
   margin-right: 0.5rem; /* mr-2 */
 }
+
+/* 新規追加スタイル */
+.resetOption {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .resetOption {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .resetOption > div {
+    flex: 1;
+  }
+}
+
+.resetOptionTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.divider {
+  height: 1px;
+  background-color: #e5e7eb;
+  border: none;
+  margin: 1.5rem 0;
+}
+
+.resetAnswerButton {
+  background-color: #6366f1; /* indigo-500 */
+}
+
+.resetAnswerButton:hover {
+  background-color: #4f46e5; /* indigo-600 */
+}
