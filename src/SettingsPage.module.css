@@ -108,3 +108,137 @@
 .resetAnswerButton:hover {
   background-color: #4f46e5; /* indigo-600 */
 }
+
+/* データエクスポート/インポート関連のスタイル */
+.dataOption {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .dataOption {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .dataOption > div {
+    flex: 1;
+  }
+}
+
+.dataOptionTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.importControls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+@media (min-width: 768px) {
+  .importControls {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.fileInput {
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  background-color: white;
+  font-size: 0.875rem;
+  flex-grow: 1;
+}
+
+/* エクスポートボタン */
+.exportButton {
+  padding: 0.625rem 1.25rem;
+  background-color: #4f46e5; /* indigo-600 */
+  color: white;
+  font-weight: 500;
+  font-size: 0.875rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.exportButton:hover {
+  background-color: #4338ca; /* indigo-700 */
+}
+
+.exportButton svg {
+  margin-right: 0.5rem;
+}
+
+/* インポートボタン */
+.importButton {
+  padding: 0.625rem 1.25rem;
+  background-color: #10b981; /* emerald-500 */
+  color: white;
+  font-weight: 500;
+  font-size: 0.875rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+}
+
+.importButton:hover {
+  background-color: #059669; /* emerald-600 */
+}
+
+.importButtonDisabled {
+  background-color: #9ca3af; /* gray-400 */
+  cursor: not-allowed;
+}
+
+.importButtonDisabled:hover {
+  background-color: #9ca3af; /* hover時も同じ色 */
+}
+
+.importButton svg {
+  margin-right: 0.5rem;
+}
+
+/* エラーメッセージ */
+.errorMessage {
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background-color: #fee2e2; /* red-100 */
+  border: 1px solid #fecaca; /* red-200 */
+  border-radius: 0.375rem;
+  color: #b91c1c; /* red-700 */
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+}
+
+/* 成功メッセージ */
+.successMessage {
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background-color: #d1fae5; /* green-100 */
+  border: 1px solid #a7f3d0; /* green-200 */
+  border-radius: 0.375rem;
+  color: #065f46; /* green-800 */
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+}
