@@ -1,22 +1,27 @@
-// TodayView.jsx
-// カスタムCSSクラスを使用するように className を変更
+// src/TodayView.js
+// 【App.js の useMemo 修正対応版】
+// props で getTodayQuestions の代わりに todayQuestions を受け取り、
+// 表示部分で科目名・章名を安全に表示するように修正。
 
 import React, { useState } from 'react';
-// lucide-react からアイコンをインポート
 import { Check, X, AlertTriangle, ChevronsUpDown } from 'lucide-react';
+// import styles from './TodayView.module.css'; // CSS Modules を使う場合はこの行のコメントを解除し、下の className を styles.*** 形式に変更してください
 
-const TodayView = ({ getTodayQuestions, recordAnswer, formatDate }) => {
-  const todayQuestions = getTodayQuestions();
+// props で getTodayQuestions の代わりに todayQuestions を受け取る
+const TodayView = ({ todayQuestions, recordAnswer, formatDate }) => {
+  // const todayQuestions = getTodayQuestions(); // ← この行は不要になったので削除またはコメントアウト
+
   const [expandedAmbiguousId, setExpandedAmbiguousId] = useState(null);
   const [questionStates, setQuestionStates] = useState({});
 
-  // --- ハンドラ関数群 (ロジックは変更なし) ---
+  // --- ハンドラ関数群 (変更なし) ---
   const handleAnswerClick = (questionId, isCorrect) => {
     if (isCorrect) {
       setQuestionStates(prev => ({ ...prev, [questionId]: { showComprehension: true } }));
     } else {
       recordAnswer(questionId, false, '理解できていない×');
-       setQuestionStates(prev => { const newState = {...prev}; delete newState[questionId]; return newState; });
+      // 解答したら理解度選択状態はリセット
+      setQuestionStates(prev => { const newState = {...prev}; delete newState[questionId]; return newState; });
     }
   };
   const handleAmbiguousClick = (questionId) => {
@@ -24,11 +29,13 @@ const TodayView = ({ getTodayQuestions, recordAnswer, formatDate }) => {
   };
   const selectAmbiguousReason = (questionId, reason) => {
     recordAnswer(questionId, true, `曖昧△:${reason}`);
-    setExpandedAmbiguousId(null);
+    setExpandedAmbiguousId(null); // 理由を選んだらパネルを閉じる
+    // 解答したら理解度選択状態はリセット
      setQuestionStates(prev => { const newState = {...prev}; delete newState[questionId]; return newState; });
   };
   const handleUnderstandClick = (questionId) => {
     recordAnswer(questionId, true, '理解○');
+    // 解答したら理解度選択状態はリセット
      setQuestionStates(prev => { const newState = {...prev}; delete newState[questionId]; return newState; });
   };
    const getQuestionState = (questionId) => {
@@ -39,7 +46,16 @@ const TodayView = ({ getTodayQuestions, recordAnswer, formatDate }) => {
     '自信はなかったけど、これかなとは思っていた', '問題を覚えてしまっていた', 'その他'
   ];
 
-  // --- JSX 部分: カスタムCSSクラスを使用 ---
+  // --- JSX 部分 ---
+  // 確認用ログ（開発中に適宜確認）
+  console.log("TodayView rendering with questions count:", todayQuestions?.length);
+  if (todayQuestions && todayQuestions.length > 0) {
+      console.log("First question in TodayView props:", todayQuestions[0]);
+      console.log("First question Subject Name:", todayQuestions[0]?.subjectName);
+      console.log("First question Chapter Name:", todayQuestions[0]?.chapterName);
+  }
+
+  // CSS Modules を使う場合は className="today-container" を className={styles.todayContainer} 等に変更
   return (
     <div className="today-container">
       {/* ページタイトル */}
@@ -50,7 +66,8 @@ const TodayView = ({ getTodayQuestions, recordAnswer, formatDate }) => {
         </span>
       </h2>
 
-      {todayQuestions.length === 0 ? (
+      {/* ★ todayQuestions が null や undefined, 空配列の場合の表示 */}
+      {!todayQuestions || todayQuestions.length === 0 ? (
         <div className="today-empty-card">
           <p>今日解く問題はありません 🎉</p>
           <p>素晴らしい！ゆっくり休んでください。</p>
@@ -59,6 +76,11 @@ const TodayView = ({ getTodayQuestions, recordAnswer, formatDate }) => {
         // 問題リスト
         <div className="today-list">
           {todayQuestions.map(question => {
+            // ★ question が null や undefined でないことを確認
+            if (!question || !question.id) {
+                console.warn("Rendering invalid question data:", question);
+                return null; // 不正なデータはスキップ
+            }
             const questionState = getQuestionState(question.id);
             const isAmbiguousPanelOpen = expandedAmbiguousId === question.id;
 
@@ -66,9 +88,9 @@ const TodayView = ({ getTodayQuestions, recordAnswer, formatDate }) => {
               // 問題カード
               <div key={question.id} className="today-card">
                 <div className="today-card__content">
-                  {/* 問題情報 */}
-                  <div className="today-card__subject">{question.subjectName}</div>
-                  <div className="today-card__chapter">{question.chapterName}</div>
+                  {/* 問題情報 - ★ nullish coalescing (?? '?') を使って安全に表示 */}
+                  <div className="today-card__subject">{question.subjectName ?? '?'}</div>
+                  <div className="today-card__chapter">{question.chapterName ?? '?'}</div>
                   <div className="today-card__qid-badge">
                     問題 {question.id}
                   </div>
@@ -107,14 +129,12 @@ const TodayView = ({ getTodayQuestions, recordAnswer, formatDate }) => {
                         </button>
                         <button
                           onClick={() => handleAmbiguousClick(question.id)}
-                          // パネルが開いているかでクラスを切り替える例 (CSS側で .open を定義しても良い)
                           className={`today-button today-button--ambiguous ${isAmbiguousPanelOpen ? 'open' : ''}`}
                         >
-                          <div style={{display: 'flex', alignItems: 'center'}}> {/* Flexbox for icon+text */}
+                          <div style={{display: 'flex', alignItems: 'center'}}>
                             <AlertTriangle/>
                             <span>曖昧</span>
                           </div>
-                           {/* アイコンのクラス名をCSSで定義したクラスに変更 */}
                           <ChevronsUpDown className="today-button__dropdown-icon" />
                         </button>
                       </div>
@@ -140,6 +160,7 @@ const TodayView = ({ getTodayQuestions, recordAnswer, formatDate }) => {
                                <span className="reason-option__dot"></span>
                                <span className="reason-option__text">{reason}</span>
                              </div>
+                             {/* 「8日後」の表示は固定で良いか、あるいは理由によって変えるか */}
                              <span className="reason-option__badge">8日後</span>
                            </button>
                          ))}
