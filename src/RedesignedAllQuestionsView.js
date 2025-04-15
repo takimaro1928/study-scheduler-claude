@@ -407,7 +407,7 @@ const RedesignedAllQuestionsView = ({
                     {bulkEditMode && ( <input type="checkbox" className={styles.subjectCheckbox} checked={isAllSelectedInSubject} onChange={() => toggleSelectAllForSubject(subject)} onClick={(e) => e.stopPropagation()} title={isAllSelectedInSubject? 'この科目の問題をすべて選択解除' : 'この科目の問題をすべて選択'} /> )}
                    <div className={`${styles.subjectChevron} ${expandedSubjects?.[subject.id] ? styles.subjectChevronOpen : ''}`}> <ChevronRight size={18} /> </div>
                    {/* 修正: subject.name -> subject.subjectName */}
-                   <h3 className={styles.subjectTitle}>{subject.subjectName}</h3>
+                  <h3 className={styles.subjectTitle}>{subject.subjectName || subject.name || '?'}</h3>
                    <div className={styles.subjectCountBadge}> {subject.chapters?.reduce((sum, c) => sum + (c.questions?.length || 0), 0) || 0}問 </div>
                 </div>
                 {expandedSubjects?.[subject.id] && (
@@ -417,7 +417,7 @@ const RedesignedAllQuestionsView = ({
                         <div className={styles.chapterHeader} onClick={() => toggleChapter(chapter.id)}>
                            <div className={`${styles.chapterChevron} ${expandedChapters?.[chapter.id] ? styles.chapterChevronOpen : ''}`}> <ChevronRight size={16} /> </div>
                            {/* 修正: chapter.name -> chapter.chapterName */}
-                           <h4 className={styles.chapterTitle}>{chapter.chapterName}</h4>
+                          <h4 className={styles.chapterTitle}>{chapter.chapterName || chapter.name || '?'}</h4>
                            <div className={styles.chapterCountBadge}> {chapter.questions?.length || 0}問 </div>
                         </div>
                         {expandedChapters?.[chapter.id] && (
