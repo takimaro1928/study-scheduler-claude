@@ -115,118 +115,122 @@ function App() {
     try { localStorage.setItem('studyHistory', JSON.stringify(answerHistory)); } catch (e) { console.error("解答履歴保存失敗:", e); }
   }, [subjects, answerHistory]);
 
-  // ★ useMemo を使って今日の問題リストを計算・メモ化 ★
-  const todayQuestionsList = useMemo(() => {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const todayTime = today.getTime();
-      const questions = [];
-      console.log("Calculating todayQuestionsList using useMemo. Subjects length:", subjects?.length);
+// App.js 内のtodayQuestionsList関数の修正部分
 
-      if (!Array.isArray(subjects) || subjects.length === 0) {
-          console.warn("todayQuestionsList (useMemo): subjects is empty.");
-          return questions;
-      }
-
-      subjects.forEach((subject) => {
-        if (!subject || !Array.isArray(subject.chapters)) {
-             console.warn("todayQuestionsList (useMemo): Invalid subject or chapters structure:", subject);
-             return; // この subject をスキップ
-        }
-        const currentSubjectName = subject.subjectName; // ★修正: subjectName を取得
-        if (!currentSubjectName) {
-            console.warn("Subject name is missing in useMemo calculation:", subject);
-        }
-
-        subject.chapters.forEach((chapter) => {
-          if (!chapter || !Array.isArray(chapter.questions)) {
-               console.warn("todayQuestionsList (useMemo): Invalid chapter or questions structure:", chapter);
-               return; // この chapter をスキップ
-          }
-          const currentChapterName = chapter.chapterName; // ★修正: chapterName を取得
-          if (!currentChapterName) {
-              console.warn("Chapter name is missing in useMemo calculation:", chapter);
-          }
-
-          chapter.questions.forEach(question => {
-              if (!question?.nextDate) return;
-              try {
-                  const nextDate = new Date(question.nextDate);
-                  if (isNaN(nextDate.getTime())) return;
-                  nextDate.setHours(0, 0, 0, 0);
-                  if (nextDate.getTime() === todayTime) {
-                      const subjName = currentSubjectName ?? '?'; // 変数を使用
-                      const chapName = currentChapterName ?? '?'; // 変数を使用
-                      console.log(`[Today - useMemo] Found match: ${question.id}. Subject: ${subjName}, Chapter: ${chapName}`);
-                      // ここで直接オブジェクトに追加する
-                      questions.push({
-                          ...question,
-                          subjectName: subjName,
-                          chapterName: chapName
-                      });
-                  }
-              } catch (e) { console.error("[Today - useMemo] Error processing question:", e, question); }
-          });
-        });
-      });
-      // 問題IDでソート
-      return questions.sort((a, b) => naturalSortCompare(a.id, b.id));
-  }, [subjects]); // ★ subjects が変更されたら再計算 ★
-
-
-  // ★ 特定日付の問題取得 (元の関数を維持 - こちらもバグがあれば useMemo 化を検討) ★
-  const getQuestionsForDate = (date) => {
-    const targetDate = new Date(date);
-    if (isNaN(targetDate.getTime())) return [];
-    targetDate.setHours(0, 0, 0, 0);
-    const targetTime = targetDate.getTime();
+const todayQuestionsList = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayTime = today.getTime();
     const questions = [];
-    console.log(`getQuestionsForDate called for ${formatDate(date)}. Current subjects length:`, subjects?.length);
+    console.log("Calculating todayQuestionsList using useMemo. Subjects length:", subjects?.length);
 
     if (!Array.isArray(subjects) || subjects.length === 0) {
-        console.warn(`getQuestionsForDate (${formatDate(date)}): subjects is empty or not an array. Returning empty list.`);
+        console.warn("todayQuestionsList (useMemo): subjects is empty.");
         return questions;
     }
 
     subjects.forEach((subject) => {
       if (!subject || !Array.isArray(subject.chapters)) {
-          console.warn(`getQuestionsForDate (${formatDate(date)}): Invalid subject or chapters structure:`, subject);
-          return;
+           console.warn("todayQuestionsList (useMemo): Invalid subject or chapters structure:", subject);
+           return; // この subject をスキップ
       }
-      const currentSubjectName = subject.subjectName; // ★修正: subjectName を取得
+      // 両方のプロパティ名をサポート
+      const currentSubjectName = subject.subjectName || subject.name || '?';
 
       subject.chapters.forEach((chapter) => {
         if (!chapter || !Array.isArray(chapter.questions)) {
-            console.warn(`getQuestionsForDate (${formatDate(date)}): Invalid chapter or questions structure:`, chapter);
-            return;
+             console.warn("todayQuestionsList (useMemo): Invalid chapter or questions structure:", chapter);
+             return; // この chapter をスキップ
         }
-        const currentChapterName = chapter.chapterName; // ★修正: chapterName を取得
+        // 両方のプロパティ名をサポート
+        const currentChapterName = chapter.chapterName || chapter.name || '?';
 
         chapter.questions.forEach(question => {
-          if (!question?.nextDate) return;
-          try {
-            const nextDate = new Date(question.nextDate);
-            if (isNaN(nextDate.getTime())) return;
-            nextDate.setHours(0, 0, 0, 0);
-            if (nextDate.getTime() === targetTime) {
-              const subjName = currentSubjectName ?? '?';
-              const chapName = currentChapterName ?? '?';
-               console.log(`[Date] Found match: ${question.id}. Subject Name: ${subjName}, Chapter Name: ${chapName}`);
-               if (subjName === '?' || chapName === '?') {
-                   console.log("[Date] Problem Details:", JSON.stringify(question));
-                   console.log("[Date] Chapter Details (without questions):", JSON.stringify({...chapter, questions: undefined}));
-                   console.log("[Date] Subject Details (without chapters):", JSON.stringify({...subject, chapters: undefined}));
-               }
-              questions.push({ ...question, subjectName: subjName, chapterName: chapName });
-            }
-          } catch(e) {
-            console.error(`Error processing question in getQuestionsForDate (${formatDate(date)}):`, e, question);
-          }
+            if (!question?.nextDate) return;
+            try {
+                const nextDate = new Date(question.nextDate);
+                if (isNaN(nextDate.getTime())) return;
+                nextDate.setHours(0, 0, 0, 0);
+                if (nextDate.getTime() === todayTime) {
+                    console.log(`[Today - useMemo] Found match: ${question.id}. Subject: ${currentSubjectName}, Chapter: ${currentChapterName}`);
+                    // 両方のプロパティを設定
+                    questions.push({
+                        ...question,
+                        subjectName: currentSubjectName,
+                        chapterName: currentChapterName,
+                        // 下位互換性のために name も設定
+                        name: question.name || question.id
+                    });
+                }
+            } catch (e) { console.error("[Today - useMemo] Error processing question:", e, question); }
         });
       });
     });
+    // 問題IDでソート
     return questions.sort((a, b) => naturalSortCompare(a.id, b.id));
-  };
+}, [subjects]);
+
+// App.js 内のgetQuestionsForDate関数の修正部分
+
+const getQuestionsForDate = (date) => {
+  const targetDate = new Date(date);
+  if (isNaN(targetDate.getTime())) return [];
+  targetDate.setHours(0, 0, 0, 0);
+  const targetTime = targetDate.getTime();
+  const questions = [];
+  console.log(`getQuestionsForDate called for ${formatDate(date)}. Current subjects length:`, subjects?.length);
+
+  if (!Array.isArray(subjects) || subjects.length === 0) {
+      console.warn(`getQuestionsForDate (${formatDate(date)}): subjects is empty or not an array. Returning empty list.`);
+      return questions;
+  }
+
+  subjects.forEach((subject) => {
+    if (!subject || !Array.isArray(subject.chapters)) {
+        console.warn(`getQuestionsForDate (${formatDate(date)}): Invalid subject or chapters structure:`, subject);
+        return;
+    }
+    // 両方のプロパティ名をサポート
+    const currentSubjectName = subject.subjectName || subject.name || '?';
+
+    subject.chapters.forEach((chapter) => {
+      if (!chapter || !Array.isArray(chapter.questions)) {
+          console.warn(`getQuestionsForDate (${formatDate(date)}): Invalid chapter or questions structure:`, chapter);
+          return;
+      }
+      // 両方のプロパティ名をサポート
+      const currentChapterName = chapter.chapterName || chapter.name || '?';
+
+      chapter.questions.forEach(question => {
+        if (!question?.nextDate) return;
+        try {
+          const nextDate = new Date(question.nextDate);
+          if (isNaN(nextDate.getTime())) return;
+          nextDate.setHours(0, 0, 0, 0);
+          if (nextDate.getTime() === targetTime) {
+            console.log(`[Date] Found match: ${question.id}. Subject Name: ${currentSubjectName}, Chapter Name: ${currentChapterName}`);
+            if (currentSubjectName === '?' || currentChapterName === '?') {
+                console.log("[Date] Problem Details:", JSON.stringify(question));
+                console.log("[Date] Chapter Details (without questions):", JSON.stringify({...chapter, questions: undefined}));
+                console.log("[Date] Subject Details (without chapters):", JSON.stringify({...subject, chapters: undefined}));
+            }
+            // 両方のプロパティを設定
+            questions.push({ 
+              ...question, 
+              subjectName: currentSubjectName, 
+              chapterName: currentChapterName,
+              // 下位互換性のために name も設定
+              name: question.name || question.id
+            });
+          }
+        } catch(e) {
+          console.error(`Error processing question in getQuestionsForDate (${formatDate(date)}):`, e, question);
+        }
+      });
+    });
+  });
+  return questions.sort((a, b) => naturalSortCompare(a.id, b.id));
+};
 
   // ★ アコーディオン開閉 (変更なし) ★
   const toggleSubject = (subjectId) => { setExpandedSubjects(prev => ({ ...prev, [subjectId]: !prev[subjectId] })); };
