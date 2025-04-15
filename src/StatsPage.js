@@ -51,7 +51,7 @@ const StatsPage = ({ subjects = [], answerHistory = [], formatDate }) => {
       // 当該科目に属する問題IDのリストを作成
       const questionIdsInSubject = [];
       subjects.forEach(subject => {
-        if (subject.id.toString() === subjectFilter || subject.subjectId?.toString() === subjectFilter) {
+        if (subject.id?.toString() === subjectFilter || subject.subjectId?.toString() === subjectFilter) {
           subject.chapters?.forEach(chapter => {
             chapter.questions?.forEach(question => {
               if (question.id) {
@@ -78,6 +78,115 @@ const StatsPage = ({ subjects = [], answerHistory = [], formatDate }) => {
       name: subject.name || subject.subjectName || '未分類'
     }));
   }, [subjects]);
+  
+  // 時系列データの生成関数
+  const generateTimeseriesData = (history) => {
+    if (!Array.isArray(history) || history.length === 0) {
+      return { daily: [], weekly: [] };
+    }
+    
+    // 日付でソート
+    const sortedHistory = [...history].sort((a, b) => {
+      return new Date(a.timestamp) - new Date(b.timestamp);
+    });
+    
+    // 最初と最後の日付を取得
+    const firstDate = new Date(sortedHistory[0].timestamp);
+    const lastDate = new Date(sortedHistory[sortedHistory.length - 1].timestamp);
+    
+    // データが1日分しかない場合の特別処理
+    if (firstDate.toDateString() === lastDate.toDateString()) {
+      const dayData = processDailyData(sortedHistory, firstDate);
+      return {
+        daily: [dayData],
+        weekly: [{
+          period: `${formatDate(firstDate)}`,
+          count: dayData.count,
+          correctRate: dayData.correctRate
+        }]
+      };
+    }
+    
+    // 日次データ
+    const dailyData = [];
+    const currentDate = new Date(firstDate);
+    currentDate.setHours(0, 0, 0, 0);
+    
+    while (currentDate <= lastDate) {
+      const dayRecords = sortedHistory.filter(record => {
+        const recordDate = new Date(record.timestamp);
+        return recordDate.toDateString() === currentDate.toDateString();
+      });
+      
+      if (dayRecords.length > 0) {
+        dailyData.push(processDailyData(dayRecords, new Date(currentDate)));
+      } else {
+        // データがない日は0で埋める
+        dailyData.push({
+          date: formatDate(new Date(currentDate)),
+          count: 0,
+          correctRate: 0
+        });
+      }
+      
+      // 次の日に進める
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    // 週次データ
+    const weeklyData = [];
+    let weekStart = new Date(firstDate);
+    weekStart.setHours(0, 0, 0, 0);
+    // 日曜日にする
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+    
+    while (weekStart <= lastDate) {
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      
+      const weekRecords = sortedHistory.filter(record => {
+        const recordDate = new Date(record.timestamp);
+        return recordDate >= weekStart && recordDate <= weekEnd;
+      });
+      
+      if (weekRecords.length > 0) {
+        const totalCount = weekRecords.length;
+        const correctCount = weekRecords.filter(record => record.isCorrect).length;
+        const correctRate = Math.round((correctCount / totalCount) * 100);
+        
+        weeklyData.push({
+          period: `${formatDate(weekStart)}〜${formatDate(weekEnd)}`,
+          count: totalCount,
+          correctRate: correctRate
+        });
+      } else {
+        // データがない週は0で埋める
+        weeklyData.push({
+          period: `${formatDate(weekStart)}〜${formatDate(weekEnd)}`,
+          count: 0,
+          correctRate: 0
+        });
+      }
+      
+      // 次の週に進める
+      weekStart.setDate(weekStart.getDate() + 7);
+    }
+    
+    return { daily: dailyData, weekly: weeklyData };
+  };
+  
+  // 日ごとのデータ処理
+  const processDailyData = (records, date) => {
+    const totalCount = records.length;
+    const correctCount = records.filter(record => record.isCorrect).length;
+    const correctRate = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+    
+    return {
+      date: formatDate(date),
+      count: totalCount,
+      correctRate: correctRate
+    };
+  };
   
   // 統計情報の計算
   const stats = useMemo(() => {
@@ -188,116 +297,7 @@ const StatsPage = ({ subjects = [], answerHistory = [], formatDate }) => {
       subjectStats,
       timeseriesData
     };
-  }, [subjects, filteredHistory]);
-  
-  // 時系列データの生成関数
-  const generateTimeseriesData = (history) => {
-    if (!Array.isArray(history) || history.length === 0) {
-      return { daily: [], weekly: [] };
-    }
-    
-    // 日付でソート
-    const sortedHistory = [...history].sort((a, b) => {
-      return new Date(a.timestamp) - new Date(b.timestamp);
-    });
-    
-    // 最初と最後の日付を取得
-    const firstDate = new Date(sortedHistory[0].timestamp);
-    const lastDate = new Date(sortedHistory[sortedHistory.length - 1].timestamp);
-    
-    // データが1日分しかない場合の特別処理
-    if (firstDate.toDateString() === lastDate.toDateString()) {
-      const dayData = processDailyData(sortedHistory, firstDate);
-      return {
-        daily: [dayData],
-        weekly: [{
-          period: `${formatDate(firstDate)}`,
-          count: dayData.count,
-          correctRate: dayData.correctRate
-        }]
-      };
-    }
-    
-    // 日次データ
-    const dailyData = [];
-    const currentDate = new Date(firstDate);
-    currentDate.setHours(0, 0, 0, 0);
-    
-    while (currentDate <= lastDate) {
-      const dayRecords = sortedHistory.filter(record => {
-        const recordDate = new Date(record.timestamp);
-        return recordDate.toDateString() === currentDate.toDateString();
-      });
-      
-      if (dayRecords.length > 0) {
-        dailyData.push(processDailyData(dayRecords, new Date(currentDate)));
-      } else {
-        // データがない日は0で埋める
-        dailyData.push({
-          date: formatDate(new Date(currentDate)),
-          count: 0,
-          correctRate: 0
-        });
-      }
-      
-      // 次の日に進める
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
-    
-    // 週次データ
-    const weeklyData = [];
-    let weekStart = new Date(firstDate);
-    weekStart.setHours(0, 0, 0, 0);
-    // 日曜日にする
-    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-    
-    while (weekStart <= lastDate) {
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekStart.getDate() + 6);
-      
-      const weekRecords = sortedHistory.filter(record => {
-        const recordDate = new Date(record.timestamp);
-        return recordDate >= weekStart && recordDate <= weekEnd;
-      });
-      
-      if (weekRecords.length > 0) {
-        const totalCount = weekRecords.length;
-        const correctCount = weekRecords.filter(record => record.isCorrect).length;
-        const correctRate = Math.round((correctCount / totalCount) * 100);
-        
-        weeklyData.push({
-          period: `${formatDate(weekStart)}〜${formatDate(weekEnd)}`,
-          count: totalCount,
-          correctRate: correctRate
-        });
-      } else {
-        // データがない週は0で埋める
-        weeklyData.push({
-          period: `${formatDate(weekStart)}〜${formatDate(weekEnd)}`,
-          count: 0,
-          correctRate: 0
-        });
-      }
-      
-      // 次の週に進める
-      weekStart.setDate(weekStart.getDate() + 7);
-    }
-    
-    return { daily: dailyData, weekly: weeklyData };
-  };
-  
-  // 日ごとのデータ処理
-  const processDailyData = (records, date) => {
-    const totalCount = records.length;
-    const correctCount = records.filter(record => record.isCorrect).length;
-    const correctRate = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
-    
-    return {
-      date: formatDate(date),
-      count: totalCount,
-      correctRate: correctRate
-    };
-  };
+  }, [subjects, filteredHistory, formatDate]);
   
   return (
     <div className={styles.container}>
