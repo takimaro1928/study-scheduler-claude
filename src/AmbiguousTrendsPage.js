@@ -1,8 +1,7 @@
 // src/AmbiguousTrendsPage.js
-// テーブルソート機能の不具合修正版
+// テーブルソート機能の不具合修正版 + 科目名/章名プロパティ対応版
 
 import React, { useState, useEffect, useMemo } from 'react';
-// XアイコンとTrendingDownを追加
 import { Filter, ChevronDown, ChevronUp, Info, ArrowUpDown, BarChart2, AlertCircle, RotateCcw, TrendingUp, Edit2, TrendingDown, X } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 import styles from './AmbiguousTrendsPage.module.css';
@@ -10,12 +9,50 @@ import CommentEditModal from './CommentEditModal';
 
 // 曖昧問題データを取得・整形する関数
 function getAmbiguousQuestions(subjects) {
-  const ambiguousQuestions = []; if (!Array.isArray(subjects)) return ambiguousQuestions;
-  subjects.forEach(subject => { if (!subject?.chapters) return; subject.chapters.forEach(chapter => { if (!chapter?.questions) return; chapter.questions.forEach(question => {
-    if (typeof question !== 'object' || question === null) return; if (question.understanding?.startsWith('曖昧△')) {
-      let reason = '理由なし'; if (question.understanding.includes(':')) { reason = question.understanding.split(':')[1].trim(); }
-      const lastAnsweredDate = question.lastAnswered ? new Date(question.lastAnswered) : null; const nextDateDate = question.nextDate ? new Date(question.nextDate) : null;
-      ambiguousQuestions.push({ id: question.id || '?', subjectId: subject.id, subjectName: subject.name || '?', chapterId: chapter.id, chapterName: chapter.name || '?', reason: reason, correctRate: question.correctRate ?? 0, lastAnswered: !isNaN(lastAnsweredDate?.getTime()) ? lastAnsweredDate : null, nextDate: !isNaN(nextDateDate?.getTime()) ? nextDateDate : null, answerCount: question.answerCount ?? 0, previousUnderstanding: question.previousUnderstanding, comment: question.comment || '', }); } }); }); });
+  const ambiguousQuestions = []; 
+  if (!Array.isArray(subjects)) return ambiguousQuestions;
+  
+  subjects.forEach(subject => { 
+    if (!subject?.chapters) return; 
+    
+    // 両方のプロパティ名に対応
+    const currentSubjectName = subject.subjectName || subject.name || '?';
+    
+    subject.chapters.forEach(chapter => { 
+      if (!chapter?.questions) return; 
+      
+      // 両方のプロパティ名に対応
+      const currentChapterName = chapter.chapterName || chapter.name || '?';
+      
+      chapter.questions.forEach(question => {
+        if (typeof question !== 'object' || question === null) return; 
+        if (question.understanding?.startsWith('曖昧△')) {
+          let reason = '理由なし'; 
+          if (question.understanding.includes(':')) { 
+            reason = question.understanding.split(':')[1].trim(); 
+          }
+          const lastAnsweredDate = question.lastAnswered ? new Date(question.lastAnswered) : null; 
+          const nextDateDate = question.nextDate ? new Date(question.nextDate) : null;
+          
+          ambiguousQuestions.push({ 
+            id: question.id || '?', 
+            subjectId: subject.id, 
+            subjectName: currentSubjectName, 
+            chapterId: chapter.id, 
+            chapterName: currentChapterName,
+            reason: reason, 
+            correctRate: question.correctRate ?? 0, 
+            lastAnswered: !isNaN(lastAnsweredDate?.getTime()) ? lastAnsweredDate : null, 
+            nextDate: !isNaN(nextDateDate?.getTime()) ? nextDateDate : null, 
+            answerCount: question.answerCount ?? 0, 
+            previousUnderstanding: question.previousUnderstanding, 
+            comment: question.comment || '', 
+          }); 
+        } 
+      }); 
+    }); 
+  });
+  
   return ambiguousQuestions;
 }
 
