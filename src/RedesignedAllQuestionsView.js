@@ -397,7 +397,7 @@ const RedesignedAllQuestionsView = ({
        ) : (
         <div className={styles.listContainer}>
           {filteredSubjects.map(subject => {
-            const subjectColorValue = getSubjectColorCode(subject.name);
+            const subjectColorValue = getSubjectColorCode(subject.subjectName);
             const allQuestionIdsInSubject = subject.chapters?.flatMap(ch => ch.questions?.map(q => q.id) || []) || [];
             const isAllSelectedInSubject = allQuestionIdsInSubject.length > 0 && allQuestionIdsInSubject.every(id => selectedQuestions.includes(id));
 
@@ -406,7 +406,8 @@ const RedesignedAllQuestionsView = ({
                 <div className={styles.subjectHeader} style={{ borderLeftColor: subjectColorValue }} onClick={() => toggleSubject(subject.id)}>
                     {bulkEditMode && ( <input type="checkbox" className={styles.subjectCheckbox} checked={isAllSelectedInSubject} onChange={() => toggleSelectAllForSubject(subject)} onClick={(e) => e.stopPropagation()} title={isAllSelectedInSubject? 'この科目の問題をすべて選択解除' : 'この科目の問題をすべて選択'} /> )}
                    <div className={`${styles.subjectChevron} ${expandedSubjects?.[subject.id] ? styles.subjectChevronOpen : ''}`}> <ChevronRight size={18} /> </div>
-                   <h3 className={styles.subjectTitle}>{subject.name}</h3>
+                   {/* 修正: subject.name -> subject.subjectName */}
+                   <h3 className={styles.subjectTitle}>{subject.subjectName}</h3>
                    <div className={styles.subjectCountBadge}> {subject.chapters?.reduce((sum, c) => sum + (c.questions?.length || 0), 0) || 0}問 </div>
                 </div>
                 {expandedSubjects?.[subject.id] && (
@@ -415,7 +416,8 @@ const RedesignedAllQuestionsView = ({
                       <div key={chapter.id} className={styles.chapterAccordion}>
                         <div className={styles.chapterHeader} onClick={() => toggleChapter(chapter.id)}>
                            <div className={`${styles.chapterChevron} ${expandedChapters?.[chapter.id] ? styles.chapterChevronOpen : ''}`}> <ChevronRight size={16} /> </div>
-                           <h4 className={styles.chapterTitle}>{chapter.name}</h4>
+                           {/* 修正: chapter.name -> chapter.chapterName */}
+                           <h4 className={styles.chapterTitle}>{chapter.chapterName}</h4>
                            <div className={styles.chapterCountBadge}> {chapter.questions?.length || 0}問 </div>
                         </div>
                         {expandedChapters?.[chapter.id] && (
