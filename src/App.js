@@ -132,7 +132,6 @@ function App() {
              console.warn("todayQuestionsList (useMemo): Invalid subject or chapters structure:", subject);
              return; // この subject をスキップ
         }
-        // const currentSubjectName = subject.name; // name を取得
         const currentSubjectName = subject.subjectName; // ★修正: subjectName を取得
         if (!currentSubjectName) {
             console.warn("Subject name is missing in useMemo calculation:", subject);
@@ -143,7 +142,6 @@ function App() {
                console.warn("todayQuestionsList (useMemo): Invalid chapter or questions structure:", chapter);
                return; // この chapter をスキップ
           }
-          // const currentChapterName = chapter.name; // name を取得
           const currentChapterName = chapter.chapterName; // ★修正: chapterName を取得
           if (!currentChapterName) {
               console.warn("Chapter name is missing in useMemo calculation:", chapter);
@@ -194,7 +192,6 @@ function App() {
           console.warn(`getQuestionsForDate (${formatDate(date)}): Invalid subject or chapters structure:`, subject);
           return;
       }
-      // const currentSubjectName = subject.name;
       const currentSubjectName = subject.subjectName; // ★修正: subjectName を取得
 
       subject.chapters.forEach((chapter) => {
@@ -202,7 +199,6 @@ function App() {
             console.warn(`getQuestionsForDate (${formatDate(date)}): Invalid chapter or questions structure:`, chapter);
             return;
         }
-        // const currentChapterName = chapter.name;
         const currentChapterName = chapter.chapterName; // ★修正: chapterName を取得
 
         chapter.questions.forEach(question => {
@@ -259,8 +255,56 @@ function App() {
   // ★ 日付フォーマット (変更なし) ★
    const formatDate = (date) => { if (!date) return '----/--/--'; try { const d = (date instanceof Date) ? date : new Date(date); if (isNaN(d.getTime())) return '無効日付'; const year = d.getFullYear(); const month = d.getMonth() + 1; const day = d.getDate(); return `${year}/${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}`; } catch(e) { console.error("formatDateエラー:", e, date); return 'エラー'; } };
 
-   // ★ データリセット関数 (変更なし) ★
-   const resetAllData = () => { console.log("全学習データのリセットを実行します..."); if (window.confirm("本当にすべての学習データ（解答履歴含む）をリセットしますか？\nこの操作は元に戻せません。")) { try { localStorage.removeItem('studyData'); localStorage.removeItem('studyHistory'); console.log("LocalStorageのデータを削除しました。"); alert("学習データをリセットしました。ページをリロードして初期データを再生成します。"); window.location.reload(); } catch (error) { console.error("データリセット中にエラーが発生しました:", error); alert("データのリセット中にエラーが発生しました。"); } } else { console.log("データリセットはキャンセルされました。"); } };
+  // ★ 完全リセット関数 (既存) ★
+  const resetAllData = () => { console.log("全学習データのリセットを実行します..."); if (window.confirm("本当にすべての学習データ（解答履歴含む）をリセットしますか？\nこの操作は元に戻せません。")) { try { localStorage.removeItem('studyData'); localStorage.removeItem('studyHistory'); console.log("LocalStorageのデータを削除しました。"); alert("学習データをリセットしました。ページをリロードして初期データを再生成します。"); window.location.reload(); } catch (error) { console.error("データリセット中にエラーが発生しました:", error); alert("データのリセット中にエラーが発生しました。"); } } else { console.log("データリセットはキャンセルされました。"); } };
+
+  // ★★★ 回答状況のみリセット関数 (新規追加) ★★★
+  const resetAnswerStatusOnly = () => {
+    console.log("回答状況のみリセットを実行します...");
+    if (window.confirm("問題リストを維持したまま、全ての回答状況（正解率・理解度・次回解答日など）をリセットしますか？\nこの操作は元に戻せません。")) {
+      try {
+        // 解答履歴を削除
+        localStorage.removeItem('studyHistory');
+        setAnswerHistory([]);
+        
+        // 問題の回答状況のみリセット
+        setSubjects(prevSubjects => {
+          const resetSubjects = prevSubjects.map(subject => ({
+            ...subject,
+            chapters: subject.chapters.map(chapter => ({
+              ...chapter,
+              questions: chapter.questions.map(question => ({
+                ...question,
+                answerCount: 0,
+                correctRate: 0,
+                understanding: '理解○',
+                lastAnswered: null,
+                nextDate: null,
+                previousUnderstanding: null,
+                // comment はリセットしない (コメントは維持)
+              }))
+            }))
+          }));
+          
+          // LocalStorageも更新
+          try {
+            localStorage.setItem('studyData', JSON.stringify(resetSubjects));
+          } catch (e) {
+            console.error("リセット後のデータ保存に失敗:", e);
+          }
+          
+          return resetSubjects;
+        });
+        
+        alert("回答状況をリセットしました。問題リストは維持されています。");
+      } catch (error) {
+        console.error("回答状況リセット中にエラーが発生しました:", error);
+        alert("回答状況のリセット中にエラーが発生しました。");
+      }
+    } else {
+      console.log("回答状況リセットはキャンセルされました。");
+    }
+  };
 
   // ★ メインビュー切り替え ★
   const MainView = () => {
@@ -271,7 +315,8 @@ function App() {
       case 'all': return <RedesignedAllQuestionsView subjects={subjects} expandedSubjects={expandedSubjects} expandedChapters={expandedChapters} toggleSubject={toggleSubject} toggleChapter={toggleChapter} setEditingQuestion={setEditingQuestion} setBulkEditMode={setBulkEditMode} bulkEditMode={bulkEditMode} selectedQuestions={selectedQuestions} setSelectedQuestions={setSelectedQuestions} saveBulkEditItems={saveBulkEditItems} formatDate={formatDate} toggleQuestionSelection={toggleQuestionSelection} />;
       case 'trends': return <AmbiguousTrendsPage subjects={subjects} formatDate={formatDate} answerHistory={answerHistory} saveComment={saveComment} />;
       case 'stats': return <div className="p-4">学習統計ページ (未実装)</div>;
-      case 'settings': return <SettingsPage onResetData={resetAllData} />; // resetAllData は渡しておく
+      // ★ resetAnswerStatusOnly も渡す ★
+      case 'settings': return <SettingsPage onResetData={resetAllData} onResetAnswerStatusOnly={resetAnswerStatusOnly} />;
       // ★ デフォルトも TodayView に ★
       default: return <TodayView todayQuestions={todayQuestionsList} recordAnswer={recordAnswer} formatDate={formatDate} />;
     }
