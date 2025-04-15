@@ -311,6 +311,69 @@ const getQuestionsForDate = (date) => {
     }
   };
 
+const handleDataImport = (importedData) => {
+  console.log("インポートデータ処理関数が呼ばれました:", importedData);
+  try {
+    // データの基本検証
+    if (!importedData || typeof importedData !== 'object') {
+      console.error("無効なインポートデータ形式です");
+      return false;
+    }
+    
+    // subjects のインポート（存在するなら）
+    if (Array.isArray(importedData.subjects)) {
+      // 互換性のためのデータ修正を適用
+      const processedSubjects = importedData.subjects.map(subject => {
+        // プロパティ名の互換性確保
+        if (subject.name && !subject.subjectName) subject.subjectName = subject.name;
+        if (subject.subjectName && !subject.name) subject.name = subject.subjectName;
+        
+        // chapters に同様の処理を適用
+        if (Array.isArray(subject.chapters)) {
+          subject.chapters = subject.chapters.map(chapter => {
+            if (chapter.name && !chapter.chapterName) chapter.chapterName = chapter.name;
+            if (chapter.chapterName && !chapter.name) chapter.name = chapter.chapterName;
+            
+            // questions処理
+            if (Array.isArray(chapter.questions)) {
+              chapter.questions = chapter.questions.map(q => {
+                // 日付形式の修正（String → Date）
+                if (q.lastAnswered && !(q.lastAnswered instanceof Date)) {
+                  const parsedDate = new Date(q.lastAnswered);
+                  q.lastAnswered = !isNaN(parsedDate) ? parsedDate : null;
+                }
+                // 理解度、コメントの初期値設定
+                if (typeof q.understanding === 'undefined') q.understanding = '理解○';
+                if (typeof q.comment === 'undefined') q.comment = '';
+                return q;
+              });
+            }
+            return chapter;
+          });
+        }
+        return subject;
+      });
+      
+      // ステート更新
+      setSubjects(processedSubjects);
+      console.log("科目データを更新しました:", processedSubjects.length, "件");
+    } else {
+      console.warn("インポートデータに科目情報がありません");
+    }
+    
+    // answerHistory のインポート（存在するなら）
+    if (Array.isArray(importedData.answerHistory)) {
+      setAnswerHistory(importedData.answerHistory);
+      console.log("解答履歴を更新しました:", importedData.answerHistory.length, "件");
+    } else {
+      console.warn("インポートデータに解答履歴がありません");
+    }
+    
+    return true; // インポート成功
+  } catch (error) {
+    console.error("データインポート処理中にエラー:", error);
+    return false; // インポート失敗
+    
   // ★ メインビュー切り替え ★
   const MainView = () => {
     switch (activeTab) {
@@ -321,7 +384,8 @@ const getQuestionsForDate = (date) => {
       case 'trends': return <AmbiguousTrendsPage subjects={subjects} formatDate={formatDate} answerHistory={answerHistory} saveComment={saveComment} />;
       case 'stats': return <StatsPage subjects={subjects} answerHistory={answerHistory} formatDate={formatDate} />;
       // ★ resetAnswerStatusOnly も渡す ★
-      case 'settings': return <SettingsPage onResetData={resetAllData} onResetAnswerStatusOnly={resetAnswerStatusOnly} />;
+      case 'settings': return <SettingsPage onResetData={resetAllData} onResetAnswerStatusOnly={resetAnswerStatusOnly}onDataImport={handleDataImport} // ← この行を追加
+  　　　　　　　　　　　　　　　　　subjects={subjects} answerHistory={answerHistory} />;
       // ★ デフォルトも TodayView に ★
       default: return <TodayView todayQuestions={todayQuestionsList} recordAnswer={recordAnswer} formatDate={formatDate} />;
     }
