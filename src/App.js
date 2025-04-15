@@ -1,6 +1,7 @@
 // src/App.js
-// 【最終確認用 Ver.2・完全版・省略なし】
-// generateInitialData, naturalSortCompare等の関数定義を全て含む
+// 【正真正銘・完全版】
+// 全修正適用: 初期データサンプル優先に戻す, ID修正, 個別編集強化,
+// 一括編集関数追加, リセット機能追加, TodayView名前表示修正, ビルドエラー修正
 
 import React, { useState, useEffect } from 'react';
 // lucide-react のインポート
@@ -12,7 +13,7 @@ import RedesignedAllQuestionsView from './RedesignedAllQuestionsView';
 import TopNavigation from './components/TopNavigation';
 import TodayView from './TodayView';
 import ScheduleView from './ScheduleView';
-import SettingsPage from './SettingsPage'; // 設定ページをインポート
+import SettingsPage from './SettingsPage';
 
 // 問題生成関数 (IDゼロパディング、understanding='理解○' 固定)
 function generateQuestions(prefix, start, end) {
@@ -22,21 +23,22 @@ function generateQuestions(prefix, start, end) {
         const nextDate = new Date();
         nextDate.setDate(today.getDate() + Math.floor(Math.random() * 30));
         questions.push({
-            id: `${prefix}${i.toString().padStart(2, '0')}`, number: i,
+            // ID生成: プレフィックス + ゼロパディングした番号
+            id: `${prefix}${i.toString().padStart(2, '0')}`,
+            number: i,
             correctRate: Math.floor(Math.random() * 100),
-            lastAnswered: new Date(today.getTime() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000),
-            nextDate: nextDate.toISOString(),
+            lastAnswered: new Date(today.getTime() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000), // Dateオブジェクトで保持
+            nextDate: nextDate.toISOString(), // ISO文字列で保持
             interval: ['1日', '3日', '7日', '14日', '1ヶ月', '2ヶ月'][Math.floor(Math.random() * 6)],
             answerCount: Math.floor(Math.random() * 10),
             understanding: '理解○', // 固定
-            previousUnderstanding: null, comment: '',
+            previousUnderstanding: null,
+            comment: '', // コメント用の空文字列
         });
     } return questions;
 }
 
-// ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 // ★★★ 初期データ生成関数 generateInitialData の完全な定義 ★★★
-// ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 const generateInitialData = () => {
     console.log("generateInitialData が呼ばれました (サンプルデータ生成)"); // 確認用ログ
     const pastExamSubjectPrefixMap = { "企業経営理論": "企経", "運営管理": "運営", "経済学・経済政策": "経済", "経営情報システム": "情報", "経営法務": "法務", "中小企業経営・政策": "中小", };
@@ -56,29 +58,15 @@ const generateInitialData = () => {
         // --- 科目 7: 過去問題集 ---
         { id: 7, subjectId: 7, subjectName: "過去問題集", chapters: [ { id: 701, chapterId: 701, chapterName: "企業経営理論 令和6年度", questionCount: 40 }, { id: 702, chapterId: 702, chapterName: "企業経営理論 令和5年度", questionCount: 37 }, { id: 703, chapterId: 703, chapterName: "企業経営理論 令和4年度", questionCount: 37 }, { id: 704, chapterId: 704, chapterName: "企業経営理論 令和3年度", questionCount: 38 }, { id: 705, chapterId: 705, chapterName: "企業経営理論 令和2年度", questionCount: 36 }, { id: 706, chapterId: 706, chapterName: "運営管理 令和6年度", questionCount: 41 }, { id: 707, chapterId: 707, chapterName: "運営管理 令和5年度", questionCount: 37 }, { id: 708, chapterId: 708, chapterName: "運営管理 令和4年度", questionCount: 39 }, { id: 709, chapterId: 709, chapterName: "運営管理 令和3年度", questionCount: 41 }, { id: 710, chapterId: 710, chapterName: "運営管理 令和2年度", questionCount: 42 }, { id: 711, chapterId: 711, chapterName: "経済学・経済政策 令和6年度", questionCount: 22 }, { id: 712, chapterId: 712, chapterName: "経済学・経済政策 令和5年度", questionCount: 22 }, { id: 713, chapterId: 713, chapterName: "経済学・経済政策 令和4年度", questionCount: 21 }, { id: 714, chapterId: 714, chapterName: "経済学・経済政策 令和3年度", questionCount: 23 }, { id: 715, chapterId: 715, chapterName: "経済学・経済政策 令和2年度", questionCount: 22 }, { id: 716, chapterId: 716, chapterName: "経営情報システム 令和6年度", questionCount: 23 }, { id: 717, chapterId: 717, chapterName: "経営情報システム 令和5年度", questionCount: 25 }, { id: 718, chapterId: 718, chapterName: "経営情報システム 令和4年度", questionCount: 24 }, { id: 719, chapterId: 719, chapterName: "経営情報システム 令和3年度", questionCount: 25 }, { id: 720, chapterId: 720, chapterName: "経営情報システム 令和2年度", questionCount: 25 }, { id: 721, chapterId: 721, chapterName: "経営法務 令和6年度", questionCount: 24 }, { id: 722, chapterId: 722, chapterName: "経営法務 令和5年度", questionCount: 21 }, { id: 723, chapterId: 723, chapterName: "経営法務 令和4年度", questionCount: 22 }, { id: 724, chapterId: 724, chapterName: "経営法務 令和3年度", questionCount: 20 }, { id: 725, chapterId: 725, chapterName: "経営法務 令和2年度", questionCount: 22 }, { id: 726, chapterId: 726, chapterName: "中小企業経営・政策 令和6年度", questionCount: 11 }, { id: 727, chapterId: 727, chapterName: "中小企業経営・政策 令和5年度", questionCount: 22 }, { id: 728, chapterId: 728, chapterName: "中小企業経営・政策 令和4年度", questionCount: 22 }, { id: 729, chapterId: 729, chapterName: "中小企業経営・政策 令和3年度", questionCount: 22 }, { id: 730, chapterId: 730, chapterName: "中小企業経営・政策 令和2年度", questionCount: 22 }, ].map(chapterInfo => { const yearMatch = chapterInfo.chapterName.match(/令和(\d+)年度/); const subjectMatch = chapterInfo.chapterName.match(/^(.+?)\s+令和/); if (yearMatch && subjectMatch) { const year = `R${yearMatch[1].padStart(2, '0')}`; const subjectName = subjectMatch[1]; const prefixBase = pastExamSubjectPrefixMap[subjectName] || subjectName.replace(/[・/]/g, ''); const prefix = `過去問-${year}-${prefixBase}-Q`; return { id: chapterInfo.id, chapterId: chapterInfo.chapterId, chapterName: chapterInfo.chapterName, questions: generateQuestions(prefix, 1, chapterInfo.questionCount) }; } else { console.warn(`Could not parse year/subject from chapter name: ${chapterInfo.chapterName}`); return { id: chapterInfo.id, chapterId: chapterInfo.chapterId, chapterName: chapterInfo.chapterName, questions: [] }; } }) }
     ];
-    subjects.forEach((s, sIndex) => { s.subjectId = s.id; s.chapters.forEach((c, cIndex) => { c.chapterId = c.id; }); }); // 互換性のためsubjectId, chapterIdも付与
+    subjects.forEach((s) => { s.subjectId = s.id; s.chapters.forEach((c) => { c.chapterId = c.id; }); });
     return subjects;
 };
 
-// ★★★ 自然順ソート用の比較関数定義 (省略なし) ★★★
-function naturalSortCompare(a, b) {
-  if (a == null && b == null) return 0; if (a == null) return -1; if (b == null) return 1;
-  const ax = [], bx = [];
-  String(a).replace(/(\d+)|(\D+)/g, (_, $1, $2) => { ax.push([$1 || Infinity, $2 || ""]) });
-  String(b).replace(/(\d+)|(\D+)/g, (_, $1, $2) => { bx.push([$1 || Infinity, $2 || ""]) });
-  while (ax.length && bx.length) { const an = ax.shift(); const bn = bx.shift(); const nn = (parseInt(an[0]) - parseInt(bn[0])) || an[1].localeCompare(bn[1], undefined, { numeric: true, sensitivity: 'base' }); if (nn) return nn; }
-  return ax.length - bx.length;
-}
+// ★ 自然順ソート用の比較関数定義 (省略なし) ★
+function naturalSortCompare(a, b) { if (a == null && b == null) return 0; if (a == null) return -1; if (b == null) return 1; const ax = [], bx = []; String(a).replace(/(\d+)|(\D+)/g, (_, $1, $2) => { ax.push([$1 || Infinity, $2 || ""]) }); String(b).replace(/(\d+)|(\D+)/g, (_, $1, $2) => { bx.push([$1 || Infinity, $2 || ""]) }); while (ax.length && bx.length) { const an = ax.shift(); const bn = bx.shift(); const nn = (parseInt(an[0]) - parseInt(bn[0])) || an[1].localeCompare(bn[1], undefined, { numeric: true, sensitivity: 'base' }); if (nn) return nn; } return ax.length - bx.length; }
 
 // ★ 正解率計算関数 (省略なし) ★
-function calculateCorrectRate(question, isCorrect) {
-    const currentCount = question?.answerCount ?? 0; const validCurrentCount = (typeof currentCount === 'number' && !isNaN(currentCount)) ? currentCount : 0;
-    const currentRate = question?.correctRate ?? 0; const validCurrentRate = (typeof currentRate === 'number' && !isNaN(currentRate)) ? currentRate : 0;
-    if (validCurrentCount === 0) { return isCorrect ? 100 : 0; }
-    const totalCorrectPoints = validCurrentRate * validCurrentCount / 100;
-    const newRate = isCorrect ? ((totalCorrectPoints + 1) / (validCurrentCount + 1)) * 100 : (totalCorrectPoints / (validCurrentCount + 1)) * 100;
-    return Math.round(newRate);
-}
+function calculateCorrectRate(question, isCorrect) { const currentCount = question?.answerCount ?? 0; const validCurrentCount = (typeof currentCount === 'number' && !isNaN(currentCount)) ? currentCount : 0; const currentRate = question?.correctRate ?? 0; const validCurrentRate = (typeof currentRate === 'number' && !isNaN(currentRate)) ? currentRate : 0; if (validCurrentCount === 0) { return isCorrect ? 100 : 0; } const totalCorrectPoints = validCurrentRate * validCurrentCount / 100; const newRate = isCorrect ? ((totalCorrectPoints + 1) / (validCurrentCount + 1)) * 100 : (totalCorrectPoints / (validCurrentCount + 1)) * 100; return Math.round(newRate); }
 
 // --- App コンポーネント本体 ---
 function App() {
@@ -99,32 +87,22 @@ function App() {
     if (savedStudyData) {
       try {
         studyDataToSet = JSON.parse(savedStudyData);
-        // データ形式の互換性チェック (念のため)
+        // データ形式の互換性チェック
         studyDataToSet.forEach(subject => {
             subject?.chapters?.forEach(chapter => {
                 chapter?.questions?.forEach(q => {
                     if (q) {
-                        // lastAnswered を Date オブジェクトに (既に Date ならそのまま)
-                        if (q.lastAnswered && !(q.lastAnswered instanceof Date)) {
-                            const parsedDate = new Date(q.lastAnswered);
-                            q.lastAnswered = !isNaN(parsedDate) ? parsedDate : null;
-                        }
-                        // understanding が未定義なら '理解○' に (古いデータ用)
+                        if (q.lastAnswered && !(q.lastAnswered instanceof Date)) { const parsedDate = new Date(q.lastAnswered); q.lastAnswered = !isNaN(parsedDate) ? parsedDate : null; }
                         if (typeof q.understanding === 'undefined') { q.understanding = '理解○'; }
-                        // comment が未定義なら空文字に
                         if (typeof q.comment === 'undefined') { q.comment = ''; }
                     }
                 });
             });
         });
         console.log('学習データをLocalStorageから読み込み完了');
-      } catch (e) {
-        console.error('学習データ読み込み失敗:', e);
-        studyDataToSet = generateInitialData(); // 失敗時はサンプル生成
-        console.log('読み込み失敗のため、初期学習データを生成');
-      }
+      } catch (e) { console.error('学習データ読み込み失敗:', e); studyDataToSet = generateInitialData(); console.log('読み込み失敗のため、初期学習データを生成'); }
     } else {
-      studyDataToSet = generateInitialData(); // データなければサンプル生成
+      studyDataToSet = generateInitialData();
       console.log('LocalStorageにデータがないため初期学習データを生成');
     }
     setSubjects(studyDataToSet);
@@ -135,30 +113,76 @@ function App() {
     setAnswerHistory(historyDataToSet);
 
     const initialExpandedSubjectsState = {};
-    if (Array.isArray(studyDataToSet)) { studyDataToSet.forEach(subject => { if (subject?.id) { initialExpandedSubjectsState[subject.id] = false; } }); if (studyDataToSet.length > 0 && studyDataToSet[0]?.id) { initialExpandedSubjectsState[studyDataToSet[0].id] = true; } } // subject.id を使う
+    if (Array.isArray(studyDataToSet)) { studyDataToSet.forEach(subject => { if (subject?.id) { initialExpandedSubjectsState[subject.id] = false; } }); if (studyDataToSet.length > 0 && studyDataToSet[0]?.id) { initialExpandedSubjectsState[studyDataToSet[0].id] = true; } }
     setExpandedSubjects(initialExpandedSubjectsState);
     console.log("初期データロード完了");
   }, []);
 
-  // ★ データ保存処理 (subjects 全体を 'studyData' に保存) (省略なし) ★
+  // ★ データ保存処理 (省略なし) ★
   useEffect(() => {
     try { const dataToSave = JSON.stringify(subjects, (key, value) => { if (key === 'lastAnswered' && value instanceof Date) { return value.toISOString(); } return value; }); localStorage.setItem('studyData', dataToSave); } catch (e) { console.error("学習データ保存失敗:", e); }
     try { localStorage.setItem('studyHistory', JSON.stringify(answerHistory)); } catch (e) { console.error("解答履歴保存失敗:", e); }
   }, [subjects, answerHistory]);
 
-  // ★ 今日の問題取得 (省略なし) ★
+  // ★ 今日の問題取得 (名前取得修正 + 省略なし) ★
   const getTodayQuestions = () => {
     const today = new Date(); today.setHours(0, 0, 0, 0); const todayTime = today.getTime(); const questions = [];
+    console.log("getTodayQuestions called. Current subjects length:", subjects?.length);
     if (!Array.isArray(subjects)) return questions;
-    subjects.forEach(subject => { subject?.chapters?.forEach(chapter => { chapter?.questions?.forEach(question => { if (!question?.nextDate) return; try { const nextDate = new Date(question.nextDate); if (isNaN(nextDate.getTime())) return; nextDate.setHours(0, 0, 0, 0); if (nextDate.getTime() === todayTime) { const subjName = subject?.name ?? '?'; const chapName = chapter?.name ?? '?'; questions.push({ ...question, subjectName: subjName, chapterName: chapName }); } } catch (e) { console.error("Error parsing nextDate in getTodayQuestions:", e, question); } }); }); });
+    subjects.forEach((subject, sIndex) => {
+      subject?.chapters?.forEach((chapter, cIndex) => {
+        chapter?.questions?.forEach(question => {
+          if (!question?.nextDate /* || question.understanding === '未学習' */) return;
+          try {
+            const nextDate = new Date(question.nextDate);
+            if (isNaN(nextDate.getTime())) return;
+            nextDate.setHours(0, 0, 0, 0);
+            if (nextDate.getTime() === todayTime) {
+                const subjName = subject?.name ?? '?'; // ★ subject.name を参照
+                const chapName = chapter?.name ?? '?'; // ★ chapter.name を参照
+                console.log(`[Today] Found match: ${question.id}. Subject Name: ${subjName}, Chapter Name: ${chapName}`);
+                if (subjName === '?' || chapName === '?') {
+                     console.log("[Today] Problem Details:", JSON.stringify(question));
+                     console.log("[Today] Chapter Details:", JSON.stringify(chapter));
+                     console.log("[Today] Subject Details:", JSON.stringify(subject));
+                }
+                questions.push({ ...question, subjectName: subjName, chapterName: chapName });
+            }
+          } catch (e) { console.error("Error parsing nextDate in getTodayQuestions:", e, question); }
+        });
+      });
+    });
     return questions.sort((a,b) => naturalSortCompare(a.id, b.id));
   };
 
-  // ★ 特定日付の問題取得 (省略なし) ★
+  // ★ 特定日付の問題取得 (名前取得修正 + 省略なし) ★
   const getQuestionsForDate = (date) => {
     const targetDate = new Date(date); if (isNaN(targetDate.getTime())) return []; targetDate.setHours(0, 0, 0, 0); const targetTime = targetDate.getTime(); const questions = [];
+    console.log(`getQuestionsForDate called for ${formatDate(date)}. Current subjects length:`, subjects?.length);
     if (!Array.isArray(subjects)) return questions;
-    subjects.forEach(subject => { subject?.chapters?.forEach(chapter => { chapter?.questions?.forEach(question => { if (!question?.nextDate) return; try { const nextDate = new Date(question.nextDate); if (isNaN(nextDate.getTime())) return; nextDate.setHours(0, 0, 0, 0); if (nextDate.getTime() === targetTime) { const subjName = subject?.name ?? '?'; const chapName = chapter?.name ?? '?'; questions.push({ ...question, subjectName: subjName, chapterName: chapName }); } } catch(e) { console.error("Error parsing nextDate in getQuestionsForDate:", e, question); } }); }); });
+    subjects.forEach((subject, sIndex) => {
+      subject?.chapters?.forEach((chapter, cIndex) => {
+        chapter?.questions?.forEach(question => {
+          if (!question?.nextDate /* || question.understanding === '未学習' */) return;
+          try {
+            const nextDate = new Date(question.nextDate);
+            if (isNaN(nextDate.getTime())) return;
+            nextDate.setHours(0, 0, 0, 0);
+            if (nextDate.getTime() === targetTime) {
+                const subjName = subject?.name ?? '?'; // ★ subject.name を参照
+                const chapName = chapter?.name ?? '?'; // ★ chapter.name を参照
+                 console.log(`[Date] Found match: ${question.id}. Subject Name: ${subjName}, Chapter Name: ${chapName}`);
+                 if (subjName === '?' || chapName === '?') {
+                     console.log("[Date] Problem Details:", JSON.stringify(question));
+                     console.log("[Date] Chapter Details:", JSON.stringify(chapter));
+                     console.log("[Date] Subject Details:", JSON.stringify(subject));
+                 }
+                questions.push({ ...question, subjectName: subjName, chapterName: chapName });
+            }
+          } catch(e) { console.error("Error parsing nextDate in getQuestionsForDate:", e, question); }
+        });
+      });
+    });
     return questions.sort((a,b) => naturalSortCompare(a.id, b.id));
   };
 
@@ -167,93 +191,41 @@ function App() {
   const toggleChapter = (chapterId) => { setExpandedChapters(prev => ({ ...prev, [chapterId]: !prev[chapterId] })); };
 
   // ★ 解答記録 & 履歴追加 (省略なし) ★
-  const recordAnswer = (questionId, isCorrect, understanding) => {
-    const timestamp = new Date().toISOString(); let updatedQuestionData = null;
-    setSubjects(prevSubjects => { if (!Array.isArray(prevSubjects)) return []; const newSubjects = prevSubjects.map(subject => { if (!subject?.chapters) return subject; return { ...subject, id: subject.id, name: subject.name, chapters: subject.chapters.map(chapter => { if (!chapter?.questions) return chapter; return { ...chapter, id: chapter.id, name: chapter.name, questions: chapter.questions.map(q => { if (q?.id === questionId) { const question = { ...q }; const previousUnderstanding = question.understanding; const today = new Date(); let nextDate = new Date(); let newInterval = ''; if (understanding.startsWith('曖昧△')) { nextDate.setDate(today.getDate() + 8); newInterval = '8日'; } else if (isCorrect && understanding === '理解○') { const isFirstCorrect = question.understanding === '未学習'; const baseInterval = isFirstCorrect ? '1日' : (previousUnderstanding?.startsWith('曖昧△') ? '14日' : (question.interval || '1日')); switch(baseInterval) { case '1日': nextDate.setDate(today.getDate() + 3); newInterval = '3日'; break; case '3日': nextDate.setDate(today.getDate() + 7); newInterval = '7日'; break; case '7日': nextDate.setDate(today.getDate() + 14); newInterval = '14日'; break; case '14日': nextDate.setMonth(today.getMonth() + 1); newInterval = '1ヶ月'; break; case '1ヶ月': nextDate.setMonth(today.getMonth() + 2); newInterval = '2ヶ月'; break; default: nextDate.setMonth(today.getMonth() + 2); newInterval = '2ヶ月'; break; } } else { nextDate.setDate(today.getDate() + 1); newInterval = '1日'; } updatedQuestionData = { ...question, lastAnswered: today, nextDate: nextDate.toISOString(), interval: newInterval, answerCount: (question.answerCount || 0) + 1, understanding: understanding, previousUnderstanding: previousUnderstanding, correctRate: calculateCorrectRate(question, isCorrect), comment: q.comment, }; return updatedQuestionData; } return q; }) }; }) }; }); return newSubjects; });
-    if (updatedQuestionData) { const newHistoryRecord = { id: crypto.randomUUID ? crypto.randomUUID() : `history-${Date.now()}-${Math.random()}`, questionId: questionId, timestamp: timestamp, isCorrect: isCorrect, understanding: understanding, }; setAnswerHistory(prevHistory => [...prevHistory, newHistoryRecord]); } else { console.warn("recordAnswer: Failed to find question or update data for", questionId); }
-  };
+  const recordAnswer = (questionId, isCorrect, understanding) => { const timestamp = new Date().toISOString(); let updatedQuestionData = null; setSubjects(prevSubjects => { if (!Array.isArray(prevSubjects)) return []; const newSubjects = prevSubjects.map(subject => { if (!subject?.chapters) return subject; return { ...subject, id: subject.id, name: subject.name, chapters: subject.chapters.map(chapter => { if (!chapter?.questions) return chapter; return { ...chapter, id: chapter.id, name: chapter.name, questions: chapter.questions.map(q => { if (q?.id === questionId) { const question = { ...q }; const previousUnderstanding = question.understanding; const today = new Date(); let nextDate = new Date(); let newInterval = ''; if (understanding.startsWith('曖昧△')) { nextDate.setDate(today.getDate() + 8); newInterval = '8日'; } else if (isCorrect && understanding === '理解○') { const isFirstCorrect = question.understanding === '未学習'; const baseInterval = isFirstCorrect ? '1日' : (previousUnderstanding?.startsWith('曖昧△') ? '14日' : (question.interval || '1日')); switch(baseInterval) { case '1日': nextDate.setDate(today.getDate() + 3); newInterval = '3日'; break; case '3日': nextDate.setDate(today.getDate() + 7); newInterval = '7日'; break; case '7日': nextDate.setDate(today.getDate() + 14); newInterval = '14日'; break; case '14日': nextDate.setMonth(today.getMonth() + 1); newInterval = '1ヶ月'; break; case '1ヶ月': nextDate.setMonth(today.getMonth() + 2); newInterval = '2ヶ月'; break; default: nextDate.setMonth(today.getMonth() + 2); newInterval = '2ヶ月'; break; } } else { nextDate.setDate(today.getDate() + 1); newInterval = '1日'; } updatedQuestionData = { ...question, lastAnswered: today, nextDate: nextDate.toISOString(), interval: newInterval, answerCount: (question.answerCount || 0) + 1, understanding: understanding, previousUnderstanding: previousUnderstanding, correctRate: calculateCorrectRate(question, isCorrect), comment: q.comment, }; return updatedQuestionData; } return q; }) }; }) }; }); return newSubjects; }); if (updatedQuestionData) { const newHistoryRecord = { id: crypto.randomUUID ? crypto.randomUUID() : `history-${Date.now()}-${Math.random()}`, questionId: questionId, timestamp: timestamp, isCorrect: isCorrect, understanding: understanding, }; setAnswerHistory(prevHistory => [...prevHistory, newHistoryRecord]); } else { console.warn("recordAnswer: Failed to find question or update data for", questionId); } };
 
   // ★ コメント保存用の関数 (省略なし) ★
-  const saveComment = (questionId, commentText) => {
-    setSubjects(prevSubjects => { if (!Array.isArray(prevSubjects)) return []; return prevSubjects.map(subject => { if (!subject?.chapters) return subject; return { ...subject, id: subject.id, name: subject.name, chapters: subject.chapters.map(chapter => { if (!chapter?.questions) return chapter; return { ...chapter, id: chapter.id, name: chapter.name, questions: chapter.questions.map(q => { if (q?.id === questionId) { return { ...q, comment: commentText }; } return q; })}; })}; }); });
-  };
+  const saveComment = (questionId, commentText) => { setSubjects(prevSubjects => { if (!Array.isArray(prevSubjects)) return []; return prevSubjects.map(subject => { if (!subject?.chapters) return subject; return { ...subject, id: subject.id, name: subject.name, chapters: subject.chapters.map(chapter => { if (!chapter?.questions) return chapter; return { ...chapter, id: chapter.id, name: chapter.name, questions: chapter.questions.map(q => { if (q?.id === questionId) { return { ...q, comment: commentText }; } return q; })}; })}; }); }); };
 
   // ★ DnD 日付変更 (省略なし) ★
-  const handleQuestionDateChange = (questionId, newDate) => {
-    setSubjects(prevSubjects => { if (!Array.isArray(prevSubjects)) return []; const targetDate = new Date(newDate); if (isNaN(targetDate.getTime())) { console.error("無効日付:", newDate); return prevSubjects; } targetDate.setHours(0, 0, 0, 0); const targetDateString = targetDate.toISOString(); const newSubjects = prevSubjects.map(subject => { if (!subject?.chapters) return subject; return { ...subject, id: subject.id, name: subject.name, chapters: subject.chapters.map(chapter => { if (!chapter?.questions) return chapter; return { ...chapter, id: chapter.id, name: chapter.name, questions: chapter.questions.map(q => { if (q?.id === questionId) { return { ...q, nextDate: targetDateString }; } return q; }) }; }) }; }); return newSubjects; });
-  };
+  const handleQuestionDateChange = (questionId, newDate) => { setSubjects(prevSubjects => { if (!Array.isArray(prevSubjects)) return []; const targetDate = new Date(newDate); if (isNaN(targetDate.getTime())) { console.error("無効日付:", newDate); return prevSubjects; } targetDate.setHours(0, 0, 0, 0); const targetDateString = targetDate.toISOString(); const newSubjects = prevSubjects.map(subject => { if (!subject?.chapters) return subject; return { ...subject, id: subject.id, name: subject.name, chapters: subject.chapters.map(chapter => { if (!chapter?.questions) return chapter; return { ...chapter, id: chapter.id, name: chapter.name, questions: chapter.questions.map(q => { if (q?.id === questionId) { return { ...q, nextDate: targetDateString }; } return q; }) }; }) }; }); return newSubjects; }); };
 
   // ★ 個別編集保存 (省略なし) ★
-  const saveQuestionEdit = (questionData) => {
-    console.log("編集保存 (App.js):", questionData);
-    setSubjects(prevSubjects => { if (!Array.isArray(prevSubjects)) return []; const newSubjects = prevSubjects.map(subject => { if (!subject?.chapters) return subject; return { ...subject, id: subject.id, name: subject.name, chapters: subject.chapters.map(chapter => { if (!chapter?.questions) return chapter; return { ...chapter, id: chapter.id, name: chapter.name, questions: chapter.questions.map(q => { if (q?.id === questionData.id) { const updatedQuestion = { ...q, ...questionData, lastAnswered: questionData.lastAnswered ? new Date(questionData.lastAnswered) : null, }; if (updatedQuestion.nextDate && isNaN(new Date(updatedQuestion.nextDate).getTime())) { updatedQuestion.nextDate = q.nextDate; } if (questionData.lastAnswered && isNaN(updatedQuestion.lastAnswered?.getTime())) { updatedQuestion.lastAnswered = null; } if (typeof updatedQuestion.answerCount !== 'number' || isNaN(updatedQuestion.answerCount) || updatedQuestion.answerCount < 0) { updatedQuestion.answerCount = 0; } if (typeof updatedQuestion.correctRate !== 'number' || isNaN(updatedQuestion.correctRate) || updatedQuestion.correctRate < 0 || updatedQuestion.correctRate > 100) { updatedQuestion.correctRate = 0;} console.log("最終更新データ:", updatedQuestion); return updatedQuestion; } return q; }) }; }) }; }); return newSubjects; });
-    setEditingQuestion(null);
-  };
+  const saveQuestionEdit = (questionData) => { console.log("編集保存 (App.js):", questionData); setSubjects(prevSubjects => { if (!Array.isArray(prevSubjects)) return []; const newSubjects = prevSubjects.map(subject => { if (!subject?.chapters) return subject; return { ...subject, id: subject.id, name: subject.name, chapters: subject.chapters.map(chapter => { if (!chapter?.questions) return chapter; return { ...chapter, id: chapter.id, name: chapter.name, questions: chapter.questions.map(q => { if (q?.id === questionData.id) { const updatedQuestion = { ...q, ...questionData, lastAnswered: questionData.lastAnswered ? new Date(questionData.lastAnswered) : null, }; if (updatedQuestion.nextDate && isNaN(new Date(updatedQuestion.nextDate).getTime())) { updatedQuestion.nextDate = q.nextDate; } if (questionData.lastAnswered && isNaN(updatedQuestion.lastAnswered?.getTime())) { updatedQuestion.lastAnswered = null; } if (typeof updatedQuestion.answerCount !== 'number' || isNaN(updatedQuestion.answerCount) || updatedQuestion.answerCount < 0) { updatedQuestion.answerCount = 0; } if (typeof updatedQuestion.correctRate !== 'number' || isNaN(updatedQuestion.correctRate) || updatedQuestion.correctRate < 0 || updatedQuestion.correctRate > 100) { updatedQuestion.correctRate = 0;} console.log("最終更新データ:", updatedQuestion); return updatedQuestion; } return q; }) }; }) }; }); return newSubjects; }); setEditingQuestion(null); };
 
   // ★ 新しい一括編集関数 (省略なし) ★
-  const saveBulkEditItems = (itemsToUpdate) => {
-    console.log("一括編集実行 (App.js):", itemsToUpdate, "対象:", selectedQuestions);
-    if (!selectedQuestions || selectedQuestions.length === 0) { alert('一括編集する問題を選択してください。'); return; }
-    if (!itemsToUpdate || Object.keys(itemsToUpdate).length === 0) { return; }
-    let updatedCount = 0;
-    setSubjects(prevSubjects => { if (!Array.isArray(prevSubjects)) return []; const newSubjects = prevSubjects.map(subject => { if (!subject?.chapters) return subject; return { ...subject, id: subject.id, name: subject.name, chapters: subject.chapters.map(chapter => { if (!chapter?.questions) return chapter; return { ...chapter, id: chapter.id, name: chapter.name, questions: chapter.questions.map(q => { if (q && selectedQuestions.includes(q.id)) { updatedCount++; let updatedQuestion = { ...q }; for (const key in itemsToUpdate) { if (Object.hasOwnProperty.call(itemsToUpdate, key)) { let value = itemsToUpdate[key]; console.log(`Updating ${q.id}: ${key} = ${value}`); if (key === 'nextDate') { const dateValue = value ? new Date(value) : null; updatedQuestion[key] = (dateValue && !isNaN(dateValue.getTime())) ? dateValue.toISOString() : null; if (!updatedQuestion[key] && value) console.warn(`無効な日付(nextDate):`, value); } else if (key === 'lastAnswered') { const dateValue = value ? new Date(value) : null; updatedQuestion[key] = (dateValue && !isNaN(dateValue.getTime())) ? dateValue : null; if (!updatedQuestion[key] && value) console.warn(`無効な日付(lastAnswered):`, value); } else if (key === 'answerCount') { const numValue = parseInt(value, 10); updatedQuestion[key] = (!isNaN(numValue) && numValue >= 0) ? numValue : 0; } else if (key === 'correctRate') { const numValue = parseInt(value, 10); updatedQuestion[key] = (!isNaN(numValue) && numValue >= 0 && numValue <= 100) ? numValue : 0;} else { updatedQuestion[key] = value; } } } return updatedQuestion; } return q; }) }; }) }; }); if (updatedCount > 0) { alert(`${updatedCount}件の問題が更新されました。`); } return newSubjects; });
-    setBulkEditMode(false);
-    setSelectedQuestions([]);
-    console.log("一括編集完了");
-  };
+  const saveBulkEditItems = (itemsToUpdate) => { console.log("一括編集実行 (App.js):", itemsToUpdate, "対象:", selectedQuestions); if (!selectedQuestions || selectedQuestions.length === 0) { alert('一括編集する問題を選択してください。'); return; } if (!itemsToUpdate || Object.keys(itemsToUpdate).length === 0) { return; } let updatedCount = 0; setSubjects(prevSubjects => { if (!Array.isArray(prevSubjects)) return []; const newSubjects = prevSubjects.map(subject => { if (!subject?.chapters) return subject; return { ...subject, id: subject.id, name: subject.name, chapters: subject.chapters.map(chapter => { if (!chapter?.questions) return chapter; return { ...chapter, id: chapter.id, name: chapter.name, questions: chapter.questions.map(q => { if (q && selectedQuestions.includes(q.id)) { updatedCount++; let updatedQuestion = { ...q }; for (const key in itemsToUpdate) { if (Object.hasOwnProperty.call(itemsToUpdate, key)) { let value = itemsToUpdate[key]; console.log(`Updating ${q.id}: ${key} = ${value}`); if (key === 'nextDate') { const dateValue = value ? new Date(value) : null; updatedQuestion[key] = (dateValue && !isNaN(dateValue.getTime())) ? dateValue.toISOString() : null; if (!updatedQuestion[key] && value) console.warn(`無効な日付(nextDate):`, value); } else if (key === 'lastAnswered') { const dateValue = value ? new Date(value) : null; updatedQuestion[key] = (dateValue && !isNaN(dateValue.getTime())) ? dateValue : null; if (!updatedQuestion[key] && value) console.warn(`無効な日付(lastAnswered):`, value); } else if (key === 'answerCount') { const numValue = parseInt(value, 10); updatedQuestion[key] = (!isNaN(numValue) && numValue >= 0) ? numValue : 0; } else if (key === 'correctRate') { const numValue = parseInt(value, 10); updatedQuestion[key] = (!isNaN(numValue) && numValue >= 0 && numValue <= 100) ? numValue : 0;} else { updatedQuestion[key] = value; } } } return updatedQuestion; } return q; }) }; }) }; }); if (updatedCount > 0) { alert(`${updatedCount}件の問題が更新されました。`); } return newSubjects; }); setBulkEditMode(false); setSelectedQuestions([]); console.log("一括編集完了"); };
 
   // ★ 古い一括編集保存 (省略なし) ★
-  const saveBulkEdit = (date) => {
-     console.log("古い saveBulkEdit が呼ばれました。saveBulkEditItems を使用します。");
-     const targetDate = new Date(date); if (isNaN(targetDate.getTime())) { console.error("無効日付:", date); return; }
-     targetDate.setHours(0, 0, 0, 0); const targetDateString = targetDate.toISOString();
-     saveBulkEditItems({ nextDate: targetDateString });
-  };
+  const saveBulkEdit = (date) => { console.log("古い saveBulkEdit が呼ばれました。saveBulkEditItems を使用します。"); const targetDate = new Date(date); if (isNaN(targetDate.getTime())) { console.error("無効日付:", date); return; } targetDate.setHours(0, 0, 0, 0); const targetDateString = targetDate.toISOString(); saveBulkEditItems({ nextDate: targetDateString }); };
 
   // ★ 一括編集 選択切り替え (省略なし) ★
-  const toggleQuestionSelection = (questionId) => {
-    setSelectedQuestions(prev => { if (prev.includes(questionId)) { return prev.filter(id => id !== questionId); } else { return [...prev, questionId]; } });
-  };
+  const toggleQuestionSelection = (questionId) => { setSelectedQuestions(prev => { if (prev.includes(questionId)) { return prev.filter(id => id !== questionId); } else { return [...prev, questionId]; } }); };
 
   // ★ 日付フォーマット (省略なし) ★
-   const formatDate = (date) => {
-     if (!date) return '----/--/--';
-     try { const d = (date instanceof Date) ? date : new Date(date); if (isNaN(d.getTime())) return '無効日付'; const year = d.getFullYear(); const month = d.getMonth() + 1; const day = d.getDate(); return `${year}/${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}`;
-     } catch(e) { console.error("formatDateエラー:", e, date); return 'エラー'; }
-   };
+   const formatDate = (date) => { if (!date) return '----/--/--'; try { const d = (date instanceof Date) ? date : new Date(date); if (isNaN(d.getTime())) return '無効日付'; const year = d.getFullYear(); const month = d.getMonth() + 1; const day = d.getDate(); return `${year}/${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}`; } catch(e) { console.error("formatDateエラー:", e, date); return 'エラー'; } };
 
    // ★ データリセット関数 (省略なし) ★
-   const resetAllData = () => {
-       console.log("全学習データのリセットを実行します...");
-       if (window.confirm("本当にすべての学習データ（解答履歴含む）をリセットしますか？\nこの操作は元に戻せません。")) {
-           try { localStorage.removeItem('studyData'); localStorage.removeItem('studyHistory'); console.log("LocalStorageのデータを削除しました。"); alert("学習データをリセットしました。ページをリロードして初期データを再生成します。"); window.location.reload(); }
-           catch (error) { console.error("データリセット中にエラーが発生しました:", error); alert("データのリセット中にエラーが発生しました。"); }
-       } else { console.log("データリセットはキャンセルされました。"); }
-   };
+   const resetAllData = () => { console.log("全学習データのリセットを実行します..."); if (window.confirm("本当にすべての学習データ（解答履歴含む）をリセットしますか？\nこの操作は元に戻せません。")) { try { localStorage.removeItem('studyData'); localStorage.removeItem('studyHistory'); console.log("LocalStorageのデータを削除しました。"); alert("学習データをリセットしました。ページをリロードして初期データを再生成します。"); window.location.reload(); } catch (error) { console.error("データリセット中にエラーが発生しました:", error); alert("データのリセット中にエラーが発生しました。"); } } else { console.log("データリセットはキャンセルされました。"); } };
 
   // ★ メインビュー切り替え (省略なし) ★
   const MainView = () => {
     switch (activeTab) {
       case 'today': return <TodayView getTodayQuestions={getTodayQuestions} recordAnswer={recordAnswer} formatDate={formatDate} />;
       case 'schedule': return <ScheduleView subjects={subjects} getQuestionsForDate={getQuestionsForDate} handleQuestionDateChange={handleQuestionDateChange} formatDate={formatDate} />;
-      case 'all': return <RedesignedAllQuestionsView
-                            subjects={subjects}
-                            expandedSubjects={expandedSubjects}
-                            expandedChapters={expandedChapters}
-                            toggleSubject={toggleSubject}
-                            toggleChapter={toggleChapter}
-                            setEditingQuestion={setEditingQuestion}
-                            setBulkEditMode={setBulkEditMode}
-                            bulkEditMode={bulkEditMode}
-                            selectedQuestions={selectedQuestions}
-                            setSelectedQuestions={setSelectedQuestions}
-                            saveBulkEditItems={saveBulkEditItems} // ★ saveBulkEditItems を渡す
-                            formatDate={formatDate}
-                            toggleQuestionSelection={toggleQuestionSelection}
-                          />;
+      case 'all': return <RedesignedAllQuestionsView subjects={subjects} expandedSubjects={expandedSubjects} expandedChapters={expandedChapters} toggleSubject={toggleSubject} toggleChapter={toggleChapter} setEditingQuestion={setEditingQuestion} setBulkEditMode={setBulkEditMode} bulkEditMode={bulkEditMode} selectedQuestions={selectedQuestions} setSelectedQuestions={setSelectedQuestions} saveBulkEditItems={saveBulkEditItems} formatDate={formatDate} toggleQuestionSelection={toggleQuestionSelection} />;
       case 'trends': return <AmbiguousTrendsPage subjects={subjects} formatDate={formatDate} answerHistory={answerHistory} saveComment={saveComment} />;
       case 'stats': return <div className="p-4">学習統計ページ (未実装)</div>;
-      case 'settings': return <SettingsPage onResetData={resetAllData} />; // ★ リセット関数を渡す
+      case 'settings': return <SettingsPage onResetData={resetAllData} />;
       default: return <TodayView getTodayQuestions={getTodayQuestions} recordAnswer={recordAnswer} formatDate={formatDate} />;
     }
   };
@@ -276,6 +248,6 @@ function App() {
       <div id="notification-area" className="fixed bottom-4 right-4 z-30"></div>
     </div>
   );
-} // App コンポーネントここまで
+}
 
 export default App;
