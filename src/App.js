@@ -124,67 +124,131 @@ function App() {
     try { localStorage.setItem('studyHistory', JSON.stringify(answerHistory)); } catch (e) { console.error("解答履歴保存失敗:", e); }
   }, [subjects, answerHistory]);
 
-  // ★ 今日の問題取得 (名前取得修正 + 省略なし) ★
-  const getTodayQuestions = () => {
-    const today = new Date(); today.setHours(0, 0, 0, 0); const todayTime = today.getTime(); const questions = [];
-    console.log("getTodayQuestions called. Current subjects length:", subjects?.length);
-    if (!Array.isArray(subjects)) return questions;
-    subjects.forEach((subject, sIndex) => {
-      subject?.chapters?.forEach((chapter, cIndex) => {
-        chapter?.questions?.forEach(question => {
-          if (!question?.nextDate /* || question.understanding === '未学習' */) return;
-          try {
-            const nextDate = new Date(question.nextDate);
-            if (isNaN(nextDate.getTime())) return;
-            nextDate.setHours(0, 0, 0, 0);
-            if (nextDate.getTime() === todayTime) {
-                const subjName = subject?.name ?? '?'; // ★ subject.name を参照
-                const chapName = chapter?.name ?? '?'; // ★ chapter.name を参照
-                console.log(`[Today] Found match: ${question.id}. Subject Name: ${subjName}, Chapter Name: ${chapName}`);
-                if (subjName === '?' || chapName === '?') {
-                     console.log("[Today] Problem Details:", JSON.stringify(question));
-                     console.log("[Today] Chapter Details:", JSON.stringify(chapter));
-                     console.log("[Today] Subject Details:", JSON.stringify(subject));
-                }
-                questions.push({ ...question, subjectName: subjName, chapterName: chapName });
-            }
-          } catch (e) { console.error("Error parsing nextDate in getTodayQuestions:", e, question); }
-        });
-      });
-    });
-    return questions.sort((a,b) => naturalSortCompare(a.id, b.id));
-  };
+// ★ 今日の問題取得 (名前取得修正 + 早期リターン + 変数保持) ★
+const getTodayQuestions = () => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayTime = today.getTime();
+  const questions = [];
+  console.log("getTodayQuestions called. Current subjects length:", subjects?.length); // 既存ログ
 
-  // ★ 特定日付の問題取得 (名前取得修正 + 省略なし) ★
-  const getQuestionsForDate = (date) => {
-    const targetDate = new Date(date); if (isNaN(targetDate.getTime())) return []; targetDate.setHours(0, 0, 0, 0); const targetTime = targetDate.getTime(); const questions = [];
-    console.log(`getQuestionsForDate called for ${formatDate(date)}. Current subjects length:`, subjects?.length);
-    if (!Array.isArray(subjects)) return questions;
-    subjects.forEach((subject, sIndex) => {
-      subject?.chapters?.forEach((chapter, cIndex) => {
-        chapter?.questions?.forEach(question => {
-          if (!question?.nextDate /* || question.understanding === '未学習' */) return;
-          try {
-            const nextDate = new Date(question.nextDate);
-            if (isNaN(nextDate.getTime())) return;
-            nextDate.setHours(0, 0, 0, 0);
-            if (nextDate.getTime() === targetTime) {
-                const subjName = subject?.name ?? '?'; // ★ subject.name を参照
-                const chapName = chapter?.name ?? '?'; // ★ chapter.name を参照
-                 console.log(`[Date] Found match: ${question.id}. Subject Name: ${subjName}, Chapter Name: ${chapName}`);
-                 if (subjName === '?' || chapName === '?') {
-                     console.log("[Date] Problem Details:", JSON.stringify(question));
-                     console.log("[Date] Chapter Details:", JSON.stringify(chapter));
-                     console.log("[Date] Subject Details:", JSON.stringify(subject));
-                 }
-                questions.push({ ...question, subjectName: subjName, chapterName: chapName });
+  // ★ subjects state が空配列または未定義の場合は早期リターン
+  if (!Array.isArray(subjects) || subjects.length === 0) {
+      console.warn("getTodayQuestions: subjects is empty or not an array. Returning empty list.");
+      return questions;
+  }
+
+  subjects.forEach((subject) => { // subject, sIndex から sIndex を削除（未使用のため）
+    // ★ subject と subject.chapters の存在チェックを追加
+    if (!subject || !Array.isArray(subject.chapters)) {
+        console.warn("getTodayQuestions: Invalid subject or chapters structure:", subject);
+        return; // この subject をスキップ
+    }
+    // ★ ループの先頭で subject.name を取得して変数に保持
+    const currentSubjectName = subject.name;
+
+    subject.chapters.forEach((chapter) => { // chapter, cIndex から cIndex を削除（未使用のため）
+      // ★ chapter と chapter.questions の存在チェックを追加
+      if (!chapter || !Array.isArray(chapter.questions)) {
+          console.warn("getTodayQuestions: Invalid chapter or questions structure:", chapter);
+          return; // この chapter をスキップ
+      }
+      // ★ ループの先頭で chapter.name を取得して変数に保持
+      const currentChapterName = chapter.name;
+
+      chapter.questions.forEach(question => {
+        if (!question?.nextDate) return;
+        try {
+          const nextDate = new Date(question.nextDate);
+          if (isNaN(nextDate.getTime())) return;
+          nextDate.setHours(0, 0, 0, 0);
+          if (nextDate.getTime() === todayTime) {
+            // ★ 取得した変数 currentSubjectName, currentChapterName を使う
+            const subjName = currentSubjectName ?? '?'; // nullish coalescing で ? をフォールバック
+            const chapName = currentChapterName ?? '?'; // nullish coalescing で ? をフォールバック
+            console.log(`[Today] Found match: ${question.id}. Subject Name: ${subjName}, Chapter Name: ${chapName}`); // 既存ログ
+            // エラー時のログ（既存のものを少し調整）
+            if (subjName === '?' || chapName === '?') {
+                 console.log("[Today] Problem Details:", JSON.stringify(question));
+                 // ネストが深い chapters/questions はログ出力から除外して見やすくする
+                 console.log("[Today] Chapter Details (without questions):", JSON.stringify({...chapter, questions: undefined}));
+                 console.log("[Today] Subject Details (without chapters):", JSON.stringify({...subject, chapters: undefined}));
             }
-          } catch(e) { console.error("Error parsing nextDate in getQuestionsForDate:", e, question); }
-        });
+            // 問題オブジェクトに科目名と章名を付与
+            questions.push({ ...question, subjectName: subjName, chapterName: chapName });
+          }
+        } catch (e) {
+          console.error("Error processing question in getTodayQuestions:", e, question); // 既存ログ
+        }
       });
     });
-    return questions.sort((a,b) => naturalSortCompare(a.id, b.id));
-  };
+  });
+  // 問題IDでソート
+  return questions.sort((a, b) => naturalSortCompare(a.id, b.id)); // 既存ソート
+};
+
+// ★ 特定日付の問題取得 (同様の修正) ★
+const getQuestionsForDate = (date) => {
+  const targetDate = new Date(date);
+  if (isNaN(targetDate.getTime())) return [];
+  targetDate.setHours(0, 0, 0, 0);
+  const targetTime = targetDate.getTime();
+  const questions = [];
+  console.log(`getQuestionsForDate called for ${formatDate(date)}. Current subjects length:`, subjects?.length); // 既存ログ
+
+  // ★ subjects state が空配列または未定義の場合は早期リターン
+  if (!Array.isArray(subjects) || subjects.length === 0) {
+      console.warn(`getQuestionsForDate (${formatDate(date)}): subjects is empty or not an array. Returning empty list.`);
+      return questions;
+  }
+
+  subjects.forEach((subject) => { // subject, sIndex から sIndex を削除
+    // ★ subject と subject.chapters の存在チェックを追加
+    if (!subject || !Array.isArray(subject.chapters)) {
+        console.warn(`getQuestionsForDate (${formatDate(date)}): Invalid subject or chapters structure:`, subject);
+        return; // この subject をスキップ
+    }
+    // ★ ループの先頭で subject.name を取得して変数に保持
+    const currentSubjectName = subject.name;
+
+    subject.chapters.forEach((chapter) => { // chapter, cIndex から cIndex を削除
+      // ★ chapter と chapter.questions の存在チェックを追加
+      if (!chapter || !Array.isArray(chapter.questions)) {
+          console.warn(`getQuestionsForDate (${formatDate(date)}): Invalid chapter or questions structure:`, chapter);
+          return; // この chapter をスキップ
+      }
+      // ★ ループの先頭で chapter.name を取得して変数に保持
+      const currentChapterName = chapter.name;
+
+      chapter.questions.forEach(question => {
+        if (!question?.nextDate) return;
+        try {
+          const nextDate = new Date(question.nextDate);
+          if (isNaN(nextDate.getTime())) return;
+          nextDate.setHours(0, 0, 0, 0);
+          if (nextDate.getTime() === targetTime) {
+            // ★ 取得した変数 currentSubjectName, currentChapterName を使う
+            const subjName = currentSubjectName ?? '?'; // nullish coalescing
+            const chapName = currentChapterName ?? '?'; // nullish coalescing
+             console.log(`[Date] Found match: ${question.id}. Subject Name: ${subjName}, Chapter Name: ${chapName}`); // 既存ログ
+             // エラー時のログ（既存のものを少し調整）
+             if (subjName === '?' || chapName === '?') {
+                 console.log("[Date] Problem Details:", JSON.stringify(question));
+                 console.log("[Date] Chapter Details (without questions):", JSON.stringify({...chapter, questions: undefined}));
+                 console.log("[Date] Subject Details (without chapters):", JSON.stringify({...subject, chapters: undefined}));
+             }
+            // 問題オブジェクトに科目名と章名を付与
+            questions.push({ ...question, subjectName: subjName, chapterName: chapName });
+          }
+        } catch(e) {
+          console.error(`Error processing question in getQuestionsForDate (${formatDate(date)}):`, e, question); // 既存ログ
+        }
+      });
+    });
+  });
+  // 問題IDでソート
+  return questions.sort((a, b) => naturalSortCompare(a.id, b.id)); // 既存ソート
+};
 
   // ★ アコーディオン開閉 (省略なし) ★
   const toggleSubject = (subjectId) => { setExpandedSubjects(prev => ({ ...prev, [subjectId]: !prev[subjectId] })); };
