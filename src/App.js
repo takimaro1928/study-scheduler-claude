@@ -132,7 +132,8 @@ function App() {
              console.warn("todayQuestionsList (useMemo): Invalid subject or chapters structure:", subject);
              return; // この subject をスキップ
         }
-        const currentSubjectName = subject.name; // name を取得
+        // const currentSubjectName = subject.name; // name を取得
+        const currentSubjectName = subject.subjectName; // ★修正: subjectName を取得
         if (!currentSubjectName) {
             console.warn("Subject name is missing in useMemo calculation:", subject);
         }
@@ -142,7 +143,8 @@ function App() {
                console.warn("todayQuestionsList (useMemo): Invalid chapter or questions structure:", chapter);
                return; // この chapter をスキップ
           }
-          const currentChapterName = chapter.name; // name を取得
+          // const currentChapterName = chapter.name; // name を取得
+          const currentChapterName = chapter.chapterName; // ★修正: chapterName を取得
           if (!currentChapterName) {
               console.warn("Chapter name is missing in useMemo calculation:", chapter);
           }
@@ -192,14 +194,16 @@ function App() {
           console.warn(`getQuestionsForDate (${formatDate(date)}): Invalid subject or chapters structure:`, subject);
           return;
       }
-      const currentSubjectName = subject.name;
+      // const currentSubjectName = subject.name;
+      const currentSubjectName = subject.subjectName; // ★修正: subjectName を取得
 
       subject.chapters.forEach((chapter) => {
         if (!chapter || !Array.isArray(chapter.questions)) {
             console.warn(`getQuestionsForDate (${formatDate(date)}): Invalid chapter or questions structure:`, chapter);
             return;
         }
-        const currentChapterName = chapter.name;
+        // const currentChapterName = chapter.name;
+        const currentChapterName = chapter.chapterName; // ★修正: chapterName を取得
 
         chapter.questions.forEach(question => {
           if (!question?.nextDate) return;
