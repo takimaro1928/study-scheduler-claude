@@ -1,6 +1,5 @@
 // src/AmbiguousTrendsPage.js
-// 【今度こそ完全版・省略なし Ver.3】
-// コメント表示改善：クリックで全文表示ボックスを表示する機能を追加
+// テーブルソート機能の不具合修正版
 
 import React, { useState, useEffect, useMemo } from 'react';
 // XアイコンとTrendingDownを追加
@@ -23,28 +22,122 @@ function getAmbiguousQuestions(subjects) {
 // 日付のフォーマット関数
 const formatDateInternal = (date) => { if (!date || !(date instanceof Date) || isNaN(date.getTime())) { return '----/--/--'; } try { return `${date.getFullYear()}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}`; } catch (e) { console.error("formatDateエラー:", e); return 'エラー'; } };
 
-// 自然順ソート用の比較関数
-function naturalSortCompare(a, b, order) {
-  const nullOrder = (order === 'asc' ? 1 : -1); if (a == null && b != null) return nullOrder; if (a != null && b == null) return -nullOrder; if (a == null && b == null) return 0;
-  const re = /(\d+)|(\D+)/g; const aParts = String(a).match(re) || []; const bParts = String(b).match(re) || [];
+// 自然順ソート用の比較関数 - より強固なバージョン
+function naturalSortCompare(a, b, order = 'asc') {
+  // Nullチェック (nullは常にソートの最後に)
+  const nullOrder = (order === 'asc' ? 1 : -1);
+  if (a == null && b != null) return nullOrder;
+  if (a != null && b == null) return -nullOrder;
+  if (a == null && b == null) return 0;
+
+  // 文字列に変換
+  const aStr = String(a);
+  const bStr = String(b);
+
+  // 数字部分と非数字部分に分割する正規表現
+  const re = /(\d+)|(\D+)/g;
+  
+  // 文字列を部分に分割
+  const aParts = aStr.match(re) || [];
+  const bParts = bStr.match(re) || [];
+  
+  // 最小の長さまで比較
   const len = Math.min(aParts.length, bParts.length);
-  for (let i = 0; i < len; i++) { const aPart = aParts[i]; const bPart = bParts[i]; const aNum = parseInt(aPart, 10); const bNum = parseInt(bPart, 10); if (!isNaN(aNum) && !isNaN(bNum)) { if (aNum !== bNum) return aNum - bNum; } else { const comparison = aPart.localeCompare(bPart, undefined, { sensitivity: 'base' }); if (comparison !== 0) return comparison; } }
+  
+  for (let i = 0; i < len; i++) {
+    const aPart = aParts[i];
+    const bPart = bParts[i];
+    
+    // 数値部分の比較
+    const aNum = parseInt(aPart, 10);
+    const bNum = parseInt(bPart, 10);
+    
+    if (!isNaN(aNum) && !isNaN(bNum)) {
+      if (aNum !== bNum) {
+        return aNum - bNum;
+      }
+    } else {
+      // 文字列部分の比較
+      const comparison = aPart.localeCompare(bPart, undefined, { sensitivity: 'base' });
+      if (comparison !== 0) {
+        return comparison;
+      }
+    }
+  }
+  
+  // 部分の長さで比較（短い方が先）
   return aParts.length - bParts.length;
 }
 
-// ソート処理を共通化する関数
+// ソート処理を共通化する関数 - 改良版
 const sortData = (dataToSort, sortKey, sortOrder) => {
-  if (!Array.isArray(dataToSort)) { console.warn("sortData received non-array:", dataToSort); return []; }
+  if (!Array.isArray(dataToSort)) {
+    console.warn("sortData received non-array:", dataToSort);
+    return [];
+  }
+  
+  // null/undefinedでないオブジェクトのみフィルタリング
   const validData = dataToSort.filter(item => typeof item === 'object' && item !== null);
+  
   return validData.slice().sort((a, b) => {
-    if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) { return 0; }
-    const valA = a[sortKey]; const valB = b[sortKey]; let comparison = 0;
-    if (valA == null && valB != null) return sortOrder === 'asc' ? 1 : -1; if (valA != null && b == null) return sortOrder === 'asc' ? -1 : 1; if (valA == null && b == null) return 0;
-    if (valA instanceof Date && valB instanceof Date) { comparison = valA.getTime() - valB.getTime(); }
-    else if (typeof valA === 'number' && typeof valB === 'number') { comparison = valA - valB; }
-    else if (typeof valA === 'string' && typeof valB === 'string') { if (sortKey === 'id' || sortKey === 'chapterName' || sortKey === 'subjectName' || sortKey === 'reason') { comparison = naturalSortCompare(valA, valB); } else { comparison = valA.localeCompare(valB, undefined, { sensitivity: 'base' }); } }
-    else { try { if (valA < valB) comparison = -1; if (valA > valB) comparison = 1; } catch (e) { comparison = 0; } }
-    return sortOrder === 'asc' ? comparison : comparison * -1;
+    if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
+      return 0;
+    }
+    
+    const valA = a[sortKey];
+    const valB = b[sortKey];
+    
+    // nullチェック - nullは常にソートの最後に
+    if (valA == null && valB != null) return sortOrder === 'asc' ? 1 : -1;
+    if (valA != null && valB == null) return sortOrder === 'asc' ? -1 : 1;
+    if (valA == null && valB == null) return 0;
+    
+    let comparison = 0;
+    
+    // データ型に応じた比較ロジック
+    if (sortKey === 'lastAnswered' || sortKey === 'nextDate') {
+      // 日付型の比較
+      const dateA = valA instanceof Date ? valA : new Date(valA);
+      const dateB = valB instanceof Date ? valB : new Date(valB);
+      
+      if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) {
+        comparison = 0;
+      } else if (isNaN(dateA.getTime())) {
+        comparison = 1; // 無効な日付は後ろに
+      } else if (isNaN(dateB.getTime())) {
+        comparison = -1; // 無効な日付は後ろに
+      } else {
+        comparison = dateA.getTime() - dateB.getTime();
+      }
+    } else if (sortKey === 'correctRate' || sortKey === 'answerCount') {
+      // 数値型の比較
+      const numA = typeof valA === 'number' ? valA : parseFloat(valA);
+      const numB = typeof valB === 'number' ? valB : parseFloat(valB);
+      
+      if (isNaN(numA) && isNaN(numB)) {
+        comparison = 0;
+      } else if (isNaN(numA)) {
+        comparison = 1; // 無効な数値は後ろに
+      } else if (isNaN(numB)) {
+        comparison = -1; // 無効な数値は後ろに
+      } else {
+        comparison = numA - numB;
+      }
+    } else {
+      // 文字列型または混合型の比較
+      if (sortKey === 'id' || sortKey === 'chapterName' || sortKey === 'subjectName' || sortKey === 'reason') {
+        // 自然順ソートを適用
+        comparison = naturalSortCompare(valA, valB);
+      } else {
+        // 通常の文字列比較
+        const strA = String(valA);
+        const strB = String(valB);
+        comparison = strA.localeCompare(strB, undefined, { sensitivity: 'base' });
+      }
+    }
+    
+    // ソート順に応じて結果を反転
+    return sortOrder === 'asc' ? comparison : -comparison;
   });
 };
 
@@ -52,7 +145,13 @@ const sortData = (dataToSort, sortKey, sortOrder) => {
 const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answerHistory = [], saveComment }) => {
   // --- State ---
   const [filter, setFilter] = useState({ reason: 'all', subject: 'all', period: 'all' });
-  const [sort, setSort] = useState({ key: 'lastAnswered', order: 'desc' });
+  
+  // ★ 各テーブル用の独立したソート状態を管理 ★
+  const [allQuestionsSort, setAllQuestionsSort] = useState({ key: 'lastAnswered', order: 'desc' });
+  const [longStagnantSort, setLongStagnantSort] = useState({ key: 'lastAnswered', order: 'desc' });
+  const [recentRevertedSort, setRecentRevertedSort] = useState({ key: 'lastAnswered', order: 'desc' });
+  const [completeRevertedSort, setCompleteRevertedSort] = useState({ key: 'lastAnswered', order: 'desc' });
+  
   const [showFilters, setShowFilters] = useState(false);
   const [editingCommentQuestion, setEditingCommentQuestion] = useState(null);
   const [expandedCommentId, setExpandedCommentId] = useState(null); // クリック表示用State
@@ -219,10 +318,26 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
     return filtered;
   }, [ambiguousQuestions, filter]);
 
-  const filteredAndSortedQuestions = useMemo(() => sortData(filteredQuestionsBase, sort.key, sort.order), [filteredQuestionsBase, sort]);
-  const sortedLongStagnantQuestions = useMemo(() => sortData(longStagnantQuestions, sort.key, sort.order), [longStagnantQuestions, sort]);
-  const sortedRecentRevertedQuestions = useMemo(() => sortData(recentRevertedQuestions, sort.key, sort.order), [recentRevertedQuestions, sort]);
-  const sortedCompleteRevertedQuestions = useMemo(() => sortData(completeRevertedQuestions, sort.key, sort.order), [completeRevertedQuestions, sort]);
+  // ★ 各テーブル用に独立したソート処理を適用 ★
+  const filteredAndSortedQuestions = useMemo(() => 
+    sortData(filteredQuestionsBase, allQuestionsSort.key, allQuestionsSort.order), 
+    [filteredQuestionsBase, allQuestionsSort]
+  );
+  
+  const sortedLongStagnantQuestions = useMemo(() => 
+    sortData(longStagnantQuestions, longStagnantSort.key, longStagnantSort.order), 
+    [longStagnantQuestions, longStagnantSort]
+  );
+  
+  const sortedRecentRevertedQuestions = useMemo(() => 
+    sortData(recentRevertedQuestions, recentRevertedSort.key, recentRevertedSort.order), 
+    [recentRevertedQuestions, recentRevertedSort]
+  );
+  
+  const sortedCompleteRevertedQuestions = useMemo(() => 
+    sortData(completeRevertedQuestions, completeRevertedSort.key, completeRevertedSort.order), 
+    [completeRevertedQuestions, completeRevertedSort]
+  );
 
   const filterOptions = useMemo(() => {
     const reasons = [...new Set(ambiguousQuestions.map(q => q.reason))].sort();
@@ -231,20 +346,69 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
   }, [ambiguousQuestions]);
 
   // --- Handlers ---
-  const handleSort = (key) => {
-    setSort(prevSort => ({
-      key: key,
-      order: prevSort.key === key && prevSort.order === 'desc' ? 'asc' : 'desc'
-    }));
+  // ★ テーブルごとに独立したソートハンドラを実装 ★
+  const handleSort = (tableType, key) => {
+    switch (tableType) {
+      case 'all':
+        setAllQuestionsSort(prevSort => ({
+          key: key,
+          order: prevSort.key === key && prevSort.order === 'desc' ? 'asc' : 'desc'
+        }));
+        break;
+      case 'longStagnant':
+        setLongStagnantSort(prevSort => ({
+          key: key,
+          order: prevSort.key === key && prevSort.order === 'desc' ? 'asc' : 'desc'
+        }));
+        break;
+      case 'recentReverted':
+        setRecentRevertedSort(prevSort => ({
+          key: key,
+          order: prevSort.key === key && prevSort.order === 'desc' ? 'asc' : 'desc'
+        }));
+        break;
+      case 'completeReverted':
+        setCompleteRevertedSort(prevSort => ({
+          key: key,
+          order: prevSort.key === key && prevSort.order === 'desc' ? 'asc' : 'desc'
+        }));
+        break;
+      default:
+        console.warn("Unknown table type for sorting:", tableType);
+    }
   };
-  const getSortIcon = (key) => {
-    if (sort.key !== key) {
+  
+  // ★ テーブルごとのソートアイコン取得関数 ★
+  const getSortIcon = (tableType, key) => {
+    let currentSort;
+    
+    switch (tableType) {
+      case 'all': 
+        currentSort = allQuestionsSort;
+        break;
+      case 'longStagnant': 
+        currentSort = longStagnantSort;
+        break;
+      case 'recentReverted': 
+        currentSort = recentRevertedSort;
+        break;
+      case 'completeReverted': 
+        currentSort = completeRevertedSort;
+        break;
+      default:
+        console.warn("Unknown table type for sort icon:", tableType);
+        return <ArrowUpDown size={14} className={styles.sortIcon} />;
+    }
+    
+    if (currentSort.key !== key) {
       return <ArrowUpDown size={14} className={styles.sortIcon} />;
     }
-    return sort.order === 'desc'
+    
+    return currentSort.order === 'desc'
       ? <ChevronDown size={14} className={styles.sortIconActive} />
       : <ChevronUp size={14} className={styles.sortIconActive} />;
   };
+  
   const handleEditCommentClick = (question) => { setEditingCommentQuestion(question); };
   const handleCloseCommentModal = () => { setEditingCommentQuestion(null); };
   // コメントクリック時のハンドラ
@@ -253,8 +417,8 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
   };
 
   // --- テーブルレンダリング関数 ---
-  // (renderTable内の変更点はコメントセル部分のみ)
-  const renderTable = (title, titleIcon, titleColor, subtitle, data, emptyMessage, emptyBgColor) => {
+  // ★ renderTableを修正し、テーブルタイプを引数に追加 ★
+  const renderTable = (tableType, title, titleIcon, titleColor, subtitle, data, emptyMessage, emptyBgColor) => {
     const tableData = Array.isArray(data) ? data : [];
     console.log(`Rendering table: ${title}, Data count: ${tableData.length}`);
     return (
@@ -262,7 +426,17 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
          <h3 className={styles.tableTitle} style={{color: titleColor || '#1f2937' }}> {titleIcon && React.createElement(titleIcon, { size: 18, style: { marginRight: '0.5rem', color: titleColor || '#4f46e5' } })} {title} ({tableData.length}件) {subtitle && <span style={{fontSize: '0.75rem', fontWeight: 400, marginLeft: '0.5rem', color: '#71717a' }}>{subtitle}</span>} </h3>
          {tableData.length > 0 ? (
            <table className={styles.table}>
-             <thead> <tr> <th onClick={() => handleSort('id')}>問題ID {getSortIcon('id')}</th> <th onClick={() => handleSort('subjectName')}>科目 {getSortIcon('subjectName')}</th> <th onClick={() => handleSort('chapterName')}>章 {getSortIcon('chapterName')}</th> <th onClick={() => handleSort('reason')}>理由 {getSortIcon('reason')}</th> <th>コメント</th> <th onClick={() => handleSort('correctRate')}>正答率 {getSortIcon('correctRate')}</th> <th onClick={() => handleSort('answerCount')}>解答回数 {getSortIcon('answerCount')}</th> <th onClick={() => handleSort('lastAnswered')}>最終解答日 {getSortIcon('lastAnswered')}</th> <th>編集</th> </tr> </thead>
+             <thead> <tr> 
+               <th onClick={() => handleSort(tableType, 'id')}>問題ID {getSortIcon(tableType, 'id')}</th> 
+               <th onClick={() => handleSort(tableType, 'subjectName')}>科目 {getSortIcon(tableType, 'subjectName')}</th> 
+               <th onClick={() => handleSort(tableType, 'chapterName')}>章 {getSortIcon(tableType, 'chapterName')}</th> 
+               <th onClick={() => handleSort(tableType, 'reason')}>理由 {getSortIcon(tableType, 'reason')}</th> 
+               <th>コメント</th> 
+               <th onClick={() => handleSort(tableType, 'correctRate')}>正答率 {getSortIcon(tableType, 'correctRate')}</th> 
+               <th onClick={() => handleSort(tableType, 'answerCount')}>解答回数 {getSortIcon(tableType, 'answerCount')}</th> 
+               <th onClick={() => handleSort(tableType, 'lastAnswered')}>最終解答日 {getSortIcon(tableType, 'lastAnswered')}</th> 
+               <th>編集</th> 
+             </tr> </thead>
              <tbody> {tableData.map(q => {
                 if (!q) return null;
                 const lastAnsweredDate = (q.lastAnswered instanceof Date && !isNaN(q.lastAnswered)) ? q.lastAnswered : null;
@@ -273,22 +447,19 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
                    <td>{q.subjectName ?? 'N/A'}</td>
                    <td>{q.chapterName ?? 'N/A'}</td>
                    <td>{q.reason ?? 'N/A'}</td>
-                   {/* ★★★ コメントセル: クリックイベントと条件付き全文表示を追加 ★★★ */}
                    <td className={styles.commentCell}>
-                     {/* 省略表示のテキスト（クリック可能にする） */}
                      <span
-                       className={styles.commentTextAbbr} // 新しいクラス名
+                       className={styles.commentTextAbbr}
                        onClick={() => handleCommentClick(q.id)}
-                       title={isExpanded ? "" : "クリックして全文表示"} // 展開中はtitle不要
+                       title={isExpanded ? "" : "クリックして全文表示"}
                      >
                        {q.comment ?? ''}
                      </span>
-                     {/* 全文表示ボックス (条件付きレンダリング) */}
                      {isExpanded && (
                        <div className={styles.expandedCommentBox}>
                          <button
                            className={styles.closeExpandedComment}
-                           onClick={() => setExpandedCommentId(null)} // 閉じるボタン
+                           onClick={() => setExpandedCommentId(null)}
                            title="閉じる"
                          >
                            <X size={14} />
@@ -297,7 +468,6 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
                        </div>
                      )}
                    </td>
-                   {/* ★★★ ここまでが変更箇所 ★★★ */}
                    <td>{q.correctRate != null ? `${q.correctRate}%` : 'N/A'}</td>
                    <td>{q.answerCount ?? 'N/A'}</td>
                    <td style={title === '長期停滞している曖昧問題' ? {color: '#dc2626', fontWeight: 500} : {}}>{formatDate(lastAnsweredDate)}</td>
@@ -382,11 +552,11 @@ const AmbiguousTrendsPage = ({ subjects, formatDate = formatDateInternal, answer
         )}
       </div>
 
-      {/* テーブル表示エリア */}
-      {renderTable('長期停滞している曖昧問題', AlertCircle, '#b45309', '(最終解答日から30日以上経過)', sortedLongStagnantQuestions, '長期停滞している曖昧問題はありません。', '#fffbeb')}
-      {renderTable('直近の"揺り戻し"が発生した問題', TrendingDown, '#f97316', '(直前の解答が「理解○」だった問題)', sortedRecentRevertedQuestions, '直近で「理解○」→「曖昧△」となった問題はありません。', '#fff7ed')}
-      {renderTable('完全な"揺り戻しサイクル"を経験した問題', RotateCcw, '#5b21b6', '(曖昧△ → 理解○ → 曖昧△ の流れを経験)', sortedCompleteRevertedQuestions, '完全な"揺り戻しサイクル"を経験した問題はありません。', '#f5f3ff')}
-      {renderTable('全ての曖昧問題リスト', null, '#374151', '(現在のフィルターとソート適用)', filteredAndSortedQuestions, ambiguousQuestions.length > 0 ? '表示できる曖昧問題がありません。フィルター条件を変更してみてください。' : '曖昧と評価された問題はまだありません。', null)}
+      {/* テーブル表示エリア - テーブルタイプ引数を追加 */}
+      {renderTable('longStagnant', '長期停滞している曖昧問題', AlertCircle, '#b45309', '(最終解答日から30日以上経過)', sortedLongStagnantQuestions, '長期停滞している曖昧問題はありません。', '#fffbeb')}
+      {renderTable('recentReverted', '直近の"揺り戻し"が発生した問題', TrendingDown, '#f97316', '(直前の解答が「理解○」だった問題)', sortedRecentRevertedQuestions, '直近で「理解○」→「曖昧△」となった問題はありません。', '#fff7ed')}
+      {renderTable('completeReverted', '完全な"揺り戻しサイクル"を経験した問題', RotateCcw, '#5b21b6', '(曖昧△ → 理解○ → 曖昧△ の流れを経験)', sortedCompleteRevertedQuestions, '完全な"揺り戻しサイクル"を経験した問題はありません。', '#f5f3ff')}
+      {renderTable('all', '全ての曖昧問題リスト', null, '#374151', '(現在のフィルターとソート適用)', filteredAndSortedQuestions, ambiguousQuestions.length > 0 ? '表示できる曖昧問題がありません。フィルター条件を変更してみてください。' : '曖昧と評価された問題はまだありません。', null)}
 
       {editingCommentQuestion && ( <CommentEditModal question={editingCommentQuestion} onSave={saveComment} onCancel={handleCloseCommentModal} /> )}
     </div>
