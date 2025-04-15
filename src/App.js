@@ -14,6 +14,7 @@ import TopNavigation from './components/TopNavigation';
 import TodayView from './TodayView'; // TodayView の import はそのまま
 import ScheduleView from './ScheduleView';
 import SettingsPage from './SettingsPage';
+import StatsPage from './StatsPage';
 
 // 問題生成関数 (IDゼロパディング、understanding='理解○' 固定)
 function generateQuestions(prefix, start, end) {
@@ -314,7 +315,7 @@ function App() {
       case 'schedule': return <ScheduleView subjects={subjects} getQuestionsForDate={getQuestionsForDate} handleQuestionDateChange={handleQuestionDateChange} formatDate={formatDate} />;
       case 'all': return <RedesignedAllQuestionsView subjects={subjects} expandedSubjects={expandedSubjects} expandedChapters={expandedChapters} toggleSubject={toggleSubject} toggleChapter={toggleChapter} setEditingQuestion={setEditingQuestion} setBulkEditMode={setBulkEditMode} bulkEditMode={bulkEditMode} selectedQuestions={selectedQuestions} setSelectedQuestions={setSelectedQuestions} saveBulkEditItems={saveBulkEditItems} formatDate={formatDate} toggleQuestionSelection={toggleQuestionSelection} />;
       case 'trends': return <AmbiguousTrendsPage subjects={subjects} formatDate={formatDate} answerHistory={answerHistory} saveComment={saveComment} />;
-      case 'stats': return <div className="p-4">学習統計ページ (未実装)</div>;
+      case 'stats': return <StatsPage subjects={subjects} answerHistory={answerHistory} formatDate={formatDate} />;
       // ★ resetAnswerStatusOnly も渡す ★
       case 'settings': return <SettingsPage onResetData={resetAllData} onResetAnswerStatusOnly={resetAnswerStatusOnly} />;
       // ★ デフォルトも TodayView に ★
