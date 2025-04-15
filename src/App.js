@@ -373,7 +373,9 @@ const handleDataImport = (importedData) => {
   } catch (error) {
     console.error("データインポート処理中にエラー:", error);
     return false; // インポート失敗
-    
+　}
+};
+
   // ★ メインビュー切り替え ★
   const MainView = () => {
     switch (activeTab) {
@@ -384,8 +386,13 @@ const handleDataImport = (importedData) => {
       case 'trends': return <AmbiguousTrendsPage subjects={subjects} formatDate={formatDate} answerHistory={answerHistory} saveComment={saveComment} />;
       case 'stats': return <StatsPage subjects={subjects} answerHistory={answerHistory} formatDate={formatDate} />;
       // ★ resetAnswerStatusOnly も渡す ★
-      case 'settings': return <SettingsPage onResetData={resetAllData} onResetAnswerStatusOnly={resetAnswerStatusOnly}onDataImport={handleDataImport} // ← この行を追加
-  　　　　　　　　　　　　　　　　　subjects={subjects} answerHistory={answerHistory} />;
+      case 'settings': return <SettingsPage 
+  onResetData={resetAllData} 
+  onResetAnswerStatusOnly={resetAnswerStatusOnly} 
+  onDataImport={handleDataImport}
+  subjects={subjects}
+  answerHistory={answerHistory} 
+/>;
       // ★ デフォルトも TodayView に ★
       default: return <TodayView todayQuestions={todayQuestionsList} recordAnswer={recordAnswer} formatDate={formatDate} />;
     }
