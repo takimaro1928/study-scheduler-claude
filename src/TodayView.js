@@ -89,8 +89,8 @@ const TodayView = ({ todayQuestions, recordAnswer, formatDate }) => {
               <div key={question.id} className="today-card">
                 <div className="today-card__content">
                   {/* 問題情報 - ★ nullish coalescing (?? '?') を使って安全に表示 */}
-                  <div className="today-card__subject">{question.subjectName ?? '?'}</div>
-                  <div className="today-card__chapter">{question.chapterName ?? '?'}</div>
+                  <div className="today-card__subject">{question.subjectName || question.subject?.name || '?'}</div>
+　　　　　　　　　　　<div className="today-card__chapter">{question.chapterName || question.chapter?.name || '?'}</div>
                   <div className="today-card__qid-badge">
                     問題 {question.id}
                   </div>
