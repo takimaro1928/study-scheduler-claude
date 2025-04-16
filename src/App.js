@@ -15,6 +15,7 @@ import TodayView from './TodayView'; // TodayView の import はそのまま
 import ScheduleView from './ScheduleView';
 import SettingsPage from './SettingsPage';
 import StatsPage from './StatsPage';
+import ReminderNotification from './ReminderNotification';
 
 // 問題生成関数 (IDゼロパディング、understanding='理解○' 固定)
 function generateQuestions(prefix, start, end) {
@@ -79,7 +80,9 @@ function App() {
   const [bulkEditMode, setBulkEditMode] = useState(false);
   const [selectedQuestions, setSelectedQuestions] = useState([]);
   const [answerHistory, setAnswerHistory] = useState([]);
-
+　const [showExportReminder, setShowExportReminder] = useState(false);
+  const [daysSinceLastExport, setDaysSinceLastExport] = useState(null);
+    
   // ★ 初期データロード処理 (変更なし) ★
   useEffect(() => {
     console.log("初期データロード開始 (Ver. サンプルデータ優先)");
@@ -115,8 +118,42 @@ function App() {
     try { localStorage.setItem('studyHistory', JSON.stringify(answerHistory)); } catch (e) { console.error("解答履歴保存失敗:", e); }
   }, [subjects, answerHistory]);
 
-// App.js 内のtodayQuestionsList関数の修正部分
+　// 既存のuseEffect（データロード処理やデータ保存処理）の後に追加
+useEffect(() => {
+  // エクスポートリマインダーチェック
+  const checkExportReminder = () => {
+    const lastExportTimestamp = localStorage.getItem('lastExportTimestamp');
+    const reminderDismissedTimestamp = localStorage.getItem('reminderDismissedTimestamp');
+    
+    const now = new Date().getTime();
+    const dismissedTime = reminderDismissedTimestamp ? parseInt(reminderDismissedTimestamp, 10) : 0;
+    const dismissedDaysAgo = Math.floor((now - dismissedTime) / (1000 * 60 * 60 * 24));
+    
+    // 通知を閉じてから3日以内は表示しない
+    if (dismissedDaysAgo < 3) {
+      return;
+    }
+    
+    if (!lastExportTimestamp) {
+      // 一度もエクスポートしていない場合
+      setDaysSinceLastExport(null);
+      setShowExportReminder(true);
+    } else {
+      const lastExportTime = parseInt(lastExportTimestamp, 10);
+      const daysSinceExport = Math.floor((now - lastExportTime) / (1000 * 60 * 60 * 24));
+      
+      // 14日以上経過していたらリマインダー表示
+      if (daysSinceExport >= 14) {
+        setDaysSinceLastExport(daysSinceExport);
+        setShowExportReminder(true);
+      }
+    }
+  };
+  
+  checkExportReminder();
+}, []);
 
+    
 const todayQuestionsList = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -319,7 +356,59 @@ const handleDataImport = (importedData) => {
       console.error("無効なインポートデータ形式です");
       return false;
     }
+ // ★★★ ここから新規追加（リマインダー関連のハンドラ関数） ★★★
+const handleDismissReminder = () => {
+  localStorage.setItem('reminderDismissedTimestamp', new Date().getTime().toString());
+  setShowExportReminder(false);
+};
+
+const handleGoToSettings = () => {
+  setActiveTab('settings');
+  setShowExportReminder(false);
+};
+
+const handleDataExport = () => {
+  try {
+    // エクスポートするデータの準備
+    const exportData = {
+      exportDate: new Date().toISOString(),
+      appVersion: "1.0.0", // アプリのバージョン（任意）
+      subjects: subjects,
+      answerHistory: answerHistory
+    };
     
+    // JSONに変換
+    const jsonString = JSON.stringify(exportData, null, 2);
+    
+    // Blobオブジェクトを作成
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    
+    // ダウンロードリンクを作成
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    
+    // ファイル名設定（日付を含む）
+    const dateStr = new Date().toISOString().split('T')[0];
+    link.download = `study-scheduler-data-${dateStr}.json`;
+    
+    // ダウンロードを実行
+    document.body.appendChild(link);
+    link.click();
+    
+    // 後片付け
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    // 成功時にタイムスタンプを記録
+    localStorage.setItem('lastExportTimestamp', new Date().getTime().toString());
+    return true;
+  } catch (error) {
+    console.error("エクスポート処理中にエラー:", error);
+    return false;
+  }
+};
+      
     // subjects のインポート（存在するなら）
     if (Array.isArray(importedData.subjects)) {
       // 互換性のためのデータ修正を適用
@@ -386,12 +475,13 @@ const handleDataImport = (importedData) => {
       case 'trends': return <AmbiguousTrendsPage subjects={subjects} formatDate={formatDate} answerHistory={answerHistory} saveComment={saveComment} />;
       case 'stats': return <StatsPage subjects={subjects} answerHistory={answerHistory} formatDate={formatDate} />;
       // ★ resetAnswerStatusOnly も渡す ★
-      case 'settings': return <SettingsPage 
+    　case 'settings': return <SettingsPage 
   onResetData={resetAllData} 
   onResetAnswerStatusOnly={resetAnswerStatusOnly} 
   onDataImport={handleDataImport}
+  onDataExport={handleDataExport} // 新規追加
   subjects={subjects}
-  answerHistory={answerHistory} 
+  answerHistory={answerHistory}
 />;
       // ★ デフォルトも TodayView に ★
       default: return <TodayView todayQuestions={todayQuestionsList} recordAnswer={recordAnswer} formatDate={formatDate} />;
@@ -402,6 +492,15 @@ const handleDataImport = (importedData) => {
   return (
     <div className="min-h-screen bg-gray-50">
       <TopNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
+　　　　
+    {showExportReminder && (
+      <ReminderNotification 
+        daysSinceLastExport={daysSinceLastExport}
+        onGoToSettings={handleGoToSettings}
+        onDismiss={handleDismissReminder}
+      />
+    )}
+      
       <div className="p-0 sm:p-4">
         <MainView />
          {editingQuestion && (
