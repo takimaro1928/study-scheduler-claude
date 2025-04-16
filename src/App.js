@@ -16,6 +16,7 @@ import ScheduleView from './ScheduleView';
 import SettingsPage from './SettingsPage';
 import StatsPage from './StatsPage';
 import ReminderNotification from './ReminderNotification';
+import EnhancedStatsPage from './EnhancedStatsPage';
 
 // 問題生成関数 (IDゼロパディング、understanding='理解○' 固定)
 function generateQuestions(prefix, start, end) {
@@ -475,7 +476,7 @@ const handleDataExport = () => {
       case 'schedule': return <ScheduleView subjects={subjects} getQuestionsForDate={getQuestionsForDate} handleQuestionDateChange={handleQuestionDateChange} formatDate={formatDate} />;
       case 'all': return <RedesignedAllQuestionsView subjects={subjects} expandedSubjects={expandedSubjects} expandedChapters={expandedChapters} toggleSubject={toggleSubject} toggleChapter={toggleChapter} setEditingQuestion={setEditingQuestion} setBulkEditMode={setBulkEditMode} bulkEditMode={bulkEditMode} selectedQuestions={selectedQuestions} setSelectedQuestions={setSelectedQuestions} saveBulkEditItems={saveBulkEditItems} formatDate={formatDate} toggleQuestionSelection={toggleQuestionSelection} />;
       case 'trends': return <AmbiguousTrendsPage subjects={subjects} formatDate={formatDate} answerHistory={answerHistory} saveComment={saveComment} />;
-      case 'stats': return <StatsPage subjects={subjects} answerHistory={answerHistory} formatDate={formatDate} />;
+     　case 'stats': return <EnhancedStatsPage subjects={subjects} answerHistory={answerHistory} formatDate={formatDate} />;
       // ★ resetAnswerStatusOnly も渡す ★
     　case 'settings': return <SettingsPage 
   onResetData={resetAllData} 
