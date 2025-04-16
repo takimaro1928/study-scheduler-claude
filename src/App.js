@@ -466,61 +466,6 @@ const handleDataExport = () => {
   }
 };
       
-    // subjects のインポート（存在するなら）
-    if (Array.isArray(importedData.subjects)) {
-      // 互換性のためのデータ修正を適用
-      const processedSubjects = importedData.subjects.map(subject => {
-        // プロパティ名の互換性確保
-        if (subject.name && !subject.subjectName) subject.subjectName = subject.name;
-        if (subject.subjectName && !subject.name) subject.name = subject.subjectName;
-        
-        // chapters に同様の処理を適用
-        if (Array.isArray(subject.chapters)) {
-          subject.chapters = subject.chapters.map(chapter => {
-            if (chapter.name && !chapter.chapterName) chapter.chapterName = chapter.name;
-            if (chapter.chapterName && !chapter.name) chapter.name = chapter.chapterName;
-            
-            // questions処理
-            if (Array.isArray(chapter.questions)) {
-              chapter.questions = chapter.questions.map(q => {
-                // 日付形式の修正（String → Date）
-                if (q.lastAnswered && !(q.lastAnswered instanceof Date)) {
-                  const parsedDate = new Date(q.lastAnswered);
-                  q.lastAnswered = !isNaN(parsedDate) ? parsedDate : null;
-                }
-                // 理解度、コメントの初期値設定
-                if (typeof q.understanding === 'undefined') q.understanding = '理解○';
-                if (typeof q.comment === 'undefined') q.comment = '';
-                return q;
-              });
-            }
-            return chapter;
-          });
-        }
-        return subject;
-      });
-      
-      // ステート更新
-      setSubjects(processedSubjects);
-      console.log("科目データを更新しました:", processedSubjects.length, "件");
-    } else {
-      console.warn("インポートデータに科目情報がありません");
-    }
-    
-    // answerHistory のインポート（存在するなら）
-    if (Array.isArray(importedData.answerHistory)) {
-      setAnswerHistory(importedData.answerHistory);
-      console.log("解答履歴を更新しました:", importedData.answerHistory.length, "件");
-    } else {
-      console.warn("インポートデータに解答履歴がありません");
-    }
-    
-    return true; // インポート成功
-  } catch (error) {
-    console.error("データインポート処理中にエラー:", error);
-    return false; // インポート失敗
-　}
-};
 
   // ★ メインビュー切り替え ★
   const MainView = () => {
