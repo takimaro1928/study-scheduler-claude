@@ -276,34 +276,65 @@ const RedesignedAllQuestionsView = ({
 
       {/* 一括編集パネル */}
       {bulkEditMode && selectedQuestions.length > 0 && (
-        <div className={styles.bulkEditPanel}>
-          <div className={styles.bulkEditHeader}>
-            <div>{selectedQuestions.length}件の問題を選択中</div>
-          </div>
-          
-          <div className={styles.bulkEditControls}>
-            <div className={styles.datePickerContainer}>
-              <label className={styles.bulkEditLabel}>設定日付:</label>
-              <input
-                type="date"
-                value={selectedDate ? selectedDate.toISOString().split('T')[0] : ''}
-                onChange={(e) => {
-                  const date = e.target.value ? new Date(e.target.value) : null;
-                  setSelectedDate(date);
-                }}
-                className={styles.dateInput}
-              />
-            </div>
-            
-            <button
-              onClick={() => saveBulkEdit(selectedDate)}
-              disabled={!selectedDate}
-              className={styles.saveButton}
-            >
-              <Check size={16} />
-              一括設定
-            </button>
-          </div>
+  <div className={styles.bulkEditPanel}>
+    <div className={styles.bulkEditHeader}>
+      <div>{selectedQuestions.length}件の問題を選択中</div>
+    </div>
+    
+    <div className={styles.bulkEditControls}>
+      <div className={styles.datePickerContainer}>
+        <label className={styles.bulkEditLabel}>設定日付:</label>
+        <input
+          type="date"
+          value={selectedDate ? selectedDate.toISOString().split('T')[0] : ''}
+          onChange={(e) => {
+            if (e.target.value) {
+              // 日付文字列をDateオブジェクトに変換（タイムゾーンの問題を回避するため、UTCで処理）
+              const parts = e.target.value.split('-').map(Number);
+              const newDate = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+              console.log('選択された日付:', newDate.toISOString());
+              setSelectedDate(newDate);
+            } else {
+              setSelectedDate(null);
+            }
+          }}
+          className={styles.dateInput}
+        />
+      </div>
+      
+      <button
+        onClick={() => {
+          console.log('「一括設定」ボタンがクリックされました');
+          console.log('selectedDate:', selectedDate);
+          if (selectedDate) {
+            saveBulkEdit(selectedDate);
+          }
+        }}
+        disabled={!selectedDate}
+        className={styles.saveButton}
+      >
+        <Check size={16} />
+        一括設定
+      </button>
+    </div>
+    
+    {selectedDate && (
+      <div className={styles.selectedDateInfo}>
+        <CalendarIcon size={16} />
+        <span>設定日: {formatDate(selectedDate)}</span>
+      </div>
+    )}
+  </div>
+)}
+
+{/* 選択した日付情報 */}
+<div className={styles.selectedDateInfo}>
+  <CalendarIcon size={16} />
+  <span>
+    設定日: {selectedDate ? formatDate(selectedDate) : '未選択'}
+    [デバッグ: {selectedDate ? selectedDate.toString() : 'null'}]
+  </span>
+</div>
           
           {selectedDate && (
             <div className={styles.selectedDateInfo}>
