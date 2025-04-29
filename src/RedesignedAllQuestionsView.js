@@ -275,7 +275,7 @@ const RedesignedAllQuestionsView = ({
       )}
 
       {/* 一括編集パネル */}
-      {bulkEditMode && selectedQuestions.length > 0 && (
+    　　{bulkEditMode && selectedQuestions.length > 0 && (
   <div className={styles.bulkEditPanel}>
     <div className={styles.bulkEditHeader}>
       <div>{selectedQuestions.length}件の問題を選択中</div>
@@ -284,19 +284,19 @@ const RedesignedAllQuestionsView = ({
     <div className={styles.bulkEditControls}>
       <div className={styles.datePickerContainer}>
         <label className={styles.bulkEditLabel}>設定日付:</label>
+        {/* 日付入力フィールドをより標準的な形式に変更 */}
         <input
           type="date"
           value={selectedDate ? selectedDate.toISOString().split('T')[0] : ''}
           onChange={(e) => {
-            if (e.target.value) {
-              // 日付文字列をDateオブジェクトに変換（タイムゾーンの問題を回避するため、UTCで処理）
-              const parts = e.target.value.split('-').map(Number);
-              const newDate = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
-              console.log('選択された日付:', newDate.toISOString());
-              setSelectedDate(newDate);
-            } else {
-              setSelectedDate(null);
+            // シンプルに直接Dateオブジェクトを作成
+            const date = e.target.value ? new Date(e.target.value) : null;
+            // 日付のタイムゾーン調整（念のため）
+            if (date) {
+              date.setHours(12, 0, 0, 0); // 正午に設定して日付の変わり目の問題を回避
             }
+            console.log('日付が選択されました:', e.target.value, date);
+            setSelectedDate(date);
           }}
           className={styles.dateInput}
         />
@@ -304,8 +304,7 @@ const RedesignedAllQuestionsView = ({
       
       <button
         onClick={() => {
-          console.log('「一括設定」ボタンがクリックされました');
-          console.log('selectedDate:', selectedDate);
+          console.log('一括設定ボタンクリック, 日付:', selectedDate);
           if (selectedDate) {
             saveBulkEdit(selectedDate);
           }
@@ -326,7 +325,6 @@ const RedesignedAllQuestionsView = ({
     )}
   </div>
 )}
-
       {/* 問題リスト (アコーディオン) */}
       {filteredSubjects.length === 0 ? (
         <div className="bg-white p-10 rounded-xl shadow-sm text-center border border-gray-200">
