@@ -327,24 +327,6 @@ const RedesignedAllQuestionsView = ({
   </div>
 )}
 
-{/* 選択した日付情報 */}
-<div className={styles.selectedDateInfo}>
-  <CalendarIcon size={16} />
-  <span>
-    設定日: {selectedDate ? formatDate(selectedDate) : '未選択'}
-    [デバッグ: {selectedDate ? selectedDate.toString() : 'null'}]
-  </span>
-</div>
-          
-          {selectedDate && (
-            <div className={styles.selectedDateInfo}>
-              <CalendarIcon size={16} />
-              <span>設定日: {formatDate(selectedDate)}</span>
-            </div>
-          )}
-        </div>
-      )}
-
       {/* 問題リスト (アコーディオン) */}
       {filteredSubjects.length === 0 ? (
         <div className="bg-white p-10 rounded-xl shadow-sm text-center border border-gray-200">
