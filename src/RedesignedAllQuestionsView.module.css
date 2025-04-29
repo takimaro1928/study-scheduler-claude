@@ -684,3 +684,21 @@
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-out forwards;
 }
+
+/* 日付入力フィールドのスタイル調整 */
+.dateInput::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.8;
+  padding: 3px;
+  border-radius: 3px;
+}
+
+.dateInput::-webkit-calendar-picker-indicator:hover {
+  background-color: #eef2ff;
+  opacity: 1;
+}
+
+/* カレンダー表示位置の調整（一部のブラウザで効果がある場合もある） */
+.datePickerContainer {
+  position: relative;
+}
