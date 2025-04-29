@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import {
   Search, Filter, Edit, Clock, Calendar as CalendarIcon, CheckCircle, XCircle, AlertTriangle, Info,
-  ChevronRight, ChevronDown, ChevronUp, X as XIcon
+  ChevronRight, ChevronDown, ChevronUp, X as XIcon, Check
 } from 'lucide-react';
 import styles from './RedesignedAllQuestionsView.module.css'; // CSSモジュール
 
@@ -277,27 +277,40 @@ const RedesignedAllQuestionsView = ({
       {/* 一括編集パネル */}
       {bulkEditMode && selectedQuestions.length > 0 && (
         <div className={styles.bulkEditPanel}>
-          <p className="text-base font-medium text-gray-700 mb-3">
-            {selectedQuestions.length}件の問題を選択中
-          </p>
-          <div className="flex flex-wrap gap-3">
-            <input
-              type="date"
-              value={selectedDate ? selectedDate.toISOString().split('T')[0] : ''}
-              onChange={(e) => {
-                const date = e.target.value ? new Date(e.target.value) : null;
-                setSelectedDate(date);
-              }}
-              className="px-4 py-2 border border-gray-300 rounded-lg"
-            />
+          <div className={styles.bulkEditHeader}>
+            <div>{selectedQuestions.length}件の問題を選択中</div>
+          </div>
+          
+          <div className={styles.bulkEditControls}>
+            <div className={styles.datePickerContainer}>
+              <label className={styles.bulkEditLabel}>設定日付:</label>
+              <input
+                type="date"
+                value={selectedDate ? selectedDate.toISOString().split('T')[0] : ''}
+                onChange={(e) => {
+                  const date = e.target.value ? new Date(e.target.value) : null;
+                  setSelectedDate(date);
+                }}
+                className={styles.dateInput}
+              />
+            </div>
+            
             <button
               onClick={() => saveBulkEdit(selectedDate)}
               disabled={!selectedDate}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed"
+              className={styles.saveButton}
             >
+              <Check size={16} />
               一括設定
             </button>
           </div>
+          
+          {selectedDate && (
+            <div className={styles.selectedDateInfo}>
+              <CalendarIcon size={16} />
+              <span>設定日: {formatDate(selectedDate)}</span>
+            </div>
+          )}
         </div>
       )}
 
