@@ -1,6 +1,37 @@
 import React, { useState } from 'react';
 import { Clock, Calendar, List, Info, BookOpen, Settings, Menu, X } from 'lucide-react';
 
+// スタイルをヘッダーに追加
+const headerStyle = {
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  right: 0,
+  backgroundColor: 'white',
+  borderBottom: '1px solid #e5e7eb',
+  padding: '12px 16px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  zIndex: 40
+};
+
+// デスクトップメニュー用のスタイル
+const desktopMenuStyle = {
+  display: 'none' // モバイルでは非表示
+};
+
+// メディアクエリ用のスタイル
+const mediaQueryStyle = `
+  @media (min-width: 768px) {
+    .desktop-menu {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  }
+`;
+
 const TopNavigation = ({ activeTab, setActiveTab }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -16,26 +47,42 @@ const TopNavigation = ({ activeTab, setActiveTab }) => {
 
   return (
     <>
+      {/* メディアクエリ用のスタイル */}
+      <style>{mediaQueryStyle}</style>
+      
       {/* ヘッダー */}
-      <header style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        backgroundColor: 'white',
-        borderBottom: '1px solid #e5e7eb',
-        padding: '12px 16px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        zIndex: 40
-      }}>
+      <header style={headerStyle}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <span style={{ fontSize: '1.25rem', marginRight: '8px' }}>📚</span>
           <span style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1f2937' }}>学習マネージャー</span>
         </div>
         
-        {/* ハンバーガーメニューボタン (モバイル・デスクトップ共通) */}
+        {/* デスクトップメニュー - 横並び (メディアクエリで制御) */}
+        <div className="desktop-menu" style={desktopMenuStyle}>
+          {navItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                padding: '8px 12px',
+                backgroundColor: activeTab === item.id ? '#eef2ff' : 'transparent',
+                color: activeTab === item.id ? '#4f46e5' : '#4b5563',
+                border: activeTab === item.id ? '1px solid #c7d2fe' : 'none',
+                borderRadius: '8px',
+                fontSize: '0.875rem',
+                fontWeight: 500,
+                cursor: 'pointer'
+              }}
+            >
+              <div style={{ marginRight: '8px', opacity: 0.85 }}>{item.icon}</div>
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </div>
+        
+        {/* ハンバーガーメニューボタン (常に表示) */}
         <button
           onClick={() => setIsMenuOpen(true)}
           style={{
@@ -51,7 +98,7 @@ const TopNavigation = ({ activeTab, setActiveTab }) => {
         </button>
       </header>
 
-      {/* サイドメニュー */}
+      {/* サイドメニュー (従来通り) */}
       {isMenuOpen && (
         <div id="menu-overlay" style={{
           position: 'fixed',
