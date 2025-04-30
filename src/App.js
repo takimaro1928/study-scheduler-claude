@@ -83,6 +83,7 @@ function App() {
   const [answerHistory, setAnswerHistory] = useState([]);
 　const [showExportReminder, setShowExportReminder] = useState(false);
   const [daysSinceLastExport, setDaysSinceLastExport] = useState(null);
+　const [selectedDate, setSelectedDate] = useState(null);
     
   // ★ 初期データロード処理 (変更なし) ★
   useEffect(() => {
