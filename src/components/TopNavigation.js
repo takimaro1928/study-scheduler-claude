@@ -34,14 +34,53 @@ const TopNavigation = ({ activeTab, setActiveTab }) => {
           <span style={{ fontSize: '1.25rem', marginRight: '8px' }}>📚</span>
           <span style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1f2937' }}>学習マネージャー</span>
         </div>
+        
+        {/* デスクトップメニュー - 横並び (768px以上の画面幅で表示) */}
+        <div style={{ 
+          display: 'none', 
+          alignItems: 'center', 
+          gap: '12px',
+          '@media (min-width: 768px)': {
+            display: 'flex'
+          }
+        }} className="hidden md:flex">
+          {navItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                padding: '8px 12px',
+                backgroundColor: activeTab === item.id ? '#eef2ff' : 'transparent',
+                color: activeTab === item.id ? '#4f46e5' : '#4b5563',
+                border: activeTab === item.id ? '1px solid #c7d2fe' : 'none',
+                borderRadius: '8px',
+                fontSize: '0.875rem',
+                fontWeight: 500,
+                cursor: 'pointer'
+              }}
+            >
+              <div style={{ marginRight: '8px', opacity: 0.85 }}>{item.icon}</div>
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </div>
+        
+        {/* モバイルのハンバーガーメニューボタン */}
         <button
           onClick={() => setIsMenuOpen(true)}
           style={{
             backgroundColor: 'transparent',
             border: 'none',
             cursor: 'pointer',
-            color: '#4b5563'
+            color: '#4b5563',
+            display: 'block',
+            '@media (min-width: 768px)': {
+              display: 'none'
+            }
           }}
+          className="md:hidden"
           aria-label="メインメニューを開く"
         >
           <Menu size={24} />
