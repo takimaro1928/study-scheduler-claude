@@ -17,51 +17,25 @@ const TopNavigation = ({ activeTab, setActiveTab }) => {
   return (
     <>
       {/* ヘッダー */}
-      <header style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        backgroundColor: 'white',
-        borderBottom: '1px solid #e5e7eb',
-        padding: '12px 16px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        zIndex: 40
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <span style={{ fontSize: '1.25rem', marginRight: '8px' }}>📚</span>
-          <span style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1f2937' }}>学習マネージャー</span>
+      <header className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between z-40">
+        <div className="flex items-center">
+          <span className="text-xl mr-2">📚</span>
+          <span className="text-lg font-bold text-gray-800">学習マネージャー</span>
         </div>
         
-        {/* デスクトップメニュー - 横並び (768px以上の画面幅で表示) */}
-        <div style={{ 
-          display: 'none', 
-          alignItems: 'center', 
-          gap: '12px',
-          '@media (min-width: 768px)': {
-            display: 'flex'
-          }
-        }} className="hidden md:flex">
+        {/* デスクトップメニュー - 768px以上で表示 */}
+        <div className="hidden md:flex items-center space-x-3">
           {navItems.map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                padding: '8px 12px',
-                backgroundColor: activeTab === item.id ? '#eef2ff' : 'transparent',
-                color: activeTab === item.id ? '#4f46e5' : '#4b5563',
-                border: activeTab === item.id ? '1px solid #c7d2fe' : 'none',
-                borderRadius: '8px',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                cursor: 'pointer'
-              }}
+              className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === item.id 
+                  ? 'bg-indigo-50 text-indigo-600 border border-indigo-200' 
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
             >
-              <div style={{ marginRight: '8px', opacity: 0.85 }}>{item.icon}</div>
+              <span className="mr-2 opacity-85">{item.icon}</span>
               <span>{item.label}</span>
             </button>
           ))}
@@ -70,17 +44,7 @@ const TopNavigation = ({ activeTab, setActiveTab }) => {
         {/* モバイルのハンバーガーメニューボタン */}
         <button
           onClick={() => setIsMenuOpen(true)}
-          style={{
-            backgroundColor: 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-            color: '#4b5563',
-            display: 'block',
-            '@media (min-width: 768px)': {
-              display: 'none'
-            }
-          }}
-          className="md:hidden"
+          className="md:hidden p-1 text-gray-600 rounded-md hover:bg-gray-100"
           aria-label="メインメニューを開く"
         >
           <Menu size={24} />
@@ -89,46 +53,18 @@ const TopNavigation = ({ activeTab, setActiveTab }) => {
 
       {/* サイドメニュー */}
       {isMenuOpen && (
-        <div id="menu-overlay" style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.3)',
-          zIndex: 50,
-          display: 'flex'
-        }}>
+        <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex">
           {/* サイドメニュー本体 */}
-          <div style={{
-            width: '300px',
-            backgroundColor: 'white',
-            height: '100%',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-            overflow: 'auto',
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
+          <div className="w-72 bg-white h-full shadow-lg overflow-auto flex flex-col">
             {/* メニューヘッダー */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '12px',
-              borderBottom: '1px solid #e5e7eb'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <span style={{ fontSize: '1.25rem', marginRight: '8px' }}>📚</span>
-                <span style={{ fontSize: '1rem', fontWeight: 500 }}>メインメニュー</span>
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <div className="flex items-center">
+                <span className="text-xl mr-2">📚</span>
+                <span className="text-base font-medium">メインメニュー</span>
               </div>
               <button
                 onClick={() => setIsMenuOpen(false)}
-                style={{
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: '#6b7280'
-                }}
+                className="p-1 text-gray-500 rounded-full hover:bg-gray-100"
               >
                 <X size={20} />
               </button>
@@ -143,23 +79,14 @@ const TopNavigation = ({ activeTab, setActiveTab }) => {
                     setActiveTab(item.id);
                     setIsMenuOpen(false);
                   }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    width: '100%',
-                    padding: '14px 16px',
-                    textAlign: 'left',
-                    backgroundColor: activeTab === item.id ? '#eef2ff' : 'white',
-                    color: activeTab === item.id ? '#4f46e5' : '#374151',
-                    borderBottom: '1px solid #f3f4f6',
-                    cursor: 'pointer',
-                    border: 'none',
-                    outline: 'none',
-                    fontFamily: 'inherit'
-                  }}
+                  className={`flex items-center w-full px-4 py-3.5 text-left border-b border-gray-100 transition-colors ${
+                    activeTab === item.id 
+                      ? 'bg-indigo-50 text-indigo-600' 
+                      : 'text-gray-700 hover:bg-gray-50'
+                  }`}
                 >
-                  <div style={{ marginRight: '12px', opacity: 0.85 }}>{item.icon}</div>
-                  <span style={{ fontWeight: 500 }}>{item.label}</span>
+                  <span className="mr-3 opacity-85">{item.icon}</span>
+                  <span className="font-medium">{item.label}</span>
                 </button>
               ))}
             </div>
@@ -167,17 +94,14 @@ const TopNavigation = ({ activeTab, setActiveTab }) => {
 
           {/* オーバーレイ部分（クリックするとメニューを閉じる） */}
           <div
-            style={{
-              flexGrow: 1,
-              cursor: 'pointer'
-            }}
+            className="flex-grow cursor-pointer"
             onClick={() => setIsMenuOpen(false)}
           />
         </div>
       )}
 
       {/* メインコンテンツの余白調整 */}
-      <div style={{ paddingTop: '56px' }}></div>
+      <div className="pt-14"></div>
     </>
   );
 };
