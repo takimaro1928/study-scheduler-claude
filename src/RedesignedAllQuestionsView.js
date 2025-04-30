@@ -282,66 +282,54 @@ const RedesignedAllQuestionsView = ({
     </div>
     
     <div className={styles.bulkEditControls}>
-      <div className={styles.datePickerContainer}>
-        <label className={styles.bulkEditLabel}>設定日付:</label>
-        <input
-          type="date"
-          value={selectedDate ? selectedDate.toISOString().split('T')[0] : ''}
-          onChange={(e) => {
-            // 明示的にデバッグ情報を出力
-            console.log('日付入力値:', e.target.value);
-            
-            // 日付が選択された場合
-            if (e.target.value) {
-              try {
-                // 新しい日付オブジェクトを作成
-                const newDate = new Date(e.target.value + 'T12:00:00'); // 正午に設定して日付ずれを防止
-                
-                console.log('新しい日付オブジェクト:', newDate);
-                console.log('有効な日付か:', !isNaN(newDate.getTime()));
-                
-                // 有効な日付なら状態を更新
-                if (!isNaN(newDate.getTime())) {
-                  setSelectedDate(newDate);
-                }
-              } catch (err) {
-                console.error('日付変換エラー:', err);
-              }
-            } else {
-              // 入力がクリアされた場合
-              setSelectedDate(null);
-            }
-          }}
-          className={styles.dateInput}
-        />
-      </div>
-      
-      <button
-        onClick={() => {
-          console.log('一括設定ボタンクリック');
-          console.log('選択中の日付:', selectedDate);
+     <div className={styles.datePickerContainer}>
+  <label className={styles.bulkEditLabel}>設定日付:</label>
+  <input
+    type="date"
+    value={selectedDate ? selectedDate.toISOString().split('T')[0] : ''}
+    onChange={(e) => {
+      try {
+        // 日付文字列を取得
+        const dateString = e.target.value;
+        console.log('選択された日付文字列:', dateString);
+        
+        if (dateString) {
+          // 日付オブジェクトを作成
+          const newDate = new Date(dateString);
+          console.log('新しい日付オブジェクト:', newDate);
           
-          // 日付が設定されていれば保存処理を実行
-          if (selectedDate && !isNaN(selectedDate.getTime())) {
-            console.log('有効な日付で保存実行:', formatDate(selectedDate));
-            saveBulkEdit(selectedDate);
+          // Date オブジェクトが有効かチェック
+          if (!isNaN(newDate.getTime())) {
+            console.log('有効な日付が選択されました');
+            setSelectedDate(newDate);
           } else {
-            console.warn('有効な日付が選択されていません');
+            console.error('無効な日付:', dateString);
           }
-        }}
-        // disabled状態を手動で制御
-        disabled={!selectedDate || isNaN(selectedDate?.getTime())}
-        className={styles.saveButton}
-        style={{
-          // 選択状態を視覚的に強調
-          backgroundColor: selectedDate && !isNaN(selectedDate?.getTime()) ? '#4f46e5' : '#d1d5db',
-          cursor: selectedDate && !isNaN(selectedDate?.getTime()) ? 'pointer' : 'not-allowed'
-        }}
-      >
-        <Check size={16} />
-        一括設定
-      </button>
-    </div>
+        } else {
+          // 未選択状態に戻す
+          setSelectedDate(null);
+        }
+      } catch (error) {
+        console.error('日付処理エラー:', error);
+      }
+    }}
+    className={styles.dateInput}
+  />
+</div>
+      
+     <button
+  onClick={() => {
+    console.log('一括設定ボタンクリック, selectedDate:', selectedDate);
+    if (selectedDate) {
+      saveBulkEdit(selectedDate);
+    }
+  }}
+  disabled={!selectedDate}
+  className={styles.saveButton}
+>
+  <Check size={16} />
+  一括設定
+</button>
     
     {/* 選択した日付の表示（デバッグ情報含む） */}
     <div className={styles.selectedDateInfo}>
